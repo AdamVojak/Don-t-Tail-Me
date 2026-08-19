@@ -1,6 +1,8 @@
 using Unity.VectorGraphics;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
 public class SustavOruzja : MonoBehaviour
@@ -30,13 +32,14 @@ public class SustavOruzja : MonoBehaviour
     [SerializeField] Animator tijeloAnimator;
 
     [Header("UI Ikone Oružja")]
+    public Color fadedColor = new Color(25f, 25f, 25f, 0.05f);
+    public Color fade= new Color(5f, 5f, 5f, 0.25f);
     [SerializeField] private Image meleeIcon;
     [SerializeField] private Image gunIcon;
     [SerializeField] private Image minigunIcon;
     [SerializeField] private Image pajserIcon;
     private bool hadGun;
     private bool hadMinigun;
-
     private bool hadPajser;
 
     void Start()
@@ -361,21 +364,74 @@ public class SustavOruzja : MonoBehaviour
     {
         if (sashaInventory == null) return;
 
-        if (meleeIcon != null) meleeIcon.color = Color.white;
+        if (meleeIcon != null)
+        {
+            if (current == ActiveWp.Melee)
+            {
+                meleeIcon.color = Color.white;
+            }
+            else
+            {
+                meleeIcon.color = fadedColor;
+            }
+        }
 
         if (gunIcon != null)
         {
-            gunIcon.color = sashaInventory.imaGun ? Color.white : new Color(0f, 0f, 0f, 0.4f);
+            if (!sashaInventory.imaGun)
+            {
+                gunIcon.color = fade;
+            }
+            else
+            {
+                if (current == ActiveWp.Gun)
+                {
+                    gunIcon.color = Color.white;
+                }
+                else
+                {
+                    gunIcon.color = fadedColor;
+                }
+            }
         }
 
         if (minigunIcon != null)
         {
-            minigunIcon.color = sashaInventory.imaMinigun ? Color.white : new Color(0f, 0f, 0f, 0.4f);
+            if (!sashaInventory.imaMinigun)
+            {
+                minigunIcon.color = fade;
+            }
+            else
+            {
+                if (current == ActiveWp.Minigun)
+                {
+                    minigunIcon.color = Color.white;
+                }
+                else
+                {
+                    minigunIcon.color = fadedColor;
+                }
+            }
         }
 
         if (pajserIcon != null)
         {
-            pajserIcon.color = sashaInventory.imaPajser ? Color.white : new Color(0f, 0f, 0f, 0.4f);
+            if (!sashaInventory.imaPajser)
+            {
+                pajserIcon.enabled = false;
+            }
+            else
+            {
+                pajserIcon.enabled = true;
+                if (current == ActiveWp.Pajser)
+                {
+                    pajserIcon.color = Color.white;
+                }
+                else
+                {
+                    pajserIcon.color = fadedColor;
+                }
+            }
         }   
 
     }
