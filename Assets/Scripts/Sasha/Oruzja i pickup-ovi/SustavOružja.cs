@@ -63,6 +63,7 @@ public class SustavOruzja : MonoBehaviour
             tijeloAnimator.SetBool("pajser", false);
             tijeloAnimator.SetBool("udarac", false);
             pajserOruzjeScript.enabled = false;
+            meleeOruzjeScript.enabled = false;
             melee.SetActive(false);
             gun.SetActive(false);
             minigun.SetActive(false);
@@ -163,6 +164,7 @@ public class SustavOruzja : MonoBehaviour
                 tijeloAnimator.SetBool("pajser", false);
                 tijeloAnimator.SetBool("udarac", false);
                 pajserOruzjeScript.enabled = false;
+                meleeOruzjeScript.enabled = false;
                 melee.SetActive(false);
                 gun.SetActive(false);
                 minigun.SetActive(false);
@@ -299,6 +301,7 @@ public class SustavOruzja : MonoBehaviour
 
         if (current == ActiveWp.Melee)
             {
+            meleeOruzjeScript.enabled = true;
             pajserOruzjeScript.enabled = false;
             tijeloAnimator.SetBool("minigun", false);
             tijeloAnimator.SetBool("pajser", false);
@@ -314,6 +317,7 @@ public class SustavOruzja : MonoBehaviour
         }
             else if (current == ActiveWp.Gun)
             {
+            meleeOruzjeScript.enabled = false;
             pajserOruzjeScript.enabled = false;
             tijeloAnimator.SetBool("minigun", false);
             tijeloAnimator.SetBool("pajser", false);
@@ -330,6 +334,7 @@ public class SustavOruzja : MonoBehaviour
             }
             else if (current == ActiveWp.Minigun)
             {
+            meleeOruzjeScript.enabled = false;
             pajserOruzjeScript.enabled = false;
             tijeloAnimator.SetBool("pajser", false);
             tijeloAnimator.SetBool("udarac", false);
@@ -345,6 +350,7 @@ public class SustavOruzja : MonoBehaviour
             }
         else if (current == ActiveWp.Pajser)
         {
+            meleeOruzjeScript.enabled = false;
             pajserOruzjeScript.enabled = true;
             tijeloAnimator.SetBool("minigun", false);
             if (tijeloAnimator != null) tijeloAnimator.Play("Pajser", 0);

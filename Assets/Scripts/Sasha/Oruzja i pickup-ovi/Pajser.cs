@@ -50,11 +50,20 @@ public class Pajser : MonoBehaviour
 
     private void OnTriggerEnter(Collider collision)
     {
+        if (!this.enabled) return;
+
+        if (meleeCollider == null || !meleeCollider.enabled)
+        {
+            return;
+        }
+
         var damageable = collision.GetComponentInParent<IDamageable>();
         if (damageable != null)
         {
+            Debug.Log("Pajser je uspješno udario zombija!");
             damageable.TakeDamage(Mathf.RoundToInt(baseDamage));
-            //if (meleeCollider != null) meleeCollider.enabled = false;
+
+            if (meleeCollider != null) meleeCollider.enabled = false;
         }
     }
 }

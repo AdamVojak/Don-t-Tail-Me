@@ -11,11 +11,15 @@ public class DeathScreenSasha : MonoBehaviour
     public Image tvStaticBackground;
 
     [Header("UI Elementi Uzroka")]
-    public Image wormUI; // 0 = Ubio ga je Worm
-    public Image fistUI; // 1 = Ubio ga je Fist
+    public Image wormUI;
+    public Image fistUI;
+
+
+    [Header("Završni Ekran (Gumbi i Kursor)")]
+    public GameObject buttonsContainer; 
 
     [Header("Postavke Vremena i Fade-a")]
-    public float delayBeforeScreen = 5f;       // Pauza prije nego se išta dogodi
+    public float delayBeforeScreen = 1f;       // Pauza prije nego se išta dogodi
     public float backgroundFadeDuration = 1f;  // Koliko dugo se pojavljuje TV static
     public float causeFadeDuration = 2f;       // Koliko dugo se pojavljuje slika uzroka smrti
 
@@ -24,10 +28,11 @@ public class DeathScreenSasha : MonoBehaviour
 
     private void Start()
     {
-        // Na početku sve slike stavljamo na potpuno prozirno (nevidljivo)
         if (tvStaticBackground != null) tvStaticBackground.color = new Color(1, 1, 1, 0);
         if (wormUI != null) wormUI.color = new Color(1, 1, 1, 0);
         if (fistUI != null) fistUI.color = new Color(1, 1, 1, 0);
+
+        if (buttonsContainer != null) buttonsContainer.SetActive(false);
     }
 
     public void ShowDeathScreen(int cause)
@@ -42,17 +47,13 @@ public class DeathScreenSasha : MonoBehaviour
 
     private IEnumerator DeathSequence(int cause)
     {
-        // 1. KORAK: Čekamo 5 sekundi u mraku
         yield return new WaitForSeconds(delayBeforeScreen);
 
-        // 2. KORAK: Fade-in TV Static pozadine (pojavljuje se do 100% vidljivosti, tj. 1f)
         if (tvStaticBackground != null)
         {
-            // yield return znači "čekaj da ovaj fade-in završi prije nego kreneš dalje"
             yield return StartCoroutine(FadeInElement(tvStaticBackground, backgroundFadeDuration, 1f));
         }
 
-        // 3. KORAK: Fade-in slike uzroka smrti (pojavljuje se do maxAlphaCause)
         if (cause == 0 && wormUI != null)
         {
             yield return StartCoroutine(FadeInElement(wormUI, causeFadeDuration, maxAlphaCause));
@@ -61,22 +62,43 @@ public class DeathScreenSasha : MonoBehaviour
         {
             yield return StartCoroutine(FadeInElement(fistUI, causeFadeDuration, maxAlphaCause));
         }
+
+        yield return new WaitForSeconds(0.5f);
+
+        CursorManager cursorManager = FindFirstObjectByType<CursorManager>();
+        if (cursorManager != null)
+        {
+            cursorManager.ActivateDeathCursor();
+        }
+
+        if (buttonsContainer != null) buttonsContainer.SetActive(true);
     }
 
-    // Univerzalna metoda za Fade-in bilo koje slike
+    // Univerzalna metoda za Fade-in
     private IEnumerator FadeInElement(Image uiElement, float duration, float targetAlpha)
     {
+        // OSIGURAČ 1: Obavezno upali objekt ako je slučajno ugašen u Inspectoru
+        uiElement.gameObject.SetActive(true);
+
+        // OSIGURAČ 2: Gurni ovu sliku na sam vrh (da ju TV static ne može prekriti)
+        uiElement.transform.SetAsLastSibling();
+
         float elapsed = 0f;
+
+        // Čuvamo originalnu boju slike (u slučaju da nije čisto bijela)
+        Color startColor = uiElement.color;
 
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
             float currentAlpha = Mathf.Clamp01(elapsed / duration) * targetAlpha;
-            uiElement.color = new Color(1, 1, 1, currentAlpha);
+
+            // Mijenjamo samo prozirnost (Alpha), ostavljamo originalne RGB boje
+            uiElement.color = new Color(startColor.r, startColor.g, startColor.b, currentAlpha);
             yield return null;
         }
 
         // Osiguravamo točnu prozirnost na kraju
-        uiElement.color = new Color(1, 1, 1, targetAlpha);
+        uiElement.color = new Color(startColor.r, startColor.g, startColor.b, targetAlpha);
     }
 }

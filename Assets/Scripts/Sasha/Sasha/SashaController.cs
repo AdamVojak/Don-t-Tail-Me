@@ -49,10 +49,6 @@ public class SashaController : MonoBehaviour
     [Header("GAME MANAGER")]
     public bool isControlled = false;
 
-    [Header("UI Reference")]
-    public DeathScreenSasha deathScreenManager;
-    private bool deathScreenTriggered = false;
-
     private int zvukUdarca;
     private Vector3 lockedPushDir = Vector3.zero;
     private Rigidbody lockedBox = null;
@@ -376,13 +372,13 @@ public class SashaController : MonoBehaviour
 
         if (mrtavSpritePrefab != null)
         {
-            Instantiate(mrtavSpritePrefab, transform.position, tijelo.transform.rotation);
-        }
+            GameObject mrtviSasha = Instantiate(mrtavSpritePrefab, transform.position, tijelo.transform.rotation);
 
-        if (!deathScreenTriggered && deathScreenManager != null)
-        {
-            deathScreenTriggered = true;
-            deathScreenManager.ShowDeathScreen(cause);
+            Sasha_Death deathScript = mrtviSasha.GetComponent<Sasha_Death>();
+            if (deathScript != null)
+            {
+                deathScript.uzrokSmrti = cause;
+            }
         }
 
         Debug.Log("Sasha je uništen!");

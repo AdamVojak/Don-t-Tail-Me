@@ -11,6 +11,11 @@ public class DeathScreenGiovanni : MonoBehaviour
     public Image bombUI;      // 0
     public Image viperFishUI; // 1
 
+    public Animator tvStaticAnimator;
+
+    [Header("Završni Ekran (Gumbi i Kursor)")]
+    public GameObject buttonsContainer;
+
     [Header("Postavke Fade-a")]
     public float fadeDuration = 2f;
 
@@ -22,6 +27,8 @@ public class DeathScreenGiovanni : MonoBehaviour
     {
         if (bombUI != null) bombUI.color = new Color(1, 1, 1, 0);
         if (viperFishUI != null) viperFishUI.color = new Color(1, 1, 1, 0);
+
+        if (buttonsContainer != null) buttonsContainer.SetActive(false);
     }
 
     public void ShowDeathScreen(int cause)
@@ -44,13 +51,26 @@ public class DeathScreenGiovanni : MonoBehaviour
         while (elapsed < fadeDuration)
         {
             elapsed += Time.deltaTime;
-
             float currentAlpha = Mathf.Clamp01(elapsed / fadeDuration) * maxAlpha;
             uiElement.color = new Color(1, 1, 1, currentAlpha);
-
             yield return null;
         }
 
         uiElement.color = new Color(1, 1, 1, maxAlpha);
+
+        if (tvStaticAnimator != null)
+        {
+            tvStaticAnimator.enabled = false;
+        }
+
+        yield return new WaitForSeconds(0.5f);
+
+        CursorManager cursorManager = FindFirstObjectByType<CursorManager>();
+        if (cursorManager != null)
+        {
+            cursorManager.ActivateDeathCursor();
+        }
+
+        if (buttonsContainer != null) buttonsContainer.SetActive(true);
     }
 }

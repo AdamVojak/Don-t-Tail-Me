@@ -7,6 +7,9 @@ public class CursorManager : MonoBehaviour
     [SerializeField] private GameObject sashaCursor;
     [SerializeField] private GameObject mirandaCursor;
     [SerializeField] private GameObject giovanniCursor;
+    [SerializeField] private GameObject deathCursor; // NOVO: Kursor za Death Screen
+
+    public bool isDeathScreenActive = false;
 
     [Header("Giovanni Kursor Postavke")]
     [SerializeField] private Sprite giovanniNormalSprite;
@@ -78,6 +81,17 @@ public class CursorManager : MonoBehaviour
 
     private void UpdateActiveCursor()
     {
+        if (isDeathScreenActive)
+        {
+            if (sashaCursor != null) sashaCursor.SetActive(false);
+            if (mirandaCursor != null) mirandaCursor.SetActive(false);
+            if (giovanniCursor != null) giovanniCursor.SetActive(false);
+            if (deathCursor != null) deathCursor.SetActive(true);
+            return;
+        }
+
+        if (deathCursor != null) deathCursor.SetActive(false);
+
         GameManager.ActiveCharacter activeChar = gameManager.currChar;
 
         if (sashaCursor != null) sashaCursor.SetActive(activeChar == GameManager.ActiveCharacter.Sasha);
@@ -89,13 +103,16 @@ public class CursorManager : MonoBehaviour
     {
         Vector3 mousePos = Input.mousePosition;
 
-        if (sashaCursor != null && sashaCursor.activeSelf) sashaCursor.transform.position = mousePos;
+        if (isDeathScreenActive && deathCursor != null && deathCursor.activeSelf) deathCursor.transform.position = mousePos;
+        else if (sashaCursor != null && sashaCursor.activeSelf) sashaCursor.transform.position = mousePos;
         else if (mirandaCursor != null && mirandaCursor.activeSelf) mirandaCursor.transform.position = mousePos;
         else if (giovanniCursor != null && giovanniCursor.activeSelf) giovanniCursor.transform.position = mousePos;
     }
 
     private void HandleGiovanniInteraction()
     {
+        if (isDeathScreenActive) return;
+
         if (gameManager.currChar != GameManager.ActiveCharacter.Giovanni)
         {
             ResetGiovanniCursor();
@@ -202,6 +219,11 @@ public class CursorManager : MonoBehaviour
         {
             giovanniInventory = FindFirstObjectByType<GiovanniInventory>();
         }
+    }
+
+    public void ActivateDeathCursor()
+    {
+        isDeathScreenActive = true;
     }
 
     private void OnDisable()

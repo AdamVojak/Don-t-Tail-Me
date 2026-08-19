@@ -16,6 +16,9 @@ public class Sasha_Death : MonoBehaviour
     private Vector3 ciljKacige;
     private float timer = 0f;
 
+    // NOVO: Varijabla koja prima informaciju što ga je ubilo
+    [HideInInspector] public int uzrokSmrti;
+
     void Start()
     {
         Vector3 smjer = -transform.up;
@@ -24,6 +27,17 @@ public class Sasha_Death : MonoBehaviour
         ciljKacige = kaciga.position + (smjer * udaljenostKacige);
 
         pocetnaPozicija = transform.position;
+
+        // NOVO: Automatski pronalazi DeathScreen u sceni (čak i ako je ugašen) i pokreće ga
+        DeathScreenSasha deathScreen = FindFirstObjectByType<DeathScreenSasha>(FindObjectsInactive.Include);
+        if (deathScreen != null)
+        {
+            deathScreen.ShowDeathScreen(uzrokSmrti);
+        }
+        else
+        {
+            Debug.LogWarning("Nije pronađen DeathScreenSasha u sceni!");
+        }
     }
 
     void Update()
@@ -34,7 +48,6 @@ public class Sasha_Death : MonoBehaviour
 
             glava.position = Vector3.Lerp(glava.position, ciljGlave, timer);
             kaciga.position = Vector3.Lerp(kaciga.position, ciljKacige, timer);
-            //InputSystem.QueueStateEvent(Keyboard.current, new KeyboardState(Key.C));
         }
     }
 }

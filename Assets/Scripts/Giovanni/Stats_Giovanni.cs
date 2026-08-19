@@ -14,7 +14,7 @@ public class GiovanniStats : MonoBehaviour
     [Header("Threat Spriteovi")]
     [SerializeField] private Sprite threatNormalSprite;
     [SerializeField] private Sprite threatNightmareSprite;
-    //[SerializeField] private GameObject threatNightmareDodatak;
+    [SerializeField] private GameObject threatNightmareDodatak;
 
     [Header("UI Reference")]
     [SerializeField] private Slider staminaSlider;
@@ -37,7 +37,6 @@ public class GiovanniStats : MonoBehaviour
 
     [Header("Viper Fish Reference")]
     [SerializeField] private ViperFishController viperFish;
-
 
     void Start()
     {
@@ -72,22 +71,24 @@ public class GiovanniStats : MonoBehaviour
             currentStamina += staminaRegenIdle * Time.deltaTime;
         }
 
-
-        if (isMoving)
-        {
-            float currentDrain = isSprinting ? threatDrainSprinting : threatDrainWalking;
-            currentThreat -= currentDrain * Time.deltaTime;
-        }
+        if (viperFish == null) { return; }
         else
         {
-            currentThreat += threatRegenIdle * Time.deltaTime;
-        }
+            if (isMoving)
+            {
+                float currentDrain = isSprinting ? threatDrainSprinting : threatDrainWalking;
+                currentThreat -= currentDrain * Time.deltaTime;
+            }
+            else
+            {
+                currentThreat += threatRegenIdle * Time.deltaTime;
+            }
 
-        if (isFlashlightOn)
-        {
-            currentThreat -= threatDrainFlashlight * Time.deltaTime;
+            if (isFlashlightOn)
+            {
+                currentThreat -= threatDrainFlashlight * Time.deltaTime;
+            }
         }
-
 
         currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
         currentThreat = Mathf.Clamp(currentThreat, 0, maxThreat);
@@ -123,12 +124,12 @@ public class GiovanniStats : MonoBehaviour
         {
             if (currentThreat <= maxThreat * 0.2f)
             {
-                //threatNightmareDodatak.SetActive(true);
+                threatNightmareDodatak.SetActive(true);
                 threatImage.sprite = threatNightmareSprite;
             }
             else
             {
-                //threatNightmareDodatak.SetActive(false);
+                threatNightmareDodatak.SetActive(false);
                 threatImage.sprite = threatNormalSprite;
             }
         }
