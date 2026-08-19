@@ -17,7 +17,7 @@ public class Melee : MonoBehaviour
     [Header("Animacije i Komponente")]
     public Animator animacijaMelee;
     public GameObject melee;
-    private Collider meleeCollider;
+    public Collider meleeCollider;
     public SashaController sashaControllerRef;
 
     [HideInInspector] public bool isAttacking = false;

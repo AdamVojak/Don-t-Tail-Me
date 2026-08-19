@@ -334,10 +334,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d34b9d25f450e340aa3c3db98eb322e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Headless
-  pocetnaBrzina: 0.1
+  pocetnaBrzina: 0.25
   maksimalnaBrzina: 3
-  brzinaUbrzavanja: 2
-  snagaZakoraka: 0.25
+  brzinaUbrzavanja: 3
+  snagaZakoraka: 0.2
   trajanjeZakoraka: 0.1
   sashaControllerRef: {fileID: 0}
   gameManagerRef: {fileID: 0}

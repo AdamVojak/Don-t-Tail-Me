@@ -49,6 +49,10 @@ public class SashaController : MonoBehaviour
     [Header("GAME MANAGER")]
     public bool isControlled = false;
 
+    [Header("UI Reference")]
+    public DeathScreenSasha deathScreenManager;
+    private bool deathScreenTriggered = false;
+
     private int zvukUdarca;
     private Vector3 lockedPushDir = Vector3.zero;
     private Rigidbody lockedBox = null;
@@ -217,6 +221,11 @@ public class SashaController : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
         {
             activeMoveSpeed *= 1.5f;
+            if (animacijaNogu != null) animacijaNogu.speed = 2f;
+        }
+        else
+        {
+            if (animacijaNogu != null) animacijaNogu.speed = 1f;
         }
 
         controller.Move(moveDirection * activeMoveSpeed * Time.deltaTime);
@@ -245,16 +254,18 @@ public class SashaController : MonoBehaviour
         isControlled = controlled;
     }
 
+
+
     public void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Worm"))
         {
             int i = Random.Range(1, 3);
-                if (i == 1)
-                {
-                    TakeDamage(1);
-                }
+            if (i == 1)
+            {
+                TakeDamage(1, 0);
             }
+        }
 
         if (other.CompareTag("Fist"))
         {
@@ -267,7 +278,7 @@ public class SashaController : MonoBehaviour
             {
                 SFX.zvucniEfekti.ZvukUdarca2.Play();
             }
-            TakeDamage(1);
+            TakeDamage(1, 1);
         }
 
         if (other.CompareTag("Obstacle"))
@@ -332,7 +343,8 @@ public class SashaController : MonoBehaviour
         }
     }
 
-    public void TakeDamage(int damageAmount)
+    // Dodali smo 'int cause' kako bi znali tko je zadao udarac
+    public void TakeDamage(int damageAmount, int cause)
     {
         if (currentState == SashaState.Dead) return;
 
@@ -350,13 +362,13 @@ public class SashaController : MonoBehaviour
         if (zivot <= 0)
         {
             zivot = 0;
-            SmrtIgraca();
+            SmrtIgraca(cause);
         }
     }
 
     void ResetColor() { tijeloSprite.material.color = Color.white; glavaSprite.material.color = Color.white; }
 
-    void SmrtIgraca()
+    void SmrtIgraca(int cause)
     {
         currentState = SashaState.Dead;
         isControlled = false;
@@ -365,6 +377,12 @@ public class SashaController : MonoBehaviour
         if (mrtavSpritePrefab != null)
         {
             Instantiate(mrtavSpritePrefab, transform.position, tijelo.transform.rotation);
+        }
+
+        if (!deathScreenTriggered && deathScreenManager != null)
+        {
+            deathScreenTriggered = true;
+            deathScreenManager.ShowDeathScreen(cause);
         }
 
         Debug.Log("Sasha je uništen!");
