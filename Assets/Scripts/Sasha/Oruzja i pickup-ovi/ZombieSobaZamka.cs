@@ -10,16 +10,11 @@ public class ZombieSobaZamka : MonoBehaviour
     public SklopkaSpawner[] sklopke;
 
     public GameObject glavnoSvijetlo;
-
     public GameObject strujaUI;
-
     public GameObject crvenaSvijetla;
 
     private bool trapActivated = false;
-
     private bool allTurnedOff = false;
-
-    private int sklopkaUkljucena;
 
     private void Awake()
     {
@@ -46,36 +41,35 @@ public class ZombieSobaZamka : MonoBehaviour
 
     void Update()
     {
-
+        // 1. KORAK: Provjera treba li se zamka aktivirati
         if (!trapActivated && predmetZaPokupiti == null)
         {
             AktivirajZamku();
-            allTurnedOff = false;
+        }
 
-            if (trapActivated)
+        // 2. KORAK: Ako je zamka aktivna, a još nismo ugasili obje sklopke...
+        if (trapActivated && !allTurnedOff)
+        {
+            // Provjeravamo je li ijedna sklopka još uvijek upaljena
+            bool imaUkljucenaSklopka = false;
+
+            foreach (SklopkaSpawner sk in sklopke)
             {
-                foreach (SklopkaSpawner sk in sklopke)
+                if (sk.isOn)
                 {
-                    if (sk.isOn)
-                    {
-                        sklopkaUkljucena++;
-                    }
-                    if (!sk.isOn)
-                    {
-                        sklopkaUkljucena--;
-                    }
-                }
-                if (sklopkaUkljucena == 0)
-                {
-                    allTurnedOff = true;
+                    imaUkljucenaSklopka = true;
+                    break; // Dovoljno je da je jedna upaljena, nema potrebe dalje provjeravati u ovom frameu
                 }
             }
-        }
-        if (allTurnedOff)
-        {
-            crvenaSvijetla.SetActive(false);
+
+            // Ako niti jedna sklopka NIJE uključena (obje su ugašene)
+            if (!imaUkljucenaSklopka)
+            {
+                DeaktivirajCrvenaSvjetla();
+            }
         }
     }
+
     void AktivirajZamku()
     {
         trapActivated = true;
@@ -83,7 +77,6 @@ public class ZombieSobaZamka : MonoBehaviour
         glavnoSvijetlo.SetActive(false);
         crvenaSvijetla.SetActive(true);
         strujaUI.SetActive(true);
-        sklopkaUkljucena = 2;
 
         foreach (Spawner s in spawneri)
         {
@@ -96,5 +89,18 @@ public class ZombieSobaZamka : MonoBehaviour
             sk.enabled = true;
             sk.SetState(true);
         }
+    }
+
+    // Ova funkcija se poziva točno JEDNOM čim se obje sklopke ugase
+    void DeaktivirajCrvenaSvjetla()
+    {
+        allTurnedOff = true; // Osigurava da se ovo izvrši samo jednom i nikad više
+        crvenaSvijetla.SetActive(false);
+        strujaUI.SetActive(false);
+
+        // Opcionalno: Ako želiš vratiti normalno svjetlo kad ugase sklopke:
+        // glavnoSvijetlo.SetActive(true);
+
+        Debug.Log("Sve sklopke su isključene! Crvena svjetla trajno ugašena.");
     }
 }

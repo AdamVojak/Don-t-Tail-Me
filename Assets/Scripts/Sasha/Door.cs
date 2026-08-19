@@ -10,38 +10,56 @@ public class Door : MonoBehaviour
     [Header("Postavke")]
     public float brzina = 3f;
 
-    public bool jeOtvoreno = false;
-
     private Coroutine trenutnoKretanje;
 
-    public void AktivirajVrata()
+    // Ova funkcija se poziva automatski čim gumb stavi: skripta.enabled = true;
+    private void OnEnable()
     {
-        jeOtvoreno = !jeOtvoreno;
-
-        Vector3 ciljnaPozicija = jeOtvoreno ? tockaOtvoreno.position : tockaZatvoreno.position;
-
-        if (trenutnoKretanje != null)
-        {
-            StopCoroutine(trenutnoKretanje);
-        }
-
-        trenutnoKretanje = StartCoroutine(Pomakni(ciljnaPozicija));
+        OdrediSmjerIPokreni();
     }
 
-    private IEnumerator Pomakni(Vector3 cilj)
+    public void OdrediSmjerIPokreni()
     {
-        while (Vector3.Distance(transform.position, cilj) > 0.001f)
+        // 1. Mjerimo udaljenost vrata do obje točke
+        float udaljenostDoZatvoreno = Vector3.Distance(transform.position, tockaZatvoreno.position);
+        float udaljenostDoOtvoreno = Vector3.Distance(transform.position, tockaOtvoreno.position);
+
+        Vector3 cilj;
+
+        // 2. Ako su vrata bliže točki "Zatvoreno", šaljemo ih prema "Otvoreno" (i obrnuto)
+        if (udaljenostDoZatvoreno < udaljenostDoOtvoreno)
+        {
+            cilj = tockaOtvoreno.position;
+            Debug.Log("Vrata se OTVARAJU.");
+        }
+        else
+        {
+            cilj = tockaZatvoreno.position;
+            Debug.Log("Vrata se ZATVARAJU.");
+        }
+
+        // 3. Pokrećemo kretanje
+        if (trenutnoKretanje != null) StopCoroutine(trenutnoKretanje);
+        trenutnoKretanje = StartCoroutine(PomakniPremaCilju(cilj));
+    }
+
+    private IEnumerator PomakniPremaCilju(Vector3 ciljnaPozicija)
+    {
+        while (Vector3.Distance(transform.position, ciljnaPozicija) > 0.001f)
         {
             transform.position = Vector3.MoveTowards(
                 transform.position,
-                cilj,
+                ciljnaPozicija,
                 brzina * Time.deltaTime
             );
 
-            yield return null;
+            yield return null; // Čeka sljedeći frame
         }
 
-        transform.position = cilj;
-        trenutnoKretanje = null;
+        // Fiksiramo poziciju točno na cilj
+        transform.position = ciljnaPozicija;
+
+        // Skripta se sama gasi na kraju puta, spremna za novo paljenje preko gumba!
+        this.enabled = false;
     }
 }
