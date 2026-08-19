@@ -1,0 +1,212 @@
+using UnityEngine;
+using UnityEngine.Rendering;
+
+public class CursorManager : MonoBehaviour
+{
+    [Header("Kursor objekti (UI elementi)")]
+    [SerializeField] private GameObject sashaCursor;
+    [SerializeField] private GameObject mirandaCursor;
+    [SerializeField] private GameObject giovanniCursor;
+
+    [Header("Giovanni Kursor Postavke")]
+    [SerializeField] private Sprite giovanniNormalSprite;
+    [SerializeField] private Sprite giovanniHandSprite;
+    [SerializeField] private Sprite giovanniCrowbarSprite; // NOVO: Sprite pajsera
+    [SerializeField] private Sprite giovanniNoCrowbarSprite; // NOVO: Sprite prekriženog pajsera
+
+    private GiovanniInventory giovanniInventory;
+    private UnityEngine.UI.Image giovanniCursorImage;
+    public bool IsTargetingItem { get; private set; } = false;
+
+    [Header("Giovanni Interakcija")]
+    [SerializeField] private float maxRaycastDistance = 100f;
+    [SerializeField] private LayerMask interactableLayer;
+
+    [Header("Audio Postavke")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip errorSound;
+
+    [Header("Game Manager Reference")]
+    [SerializeField] private GameManager gameManager;
+
+    private Camera mainCamera;
+
+    void Start()
+    {
+        if (gameManager == null)
+        {
+            Debug.LogError("GameManager referenca nije postavljena u CursorManageru!");
+            enabled = false;
+            return;
+        }
+
+        mainCamera = Camera.main;
+
+        FindGiovanniInventory();
+
+        if (giovanniCursor != null)
+        {
+            giovanniCursorImage = giovanniCursor.GetComponent<UnityEngine.UI.Image>();
+
+            if (giovanniCursorImage == null)
+            {
+                giovanniCursorImage = giovanniCursor.GetComponentInChildren<UnityEngine.UI.Image>();
+            }
+
+            if (giovanniCursorImage == null)
+            {
+                Debug.LogError("UnityEngine.UI.Image komponenta nije pronađena na giovanniCursor objektu niti u njegovoj djeci!");
+            }
+        }
+
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Confined;
+    }
+
+    void Update()
+    {
+        if (gameManager == null) return;
+
+        UpdateActiveCursor();
+        FollowMousePosition();
+
+        if (gameManager.currChar == GameManager.ActiveCharacter.Giovanni)
+        {
+            HandleGiovanniInteraction();
+        }
+    }
+
+    private void UpdateActiveCursor()
+    {
+        GameManager.ActiveCharacter activeChar = gameManager.currChar;
+
+        if (sashaCursor != null) sashaCursor.SetActive(activeChar == GameManager.ActiveCharacter.Sasha);
+        if (mirandaCursor != null) mirandaCursor.SetActive(activeChar == GameManager.ActiveCharacter.Miranda);
+        if (giovanniCursor != null) giovanniCursor.SetActive(activeChar == GameManager.ActiveCharacter.Giovanni);
+    }
+
+    private void FollowMousePosition()
+    {
+        Vector3 mousePos = Input.mousePosition;
+
+        if (sashaCursor != null && sashaCursor.activeSelf) sashaCursor.transform.position = mousePos;
+        else if (mirandaCursor != null && mirandaCursor.activeSelf) mirandaCursor.transform.position = mousePos;
+        else if (giovanniCursor != null && giovanniCursor.activeSelf) giovanniCursor.transform.position = mousePos;
+    }
+
+    private void HandleGiovanniInteraction()
+    {
+        if (gameManager.currChar != GameManager.ActiveCharacter.Giovanni)
+        {
+            ResetGiovanniCursor();
+            return;
+        }
+
+        if (giovanniCursorImage == null) return;
+
+        FindGiovanniInventory();
+
+        Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, maxRaycastDistance))
+        {
+            CollectibleItem item = hit.collider.GetComponentInParent<CollectibleItem>();
+            Computer computer = hit.collider.GetComponentInParent<Computer>();
+            DestructibleObject destructible = hit.collider.GetComponentInParent<DestructibleObject>(); // NOVO
+
+            // NOVO: Logika za uništive objekte
+            if (destructible != null)
+            {
+                IsTargetingItem = true;
+
+                // Provjera ima li Giovanni pajser
+                bool hasCrowbar = (giovanniInventory != null && giovanniInventory.imaPajser);
+
+                if (hasCrowbar)
+                {
+                    SetGiovanniCursorSprite(giovanniCrowbarSprite);
+
+                    if (Input.GetKeyDown(KeyCode.Mouse0))
+                    {
+                        destructible.DestroyAndReplace();
+                    }
+                }
+                else
+                {
+                    SetGiovanniCursorSprite(giovanniNoCrowbarSprite);
+
+                    if (Input.GetKeyDown(KeyCode.Mouse1))
+                    {
+                        if (audioSource != null && errorSound != null)
+                        {
+                            audioSource.PlayOneShot(errorSound);
+                        }
+                    }
+                }
+            }
+
+            else if (item != null)
+            {
+                IsTargetingItem = true;
+                SetGiovanniCursorSprite(giovanniHandSprite);
+
+                if (Input.GetKeyDown(KeyCode.Mouse0))
+                {
+                    if (giovanniInventory != null)
+                    {
+                        item.Collect(giovanniInventory);
+                    }
+                }
+            }
+
+            else if (computer != null && hit.collider.isTrigger && !computer.isReadyToSend)
+            {
+                IsTargetingItem = true;
+                SetGiovanniCursorSprite(giovanniHandSprite);
+
+                if (Input.GetKeyDown(KeyCode.Mouse0))
+                {
+                    computer.TurnOn();
+                }
+            }
+            else
+            {
+                IsTargetingItem = false;
+                SetGiovanniCursorSprite(giovanniNormalSprite);
+            }
+        }
+        else
+        {
+            IsTargetingItem = false;
+            SetGiovanniCursorSprite(giovanniNormalSprite);
+        }
+    }
+
+    private void SetGiovanniCursorSprite(Sprite newSprite)
+    {
+        if (giovanniCursorImage != null && giovanniCursorImage.sprite != newSprite)
+        {
+            giovanniCursorImage.sprite = newSprite;
+        }
+    }
+
+    private void ResetGiovanniCursor()
+    {
+        IsTargetingItem = false;
+        SetGiovanniCursorSprite(giovanniNormalSprite);
+    }
+
+    private void FindGiovanniInventory()
+    {
+        if (giovanniInventory == null)
+        {
+            giovanniInventory = FindFirstObjectByType<GiovanniInventory>();
+        }
+    }
+
+    private void OnDisable()
+    {
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+    }
+}

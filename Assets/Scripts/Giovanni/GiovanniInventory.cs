@@ -1,0 +1,99 @@
+using UnityEngine;
+
+public class GiovanniInventory : MonoBehaviour
+{
+    [Header("Poveznica Mobitel - UI")]
+    public GameObject mobitelUI;
+
+    [Header("Posjed predmeta (Giovanni)")]
+    [SerializeField] private bool imaRuku = false;
+    [SerializeField] private bool imaMobitel = false;
+    [SerializeField] private bool imaGun = false;
+    [SerializeField] private bool imaMinigun = false;
+    [SerializeField] public bool imaPajser = false;
+
+    public const int ID_GUN = 1;
+    public const int ID_MINIGUN = 2;
+    public const int ID_ARM = 3;
+    public const int ID_PAJSER = 5;
+    public const int ID_MOBITEL = 10;
+
+    public bool ImaRuku => imaRuku;
+    public bool ImaMobitel => imaMobitel;
+    public bool ImaGun => imaGun;
+    public bool ImaMinigun => imaMinigun;
+    public bool ImaPajser => imaPajser;
+
+    private void Start()
+    {
+            mobitelUI.SetActive(false);
+    }
+
+    public void CollectItem(int itemID)
+    {
+        if (itemID == ID_ARM)
+        {
+            if (!imaRuku)
+            {
+                imaRuku = true;
+                Debug.Log("Giovanni je pokupio Ruku!");
+            }
+        }
+        else if (itemID == ID_MOBITEL)
+        {
+            if (!imaMobitel)
+            {
+                imaMobitel = true;
+                if (mobitelUI != null) mobitelUI.SetActive(true);
+                Debug.Log("Giovanni je pokupio Mobitel!");
+            }
+        }
+        else if (itemID == ID_GUN)
+        {
+            if (!imaGun)
+            {
+                imaGun = true;
+                Debug.Log("Giovanni je pokupio Gun!");
+            }
+        }
+        else if (itemID == ID_MINIGUN)
+        {
+            if (!imaMinigun)
+            {
+                imaMinigun = true;
+                Debug.Log("Giovanni je pokupio Minigun (3D model)!");
+            }
+        }
+        else if (itemID == ID_PAJSER)
+        {
+            if (!imaPajser)
+            {
+                imaPajser = true;
+                Debug.Log("Giovanni je pokupio Pajser!");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("Giovanni ne može pokupiti nepoznat predmet s ID-jem: " + itemID);
+        }
+    }
+
+    public bool HasItem(int itemID)
+    {
+        if (itemID == ID_ARM) return imaRuku;
+        if (itemID == ID_GUN) return imaGun;
+        if (itemID == ID_MINIGUN) return imaMinigun;
+        if (itemID == ID_MOBITEL) return imaMobitel;
+        if (itemID == ID_PAJSER) return imaPajser;
+        return false;
+    }
+
+    public void RemoveItem(int itemID)
+    {
+        if (itemID == ID_ARM) imaRuku = false;
+        else if (itemID == ID_GUN) imaGun = false;
+        else if (itemID == ID_MINIGUN) imaMinigun = false;
+        else if (itemID == ID_MOBITEL) imaMobitel = false;
+        else if (itemID == ID_PAJSER) imaPajser = false;
+    }
+}

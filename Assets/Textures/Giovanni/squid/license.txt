@@ -1,0 +1,11 @@
+Model Information:
+* title:	Squid
+* source:	https://sketchfab.com/3d-models/squid-8ad9904e278948feb61e9db1bf399263
+* author:	Gabriel Sylar (https://sketchfab.com/ssylar)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Squid" (https://sketchfab.com/3d-models/squid-8ad9904e278948feb61e9db1bf399263) by Gabriel Sylar (https://sketchfab.com/ssylar) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

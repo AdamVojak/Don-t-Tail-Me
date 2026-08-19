@@ -1,0 +1,259 @@
+using UnityEngine;
+using System.Collections;
+using UnityEngine.UI;
+
+public class Computer : MonoBehaviour
+{
+    [Header("Animacija Tuba")]
+    [SerializeField] private Ventilacija_In_Giovanni tube_In;
+
+    [Header("Reference")]
+    [SerializeField] private Light screenLight;
+    [SerializeField] private GiovanniController player;
+    private bool isFlashing = false;
+
+    [Header("Stanje - Ugašen")]
+    public bool isReadyToSend = false;
+    [SerializeField] private float targetIntensity = 1.75f;
+    [SerializeField] private float fadeDuration = 1.5f;
+    private float timeAtClosed;
+
+    [Header("Stanje - Upaljen")]
+    [SerializeField] private GameObject computerUI;
+    private bool isUIOpen = false;
+
+    [Header("UI Slanje")]
+    [SerializeField] private Image[] itemImages;
+    [SerializeField] private GameObject[] selectionFrames;
+    private int selectedIndex = 0;
+
+    [Header("Inventar")]
+    [SerializeField] private GiovanniInventory inventory;
+
+    [Header("Poveznica s Ventilacijom")]
+    [SerializeField] private Ventilacija_Out_Miranda mirandinaVentilacija;
+
+    [Header("Poveznica sa Sashom (Ako Miranda nije tu)")]
+    [SerializeField] private Ventilacija_Out_Sasha sashaVentilacija;
+
+    public bool IsUIOpen => isUIOpen;
+
+    void Start()
+    {
+        if (screenLight != null)
+        {
+            screenLight.enabled = false;
+        }
+        if (computerUI != null) 
+        {
+            computerUI.SetActive(false);
+        }
+    }
+
+    private IEnumerator FlashUIRoutine()
+    {
+        if (isFlashing) yield break;
+        isFlashing = true;
+
+        for (int f = 0; f < 4; f++)
+        {
+            for (int i = 0; i < itemImages.Length; i++)
+            {
+                itemImages[i].color = Color.black;
+                if (selectionFrames.Length > i && selectionFrames[i] != null)
+                {
+                    Image frameImg = selectionFrames[i].GetComponent<Image>();
+                    if (frameImg != null) frameImg.color = Color.red;
+                    selectionFrames[i].SetActive(true);
+                }
+            }
+            yield return new WaitForSeconds(0.25f);
+
+            for (int i = 0; i < itemImages.Length; i++)
+            {
+                itemImages[i].color = Color.white;
+                if (selectionFrames.Length > i && selectionFrames[i] != null)
+                {
+                    Image frameImg = selectionFrames[i].GetComponent<Image>();
+                    if (frameImg != null) frameImg.color = Color.white;
+                }
+            }
+            yield return new WaitForSeconds(0.25f);
+        }
+
+        isFlashing = false;
+        UpdateUI();
+    }
+
+    public bool IsInteracting()
+    {
+        return isUIOpen || (Time.time - timeAtClosed < 0.2f);
+    }
+
+    void Update()
+    {
+        if (!isUIOpen) return;
+
+        HandleNavigation();
+
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            ToggleComputerState(false);
+        }
+
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            TrySendSelectedItem();
+        }
+    }
+
+    private void HandleNavigation()
+    {
+        int prevIndex = selectedIndex;
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+
+        if (scroll < 0f || Input.GetKeyDown(KeyCode.E)) selectedIndex++;
+        else if (scroll > 0f || Input.GetKeyDown(KeyCode.Q)) selectedIndex--;
+
+        selectedIndex = Mathf.Clamp(selectedIndex, 0, 2);
+
+        if (prevIndex != selectedIndex) UpdateUI();
+    }
+
+    private void UpdateUI()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            // Mapiranje: 0=Ruka(ID 3), 1=Gun(ID 1), 2=Minigun(ID 2)
+            int checkID = (i == 0) ? 3 : (i == 1 ? 1 : 2);
+
+            if (inventory != null)
+            {
+                itemImages[i].color = inventory.HasItem(checkID) ? Color.white : Color.black;
+            }
+            selectionFrames[i].SetActive(i == selectedIndex);
+        }
+    }
+
+    public void ToggleComputerState(bool state)
+    {
+        isUIOpen = state;
+        if (state)
+        {
+            computerUI.SetActive(true);
+            UpdateUI();
+            if (player != null) player.SetLock(true);
+        }
+        else
+        {
+            timeAtClosed = Time.time;
+            StartCoroutine(FadeOutLight());
+            if (player != null) player.SetLock(false);
+        }
+    }
+
+    public void TurnOn()
+    {
+        if (!isReadyToSend)
+        {
+            isReadyToSend = true;
+            StartCoroutine(FadeInLight());
+            Debug.Log("Kompjuter se pali...");
+        }
+    }
+
+    private IEnumerator FadeInLight()
+    {
+        if (screenLight == null) yield break;
+
+        screenLight.intensity = 0;
+        screenLight.enabled = true;
+
+        float currentTime = 0;
+        while (currentTime < fadeDuration)
+        {
+            currentTime += Time.deltaTime;
+            screenLight.intensity = Mathf.Lerp(0, targetIntensity, currentTime / fadeDuration);
+            yield return null;
+        }
+        screenLight.intensity = targetIntensity;
+        if (computerUI != null)
+        {
+            computerUI.SetActive(true);
+            ToggleComputerState(true);
+                //neki zvuk paljenja
+        }
+    }
+
+    private IEnumerator FadeOutLight()
+    {
+        float currentTime = 0;
+        float startIntensity = screenLight.intensity;
+
+        if (computerUI != null) computerUI.SetActive(false);
+
+        while (currentTime < fadeDuration)
+        {
+            currentTime += Time.deltaTime;
+            screenLight.intensity = Mathf.Lerp(startIntensity, 0, currentTime / fadeDuration);
+            yield return null;
+        }
+
+        screenLight.enabled = false;
+        isReadyToSend = false;
+    }
+
+    public void TrySendSelectedItem()
+    {
+        int itemIDToSend = (selectedIndex == 0) ? 3 : (selectedIndex == 1 ? 1 : 2);
+
+        if (inventory.HasItem(itemIDToSend))
+        {
+            GameObject mirandaObj = GameObject.FindGameObjectWithTag("Miranda");
+            bool mirandaPrisutna = mirandaObj != null && mirandaObj.activeInHierarchy;
+
+            if (mirandaPrisutna)
+            {
+                if (mirandinaVentilacija != null && !mirandinaVentilacija.MozePrimiti())
+                {
+                    StartCoroutine(FlashUIRoutine());
+                    return;
+                }
+            }
+            else
+            {
+                if (sashaVentilacija != null && !sashaVentilacija.MozePrimiti())
+                {
+                    StartCoroutine(FlashUIRoutine());
+                    return;
+                }
+            }
+
+            if (tube_In != null)
+            {
+                tube_In.PokreniAnimacijuSlanja(itemIDToSend);
+            }
+
+            if (mirandaPrisutna)
+            {
+                if (mirandinaVentilacija != null)
+                {
+                    mirandinaVentilacija.SpremiItemZaMirandu(itemIDToSend);
+                    Debug.Log("Giovanni šalje predmet Mirandi.");
+                }
+            }
+            else
+            {
+                if (sashaVentilacija != null)
+                {
+                    sashaVentilacija.SpremiItemZaSashu(itemIDToSend);
+                    Debug.Log("Miranda nije prisutna. Giovanni šalje direktno Sashi!");
+                }
+            }
+
+            inventory.RemoveItem(itemIDToSend);
+            UpdateUI();
+            ToggleComputerState(false);
+        }
+    }
+}
