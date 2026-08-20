@@ -40566,6 +40566,7 @@ MonoBehaviour:
   totalTimeInSeconds: 360
   gameManager: {fileID: 1769046971}
   ventWorm: {fileID: 29227680}
+  vrijemeTece: 1
 --- !u!1001 &294920360
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -92076,11 +92077,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DeathScreenGiovanni
   deathCanvas: {fileID: 649874940}
   tvStaticBackground: {fileID: 1742871643}
+  tvStaticAnimator: {fileID: 1742871642}
   bombUI: {fileID: 1543547370}
   viperFishUI: {fileID: 1449051066}
   buttonsContainer: {fileID: 237040306}
   causeFadeDuration: 2
-  maxAlphaCause: 0.75
+  maxAlphaCause: 0.8
 --- !u!114 &649874946
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -92095,6 +92097,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DeathScreenSasha
   deathCanvas: {fileID: 649874940}
   tvStaticBackground: {fileID: 1742871643}
+  tvStaticAnimator: {fileID: 1742871642}
   wormUI: {fileID: 923331991}
   fistUI: {fileID: 1837544552}
   buttonsContainer: {fileID: 237040306}
@@ -92116,11 +92119,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DeathScreenMiranda
   deathCanvas: {fileID: 649874940}
   tvStaticBackground: {fileID: 1742871643}
+  tvStaticAnimator: {fileID: 0}
   deathCauseUI: {fileID: 1362889721}
   buttonsContainer: {fileID: 237040306}
-  tvStaticAnimator: {fileID: 1742871642}
-  fadeDuration: 2
-  maxAlpha: 0.8
+  causeFadeDuration: 2
+  maxAlphaCause: 0.8
 --- !u!1001 &651713086
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -115365,7 +115368,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &825055365
 Transform:
   m_ObjectHideFlags: 0
@@ -241756,7 +241759,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1693932842
 Transform:
   m_ObjectHideFlags: 0
@@ -283940,7 +283943,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2010073659
 Transform:
   m_ObjectHideFlags: 0

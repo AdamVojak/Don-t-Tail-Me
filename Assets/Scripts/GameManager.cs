@@ -81,6 +81,8 @@ public class GameManager : MonoBehaviour
 
         //LockCursor(true);
 
+        isLoading = false;
+
         if (UI_Tranzicija != null) UI_Tranzicija.SetActive(false);
         if (loadingManager != null) loadingManager.HideAll();
 
@@ -343,7 +345,6 @@ public class GameManager : MonoBehaviour
 
     IEnumerator InitialTransitionRoutine()
     {
-        isLoading = true;
         isTransitioning = true;
 
         // 1. Tražimo tko je prvi dostupan lik
@@ -364,6 +365,8 @@ public class GameManager : MonoBehaviour
         // 2. INSTANTNO SPUŠTAMO ZID (Crni ekran, bez mjehurića)
         if (loadingManager != null) loadingManager.SnapWallDown();
 
+        isLoading = true;
+
         // 3. PRAZNINA (0.5 sekundi crnog ekrana prije nego se išta dogodi)
         yield return new WaitForSeconds(0.5f);
 
@@ -375,7 +378,6 @@ public class GameManager : MonoBehaviour
         {
             tranzicijskiSlider.value = targetValue; // Odmah ga stavlja na metu u mraku
         }
-
 
         // 5. JITTERY FADE-IN (Drhtavo paljenje Slidera)
         if (UI_Tranzicija != null)
@@ -427,6 +429,7 @@ public class GameManager : MonoBehaviour
 
         yield return null;
         yield return new WaitForSeconds(0.5f); // Buffer da lik padne na pod
+        isLoading = false;
 
         // 9. DIŽEMO ZID (Ovdje će se normalno upaliti mjehurići pri dizanju!)
         if (loadingManager != null)
@@ -435,7 +438,6 @@ public class GameManager : MonoBehaviour
         }
 
         isTransitioning = false;
-        isLoading = false;
     }
 
     void DeactivateAllCharacters()

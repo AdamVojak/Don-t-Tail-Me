@@ -6,73 +6,56 @@ public class DeathScreenMiranda : MonoBehaviour
 {
     [Header("Glavni Canvas")]
     public GameObject deathCanvas;
-    public Image tvStaticBackground; // NOVO: Slika TV statice
+
+    [Header("TV Static Pozadina")]
+    public Image tvStaticBackground;
+    public Animator tvStaticAnimator; // Podrška za animator ako ga imaš
 
     [Header("UI Slika Uzroka")]
     public Image deathCauseUI;
 
-    [Header("Završni Ekran (Gumbi)")]
+    [Header("Završni Ekran (Gumbi i Kursor)")]
     public GameObject buttonsContainer;
 
-    [Header("TV Static Animator (Opcionalno)")]
-    public Animator tvStaticAnimator;
-
     [Header("Postavke Fade-a")]
-    public float fadeDuration = 2f;
+    public float causeFadeDuration = 2f;
 
     [Range(0f, 1f)]
-    public float maxAlpha = 0.8f;
-
-    private void Start()
-    {
-        if (tvStaticBackground != null) tvStaticBackground.color = Color.white;
-
-        if (deathCauseUI != null) deathCauseUI.color = new Color(1, 1, 1, 0);
-
-        if (buttonsContainer != null) buttonsContainer.SetActive(false);
-    }
+    public float maxAlphaCause = 0.8f;
 
     public void ShowDeathScreen()
     {
-        if (deathCanvas != null) deathCanvas.SetActive(true);
-
+        // 1. STATIC ODMAH PALIMO (Alpha = 1, Image i Animator = true)
         if (tvStaticBackground != null)
         {
-            tvStaticBackground.gameObject.SetActive(true);
-
-            Color c = tvStaticBackground.color;
-            c.a = 1f;
-            tvStaticBackground.color = c;
+            SetAlpha(tvStaticBackground, 1f);
+            tvStaticBackground.enabled = true;
         }
+        if (tvStaticAnimator != null) tvStaticAnimator.enabled = true;
 
-        if (tvStaticAnimator != null)
-        {
-            tvStaticAnimator.enabled = true;
-        }
+        // 2. UZROK I GUMBE GASIMO NA POČETKU
+        if (deathCauseUI != null) deathCauseUI.enabled = false;
+        if (buttonsContainer != null) buttonsContainer.SetActive(false);
 
-        if (deathCauseUI != null)
-        {
-            StartCoroutine(FadeIn());
-        }
+        // 3. Palimo Canvas (Static se odmah vidi)
+        if (deathCanvas != null) deathCanvas.SetActive(true);
+
+        StartCoroutine(DeathSequence());
     }
 
-    private IEnumerator FadeIn()
+    private IEnumerator DeathSequence()
     {
-        deathCauseUI.gameObject.SetActive(true);
-
-        float elapsed = 0f;
-        Color startColor = deathCauseUI.color;
-
-        while (elapsed < fadeDuration)
+        // 1. KORAK: Palimo sliku uzroka smrti, stavljamo prozirnost na 0 i radimo fade-in
+        if (deathCauseUI != null)
         {
-            elapsed += Time.deltaTime;
-            float currentAlpha = Mathf.Clamp01(elapsed / fadeDuration) * maxAlpha;
-            deathCauseUI.color = new Color(startColor.r, startColor.g, startColor.b, currentAlpha);
-            yield return null;
+            deathCauseUI.gameObject.SetActive(true);
+            SetAlpha(deathCauseUI, 0f);
+            deathCauseUI.enabled = true;
+
+            yield return StartCoroutine(FadeIn(deathCauseUI, causeFadeDuration, maxAlphaCause));
         }
 
-        deathCauseUI.color = new Color(startColor.r, startColor.g, startColor.b, maxAlpha);
-
+        // 2. KORAK: Čekamo pola sekunde, palimo kursor i gumbe
         yield return new WaitForSeconds(0.5f);
 
         CursorManager cursorManager = FindFirstObjectByType<CursorManager>();
@@ -81,10 +64,35 @@ public class DeathScreenMiranda : MonoBehaviour
             cursorManager.ActivateDeathCursor();
         }
 
-        // 5. Palimo gumbe za Restart i Exit
         if (buttonsContainer != null)
         {
             buttonsContainer.SetActive(true);
         }
+    }
+
+    private IEnumerator FadeIn(Image target, float duration, float targetAlpha)
+    {
+        float elapsed = 0f;
+        Color c = target.color;
+
+        // Osiguranje da slika nije ostala crna u memoriji
+        if (c.r == 0 && c.g == 0 && c.b == 0) c = Color.white;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float alpha = Mathf.Clamp01(elapsed / duration) * targetAlpha;
+            target.color = new Color(c.r, c.g, c.b, alpha);
+            yield return null;
+        }
+
+        target.color = new Color(c.r, c.g, c.b, targetAlpha);
+    }
+
+    private void SetAlpha(Image img, float alpha)
+    {
+        Color c = img.color;
+        c.a = alpha;
+        img.color = c;
     }
 }

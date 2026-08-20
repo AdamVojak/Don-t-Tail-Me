@@ -7,42 +7,35 @@ public class DeathScreenSasha : MonoBehaviour
     [Header("Glavni Canvas")]
     public GameObject deathCanvas;
 
-    [Tooltip("Slika pozadine (TV Static)")]
+    [Header("TV Static Pozadina")]
     public Image tvStaticBackground;
+    public Animator tvStaticAnimator; // NOVO: Dodan animator da ga možemo gasiti!
 
     [Header("UI Elementi Uzroka")]
     public Image wormUI;
     public Image fistUI;
 
-    [Header("Završni Ekran (Gumbi i Kursor)")]
+    [Header("Završni Ekran (Gumbi)")]
     public GameObject buttonsContainer;
 
     [Header("Postavke Vremena i Fade-a")]
-    public float delayBeforeScreen = 2f;       // Pauza u potpunom mraku
-    public float backgroundFadeDuration = 1f;  // Koliko dugo se pojavljuje TV static
-    public float causeFadeDuration = 2f;       // Koliko dugo se pojavljuje slika uzroka smrti
+    public float delayBeforeScreen = 2f;
+    public float backgroundFadeDuration = 1f;
+    public float causeFadeDuration = 2f;
 
     [Range(0f, 1f)]
     public float maxAlphaCause = 0.8f;
 
-    private void Start()
-    {
-        // Na početku igre sve gasimo
-        if (tvStaticBackground != null) tvStaticBackground.gameObject.SetActive(false);
-        if (wormUI != null) wormUI.gameObject.SetActive(false);
-        if (fistUI != null) fistUI.gameObject.SetActive(false);
-        if (buttonsContainer != null) buttonsContainer.SetActive(false);
-    }
-
     public void ShowDeathScreen(int cause)
     {
-        // 1. FIZIČKI GASIMO sve slike prije nego upalimo Canvas
-        if (tvStaticBackground != null) tvStaticBackground.gameObject.SetActive(false);
-        if (wormUI != null) wormUI.gameObject.SetActive(false);
-        if (fistUI != null) fistUI.gameObject.SetActive(false);
+        // 1. TVOJA IDEJA: Gasimo Image i Animator komponente PRIJE paljenja Canvasa!
+        if (tvStaticBackground != null) tvStaticBackground.enabled = false;
+        if (tvStaticAnimator != null) tvStaticAnimator.enabled = false;
+        if (wormUI != null) wormUI.enabled = false;
+        if (fistUI != null) fistUI.enabled = false;
         if (buttonsContainer != null) buttonsContainer.SetActive(false);
 
-        // 2. Upalimo samo Canvas
+        // 2. Sada sigurno palimo Canvas (ništa se ne vidi jer su Image komponente ugašene)
         if (deathCanvas != null) deathCanvas.SetActive(true);
 
         StartCoroutine(DeathSequence(cause));
@@ -50,32 +43,31 @@ public class DeathScreenSasha : MonoBehaviour
 
     private IEnumerator DeathSequence(int cause)
     {
-        // 1. KORAK: Čekamo 2 sekunde (Sve je UGAŠENO, nemoguće je da se išta vidi!)
+        // 1. Čekamo u mraku
         yield return new WaitForSeconds(delayBeforeScreen);
 
-        // 2. KORAK: Palimo TV Static i pokrećemo njegov fade-in od nule
+        // 2. Palimo TV Static i radimo fade-in
         if (tvStaticBackground != null)
         {
-            tvStaticBackground.gameObject.SetActive(true);
-            tvStaticBackground.color = new Color(1, 1, 1, 0); // Kreni od 0
-            yield return StartCoroutine(FadeInElement(tvStaticBackground, backgroundFadeDuration, 1f));
+            SetAlpha(tvStaticBackground, 0f);
+            tvStaticBackground.enabled = true;
+            if (tvStaticAnimator != null) tvStaticAnimator.enabled = true;
+
+            yield return StartCoroutine(FadeIn(tvStaticBackground, backgroundFadeDuration, 1f));
         }
 
-        // 3. KORAK: Palimo sliku uzroka smrti i pokrećemo fade-in
-        if (cause == 0 && wormUI != null)
+        // 3. Palimo Image uzroka i radimo fade-in
+        Image causeImage = (cause == 0) ? wormUI : fistUI;
+        if (causeImage != null)
         {
-            wormUI.gameObject.SetActive(true);
-            wormUI.color = new Color(1, 1, 1, 0);
-            yield return StartCoroutine(FadeInElement(wormUI, causeFadeDuration, maxAlphaCause));
-        }
-        else if (cause == 1 && fistUI != null)
-        {
-            fistUI.gameObject.SetActive(true);
-            fistUI.color = new Color(1, 1, 1, 0);
-            yield return StartCoroutine(FadeInElement(fistUI, causeFadeDuration, maxAlphaCause));
+            causeImage.gameObject.SetActive(true);
+            SetAlpha(causeImage, 0f);
+            causeImage.enabled = true;
+
+            yield return StartCoroutine(FadeIn(causeImage, causeFadeDuration, maxAlphaCause));
         }
 
-        // 4. KORAK: Čekamo pola sekunde, palimo kursor i gumbe
+        // --- OVAJ DIO JE FALIO NA KRAJU METODE: ---
         yield return new WaitForSeconds(0.5f);
 
         CursorManager cursorManager = FindFirstObjectByType<CursorManager>();
@@ -84,23 +76,34 @@ public class DeathScreenSasha : MonoBehaviour
             cursorManager.ActivateDeathCursor();
         }
 
-        if (buttonsContainer != null) buttonsContainer.SetActive(true);
+        if (buttonsContainer != null)
+        {
+            buttonsContainer.SetActive(true);
+        }
+        // ------------------------------------------
     }
 
-    // Univerzalna metoda za Fade-in
-    private IEnumerator FadeInElement(Image uiElement, float duration, float targetAlpha)
+    private IEnumerator FadeIn(Image target, float duration, float targetAlpha)
     {
         float elapsed = 0f;
-        Color startColor = uiElement.color;
+        Color c = target.color;
+
+        if (c.r == 0 && c.g == 0 && c.b == 0) c = Color.white;
 
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            float currentAlpha = Mathf.Clamp01(elapsed / duration) * targetAlpha;
-            uiElement.color = new Color(startColor.r, startColor.g, startColor.b, currentAlpha);
+            float alpha = Mathf.Clamp01(elapsed / duration) * targetAlpha;
+            target.color = new Color(c.r, c.g, c.b, alpha);
             yield return null;
         }
+        target.color = new Color(c.r, c.g, c.b, targetAlpha);
+    }
 
-        uiElement.color = new Color(startColor.r, startColor.g, startColor.b, targetAlpha);
+    private void SetAlpha(Image img, float alpha)
+    {
+        Color c = img.color;
+        c.a = alpha;
+        img.color = c;
     }
 }

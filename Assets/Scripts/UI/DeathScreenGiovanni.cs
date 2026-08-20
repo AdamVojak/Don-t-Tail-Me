@@ -7,89 +7,93 @@ public class DeathScreenGiovanni : MonoBehaviour
     [Header("Glavni Canvas")]
     public GameObject deathCanvas;
 
-    [Tooltip("Slika pozadine (TV Static) koja se odmah naglo pojavljuje")]
+    [Header("TV Static Pozadina")]
     public Image tvStaticBackground;
+    public Animator tvStaticAnimator; // NOVO: Dodan animator
 
     [Header("UI Elementi Uzroka")]
-    public Image bombUI;      // 0 = Bomba
-    public Image viperFishUI; // 1 = Viper riba
+    public Image bombUI;
+    public Image viperFishUI;
 
-    [Header("Završni Ekran (Gumbi i Kursor)")]
+    [Header("Završni Ekran (Gumbi)")]
     public GameObject buttonsContainer;
 
     [Header("Postavke Fade-a")]
-    public float causeFadeDuration = 2f; // Koliko dugo se pojavljuje slika uzroka smrti
+    public float causeFadeDuration = 2f;
 
     [Range(0f, 1f)]
-    public float maxAlphaCause = 0.8f;   // Prozirnost za sliku uzroka (0.8 = 20% prozirno)
-
-    private void Start()
-    {
-        if (tvStaticBackground != null) tvStaticBackground.color = Color.white;
-
-        if (bombUI != null) bombUI.color = new Color(1, 1, 1, 0);
-        if (viperFishUI != null) viperFishUI.color = new Color(1, 1, 1, 0);
-
-        if (buttonsContainer != null) buttonsContainer.SetActive(false);
-    }
+    public float maxAlphaCause = 0.8f;
 
     public void ShowDeathScreen(int cause)
     {
+        // 1. STATIC ODMAH PALIMO (Image i Animator = true, Alpha = 1)
+        if (tvStaticBackground != null)
+        {
+            SetAlpha(tvStaticBackground, 1f);
+            tvStaticBackground.enabled = true;
+        }
+        if (tvStaticAnimator != null) tvStaticAnimator.enabled = true;
+
+        // 2. UZROKE GASIMO (Image = false)
+        if (bombUI != null) bombUI.enabled = false;
+        if (viperFishUI != null) viperFishUI.enabled = false;
+        if (buttonsContainer != null) buttonsContainer.SetActive(false);
+
+        // 3. Palimo Canvas (Static se odmah vidi)
         if (deathCanvas != null) deathCanvas.SetActive(true);
 
-        // Pokrećemo sekvencu
         StartCoroutine(DeathSequence(cause));
     }
 
     private IEnumerator DeathSequence(int cause)
     {
-        // 1. NAGLI (ABRUPT) STATIC: Odmah forsiramo punu bijelu boju i palimo ga bez čekanja
-        if (tvStaticBackground != null)
+        Image targetImage = (cause == 0) ? bombUI : viperFishUI;
+
+        if (targetImage != null)
         {
-            tvStaticBackground.gameObject.SetActive(true);
-            tvStaticBackground.color = Color.white; // 100% vidljivo odmah!
+            targetImage.gameObject.SetActive(true);
+            SetAlpha(targetImage, 0f);
+            targetImage.enabled = true;
+
+            yield return StartCoroutine(FadeIn(targetImage, causeFadeDuration, maxAlphaCause));
         }
 
-        // 2. FADE-IN UZROKA: Lagano pojavljivanje Bombe ili Vipera (identično kao kod Sashe)
-        if (cause == 0 && bombUI != null)
-        {
-            yield return StartCoroutine(FadeInElement(bombUI, causeFadeDuration, maxAlphaCause));
-        }
-        else if (cause == 1 && viperFishUI != null)
-        {
-            yield return StartCoroutine(FadeInElement(viperFishUI, causeFadeDuration, maxAlphaCause));
-        }
-
-        // 3. Čekamo pola sekunde
         yield return new WaitForSeconds(0.5f);
 
-        // 4. Palimo Death Kursor preko CursorManagera
         CursorManager cursorManager = FindFirstObjectByType<CursorManager>();
         if (cursorManager != null)
         {
             cursorManager.ActivateDeathCursor();
         }
 
-        // 5. Palimo gumbe
-        if (buttonsContainer != null) buttonsContainer.SetActive(true);
+        if (buttonsContainer != null)
+        {
+            buttonsContainer.SetActive(true);
+        }
     }
 
-    // Univerzalna metoda za Fade-in (1:1 ista kao kod Sashe)
-    private IEnumerator FadeInElement(Image uiElement, float duration, float targetAlpha)
+    private IEnumerator FadeIn(Image target, float duration, float targetAlpha)
     {
-        uiElement.gameObject.SetActive(true);
-
         float elapsed = 0f;
-        Color startColor = uiElement.color;
+        Color c = target.color;
+
+
+        if (c.r == 0 && c.g == 0 && c.b == 0) c = Color.white;
 
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
-            float currentAlpha = Mathf.Clamp01(elapsed / duration) * targetAlpha;
-            uiElement.color = new Color(startColor.r, startColor.g, startColor.b, currentAlpha);
+            float alpha = Mathf.Clamp01(elapsed / duration) * targetAlpha;
+            target.color = new Color(c.r, c.g, c.b, alpha);
             yield return null;
         }
+        target.color = new Color(c.r, c.g, c.b, targetAlpha);
+    }
 
-        uiElement.color = new Color(startColor.r, startColor.g, startColor.b, targetAlpha);
+    private void SetAlpha(Image img, float alpha)
+    {
+        Color c = img.color;
+        c.a = alpha;
+        img.color = c;
     }
 }

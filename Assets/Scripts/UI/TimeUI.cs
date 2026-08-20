@@ -12,8 +12,11 @@ public class TimerUI : MonoBehaviour
     [Header("Game Manager Reference")]
     [SerializeField] private GameManager gameManager;
 
-    [Header("Worm Reference")] 
+    [Header("Worm Reference")]
     [SerializeField] private GameObject ventWorm;
+
+    [Header("Debug / Development Postavke")]
+    [SerializeField] private bool vrijemeTece = true; // <-- TVOJ NOVI BOOLEAN (početno uvijek true)
 
     private float currentTime;
     private bool timerRunning = false;
@@ -37,6 +40,7 @@ public class TimerUI : MonoBehaviour
         }
 
         currentTime = totalTimeInSeconds;
+        vrijemeTece = true; // Osiguravamo da je uvijek upaljen pri pokretanju igre
         ventWorm.SetActive(false);
     }
 
@@ -49,7 +53,7 @@ public class TimerUI : MonoBehaviour
             return;
         }
 
-        if (gameManager.currChar == GameManager.ActiveCharacter.Miranda)
+        if (gameManager.currChar == GameManager.ActiveCharacter.Miranda && !gameManager.isLoading)
         {
             if (!timerRunning)
             {
@@ -58,7 +62,11 @@ public class TimerUI : MonoBehaviour
 
             if (timerRunning)
             {
-                currentTime -= Time.deltaTime * timeMultiplier;
+                // Vrijeme se oduzima SAMO ako je vrijemeTece = true
+                if (vrijemeTece)
+                {
+                    currentTime -= Time.deltaTime * timeMultiplier;
+                }
 
                 float rotationAngle = (currentTime / totalTimeInSeconds) * 360f;
                 handRectTransform.rotation = Quaternion.Euler(0f, 0f, rotationAngle);
@@ -84,6 +92,7 @@ public class TimerUI : MonoBehaviour
             }
         }
     }
+
     private void StartTimerInternal()
     {
         if (!timerRunning)
