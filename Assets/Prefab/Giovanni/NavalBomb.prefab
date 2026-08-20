@@ -52,7 +52,7 @@ MeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3497262330381544050}
   m_Enabled: 1
-  m_CastShadows: 1
+  m_CastShadows: 2
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
@@ -69,7 +69,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: -2749682500320602757, guid: 3e88d62b04983684fa9c2d54c41732e6, type: 3}
+  - {fileID: 2100000, guid: ce32475ebc52aa546983f7f29f31a377, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -126,7 +126,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 021e49016b57d034b90ab0d13019cb01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bomba
-  warning: 3
+  minUpozorenja: 3
+  maxUpozorenja: 6
+  cooldownTrzanja: 1
 --- !u!65 &313101928614245129
 BoxCollider:
   m_ObjectHideFlags: 0

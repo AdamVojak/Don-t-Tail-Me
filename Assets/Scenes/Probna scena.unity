@@ -14537,7 +14537,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 96, y: 96}
+  m_SizeDelta: {x: 64, y: 64}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &98905141
 MonoBehaviour:
@@ -20769,6 +20769,7 @@ GameObject:
   m_Component:
   - component: {fileID: 134020470}
   - component: {fileID: 134020471}
+  - component: {fileID: 134020472}
   m_Layer: 0
   m_Name: Sasha_ZombieSoba
   m_TagString: Untagged
@@ -20821,6 +20822,27 @@ MonoBehaviour:
   glavnoSvijetlo: {fileID: 594723194}
   strujaUI: {fileID: 1025468769}
   crvenaSvijetla: {fileID: 530869471}
+--- !u!65 &134020472
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 134020469}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 18, y: 17.5, z: 10}
+  m_Center: {x: -19, y: 10.5, z: -4}
 --- !u!1001 &135252248
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -30843,7 +30865,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &221663098
 RectTransform:
   m_ObjectHideFlags: 0
@@ -40541,7 +40563,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TimerUI
   handRectTransform: {fileID: 1610701235}
-  totalTimeInSeconds: 10
+  totalTimeInSeconds: 360
   gameManager: {fileID: 1769046971}
   ventWorm: {fileID: 29227680}
 --- !u!1001 &294920360
@@ -67408,8 +67430,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 924514431}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: -10}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -92058,7 +92080,7 @@ MonoBehaviour:
   viperFishUI: {fileID: 1449051066}
   buttonsContainer: {fileID: 237040306}
   causeFadeDuration: 2
-  maxAlphaCause: 0.65
+  maxAlphaCause: 0.75
 --- !u!114 &649874946
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -92079,7 +92101,7 @@ MonoBehaviour:
   delayBeforeScreen: 2
   backgroundFadeDuration: 2
   causeFadeDuration: 3
-  maxAlphaCause: 0.75
+  maxAlphaCause: 0.8
 --- !u!114 &649874947
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -92098,7 +92120,7 @@ MonoBehaviour:
   buttonsContainer: {fileID: 237040306}
   tvStaticAnimator: {fileID: 1742871642}
   fadeDuration: 2
-  maxAlpha: 0.7
+  maxAlpha: 0.8
 --- !u!1001 &651713086
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -115343,7 +115365,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &825055365
 Transform:
   m_ObjectHideFlags: 0
@@ -116133,6 +116155,7 @@ GameObject:
   m_Component:
   - component: {fileID: 831440566}
   - component: {fileID: 831440567}
+  - component: {fileID: 831440568}
   m_Layer: 0
   m_Name: EnergyManager
   m_TagString: Untagged
@@ -116170,6 +116193,20 @@ MonoBehaviour:
   struja: 0
   maxStruja: 100
   brzinaPraznjenja: 5
+--- !u!114 &831440568
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 831440565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 82076d07b05717f47998f359b9582d14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  imeSashaLeveli: Sasha_Leveli
+  upravljanjeAktivno: 0
 --- !u!1001 &831470065
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -127848,8 +127885,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 4, y: 0.95, z: 2}
-  m_Center: {x: 1.5, y: 0, z: 1}
+  m_Size: {x: 4, y: 0.95, z: 4}
+  m_Center: {x: 1.5, y: 0, z: -1}
 --- !u!1001 &912890240
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -129075,7 +129112,7 @@ Camera:
   far clip plane: 1000
   field of view: 30
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 3
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -132111,6 +132148,7 @@ MonoBehaviour:
   giovanniCrowbarSprite: {fileID: 21300000, guid: 8b0b92bcbdc56854994658a9316c6536, type: 3}
   giovanniNoCrowbarSprite: {fileID: 21300000, guid: e7a8ee28e383a414baaf62788bc86b9f, type: 3}
   maxRaycastDistance: 100
+  maxInteractionDistance: 4
   interactableLayer:
     serializedVersion: 2
     m_Bits: 1024
@@ -141394,7 +141432,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1006781115
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -172129,7 +172167,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1184683888
 Transform:
   m_ObjectHideFlags: 0
@@ -172248,9 +172286,9 @@ MonoBehaviour:
   currentState: 0
   deathUI: {fileID: 649874940}
   deathScreen: {fileID: 649874945}
-  moveSpeed: 5
-  sprintMultiplier: 3
-  rotationSpeed: 180
+  moveSpeed: 4
+  sprintMultiplier: 2
+  rotationSpeed: 120
   isControlled: 0
   flashlightHolder: {fileID: 1542743169}
   flashlightLight: {fileID: 349402381}
@@ -172308,6 +172346,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GiovanniInventory
   mobitelUI: {fileID: 929048330}
+  mobitelIconImage: {fileID: 98905141}
+  pajserIconImage: {fileID: 1358652205}
+  activeColor: {r: 1, g: 1, b: 1, a: 1}
+  inactiveColor: {r: 0.25, g: 0.25, b: 0.25, a: 0.35}
   imaRuku: 0
   imaMobitel: 0
   imaGun: 0
@@ -172331,7 +172373,7 @@ MonoBehaviour:
   arrowImage: {fileID: 1496237734}
   cursorManager: {fileID: 942798477}
   giovanniStatsRef: {fileID: 1184683892}
-  threatCost: 15
+  threatCost: 30
   computer: {fileID: 2400071173513378279}
   strelicaGore: {fileID: -352821690, guid: 4db0d9d3f9edb1c4b8c139f321013c64, type: 3}
   strelicaLijevo: {fileID: 340099702, guid: 4db0d9d3f9edb1c4b8c139f321013c64, type: 3}
@@ -183802,7 +183844,7 @@ RectTransform:
   m_Father: {fileID: 1616748046}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0.75, y: 0}
   m_SizeDelta: {x: -1.5, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -185444,7 +185486,7 @@ RectTransform:
   m_Father: {fileID: 1928239812}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0.000015259, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -194004,8 +194046,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1544425701}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -196456,7 +196498,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 96, y: 96}
+  m_SizeDelta: {x: 64, y: 64}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1358652205
 MonoBehaviour:
@@ -196478,7 +196520,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 0b5ea1ce407d07441904e64d2057104f, type: 3}
+  m_Sprite: {fileID: -1792357455, guid: 76939e15fd945bc438406b0d4531a6b8, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -218869,7 +218911,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1530856656
 RectTransform:
   m_ObjectHideFlags: 0

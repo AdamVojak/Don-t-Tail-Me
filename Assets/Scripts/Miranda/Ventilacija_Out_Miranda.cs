@@ -61,6 +61,15 @@ public class Ventilacija_Out_Miranda : MonoBehaviour
         }
     }
 
+    private void OnTriggerStay(Collider other)
+    {
+        if (imaItemNaCekanju && other.CompareTag("Miranda"))
+        {
+            imaItemNaCekanju = false;
+            StartCoroutine(ProcesIzbacivanjaSaZvukom());
+        }
+    }
+
     private IEnumerator ProcesIzbacivanjaSaZvukom()
     {
         if (zvukPadanja != null)

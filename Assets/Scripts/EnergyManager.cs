@@ -13,6 +13,8 @@ public class EnergyManager : MonoBehaviour
     private MirandaController mirandaController;
     private SashaController sashaController;
 
+    private GameManager gameManager;
+
     private void Awake()
     {
         // Osiguravamo da postoji samo jedan EnergyManager
@@ -31,13 +33,15 @@ public class EnergyManager : MonoBehaviour
         // Ako su likovi uništeni ili ugašeni radi loadinga, pokušavamo ih ponovno pronaći u sceni
         if (mirandaController == null) mirandaController = Object.FindAnyObjectByType<MirandaController>();
         if (sashaController == null) sashaController = Object.FindAnyObjectByType<SashaController>();
+        if (gameManager == null) gameManager = Object.FindAnyObjectByType<GameManager>();
 
         // Provjeravamo jesu li trenutno učitani i kontrolirani
         bool mirandaKontrolirana = mirandaController != null && mirandaController.isControlled;
         bool sashaKontroliran = sashaController != null && sashaController.isControlled;
+        bool loading = gameManager.isLoading;
 
         // Struja se prazni samo ako je u tijeku gameplay s Mirandom ili Sashom
-        if (mirandaKontrolirana || sashaKontroliran)
+        if (mirandaKontrolirana || sashaKontroliran || !loading)
         {
             if (struja > 0)
             {

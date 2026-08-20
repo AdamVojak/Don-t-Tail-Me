@@ -22,7 +22,9 @@ public class CursorManager : MonoBehaviour
     public bool IsTargetingItem { get; private set; } = false;
 
     [Header("Giovanni Interakcija")]
-    [SerializeField] private float maxRaycastDistance = 100f;
+    [SerializeField] private float maxRaycastDistance = 100f; // Domet kamere
+    [Tooltip("Koliko Giovanni mora biti blizu predmetu da bi se kursor promijenio i omogućio interakciju")]
+    [SerializeField] private float maxInteractionDistance = 4.5f; // NOVO: Fizički domet (u metrima)
     [SerializeField] private LayerMask interactableLayer;
 
     [Header("Audio Postavke")]
@@ -122,21 +124,31 @@ public class CursorManager : MonoBehaviour
         if (giovanniCursorImage == null) return;
 
         FindGiovanniInventory();
+        if (giovanniInventory == null) return;
 
         Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
 
         if (Physics.Raycast(ray, out RaycastHit hit, maxRaycastDistance))
         {
+            // NOVO: Računamo stvarnu udaljenost između Giovannija i predmeta u koji gledaš
+            float distanceToPlayer = Vector3.Distance(giovanniInventory.transform.position, hit.point);
+
+            // Ako je Giovanni predaleko od predmeta (npr. dalje od 4.5m), kursor ostaje normalan i nema interakcije!
+            if (distanceToPlayer > maxInteractionDistance)
+            {
+                ResetGiovanniCursor();
+                return;
+            }
+
             CollectibleItem item = hit.collider.GetComponentInParent<CollectibleItem>();
             Computer computer = hit.collider.GetComponentInParent<Computer>();
-            DestructibleObject destructible = hit.collider.GetComponentInParent<DestructibleObject>(); // NOVO
+            DestructibleObject destructible = hit.collider.GetComponentInParent<DestructibleObject>();
 
-            // NOVO: Logika za uništive objekte
+            // Logika za uništive objekte (Pajser)
             if (destructible != null)
             {
                 IsTargetingItem = true;
 
-                // Provjera ima li Giovanni pajser
                 bool hasCrowbar = (giovanniInventory != null && giovanniInventory.imaPajser);
 
                 if (hasCrowbar)
@@ -161,7 +173,7 @@ public class CursorManager : MonoBehaviour
                     }
                 }
             }
-
+            // Logika za sakupljanje predmeta (Ruka)
             else if (item != null)
             {
                 IsTargetingItem = true;
@@ -175,7 +187,7 @@ public class CursorManager : MonoBehaviour
                     }
                 }
             }
-
+            // Logika za računalo
             else if (computer != null && hit.collider.isTrigger && !computer.isReadyToSend)
             {
                 IsTargetingItem = true;
@@ -188,14 +200,12 @@ public class CursorManager : MonoBehaviour
             }
             else
             {
-                IsTargetingItem = false;
-                SetGiovanniCursorSprite(giovanniNormalSprite);
+                ResetGiovanniCursor();
             }
         }
         else
         {
-            IsTargetingItem = false;
-            SetGiovanniCursorSprite(giovanniNormalSprite);
+            ResetGiovanniCursor();
         }
     }
 

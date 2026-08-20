@@ -1,9 +1,18 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GiovanniInventory : MonoBehaviour
 {
     [Header("Poveznica Mobitel - UI")]
     public GameObject mobitelUI;
+
+    [Header("UI Ikone Predmeta")]
+    public Image mobitelIconImage;
+    public Image pajserIconImage;
+
+    [Header("Postavke Boja Ikona")]
+    public Color activeColor = Color.white;
+    public Color inactiveColor = new Color(0.25f, 0.25f, 0.25f, 0.35f);
 
     [Header("Posjed predmeta (Giovanni)")]
     [SerializeField] private bool imaRuku = false;
@@ -27,6 +36,7 @@ public class GiovanniInventory : MonoBehaviour
     private void Start()
     {
             mobitelUI.SetActive(false);
+        UpdateInventoryUI();
     }
 
     public void CollectItem(int itemID)
@@ -76,6 +86,8 @@ public class GiovanniInventory : MonoBehaviour
         {
             Debug.LogWarning("Giovanni ne može pokupiti nepoznat predmet s ID-jem: " + itemID);
         }
+
+        UpdateInventoryUI();
     }
 
     public bool HasItem(int itemID)
@@ -95,5 +107,20 @@ public class GiovanniInventory : MonoBehaviour
         else if (itemID == ID_MINIGUN) imaMinigun = false;
         else if (itemID == ID_MOBITEL) imaMobitel = false;
         else if (itemID == ID_PAJSER) imaPajser = false;
+
+        UpdateInventoryUI();
+    }
+
+    public void UpdateInventoryUI()
+    {
+        if (mobitelIconImage != null)
+        {
+            mobitelIconImage.color = imaMobitel ? activeColor : inactiveColor;
+        }
+
+        if (pajserIconImage != null)
+        {
+            pajserIconImage.color = imaPajser ? activeColor : inactiveColor;
+        }
     }
 }

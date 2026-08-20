@@ -15,6 +15,7 @@ public class ZombieSobaZamka : MonoBehaviour
 
     private bool trapActivated = false;
     private bool allTurnedOff = false;
+    private bool sashaExitedRoom = false;
 
     private void Awake()
     {
@@ -102,5 +103,41 @@ public class ZombieSobaZamka : MonoBehaviour
         // glavnoSvijetlo.SetActive(true);
 
         Debug.Log("Sve sklopke su isključene! Crvena svjetla trajno ugašena.");
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        // Ako se zamka aktivirala, Sasha još nije izašla, i objekt koji izlazi ima tag "Sasha"
+        if (trapActivated && !sashaExitedRoom && other.CompareTag("Sasha"))
+        {
+            IskljuciSveSpawnere();
+        }
+    }
+
+    void IskljuciSveSpawnere()
+    {
+        sashaExitedRoom = true;
+
+        // Ugasi sve spawnere
+        foreach (Spawner s in spawneri)
+        {
+            s.SetActiveState(false);
+            s.enabled = false;
+        }
+
+        // Ugasi sve sklopke
+        foreach (SklopkaSpawner sk in sklopke)
+        {
+            sk.enabled = false;
+            sk.SetState(false);
+        }
+
+        Debug.Log("Sasha je izašla iz sobe sa zamkom. Svi spawneri su trajno isključeni!");
+
+        // AKTIVIRAMO SUSTAV UPRAVLJANJA SVJETLIMA NA LEVELIMA!
+        if (SashaSvjetlaKontroler.Instance != null)
+        {
+            SashaSvjetlaKontroler.Instance.AktivirajUpravljanje();
+        }
     }
 }
