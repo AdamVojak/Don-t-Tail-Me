@@ -74,31 +74,21 @@ public class DeathScreenSasha : MonoBehaviour
         if (buttonsContainer != null) buttonsContainer.SetActive(true);
     }
 
-    // Univerzalna metoda za Fade-in
     private IEnumerator FadeInElement(Image uiElement, float duration, float targetAlpha)
     {
-        // OSIGURAČ 1: Obavezno upali objekt ako je slučajno ugašen u Inspectoru
         uiElement.gameObject.SetActive(true);
 
-        // OSIGURAČ 2: Gurni ovu sliku na sam vrh (da ju TV static ne može prekriti)
-        uiElement.transform.SetAsLastSibling();
-
         float elapsed = 0f;
-
-        // Čuvamo originalnu boju slike (u slučaju da nije čisto bijela)
         Color startColor = uiElement.color;
 
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
             float currentAlpha = Mathf.Clamp01(elapsed / duration) * targetAlpha;
-
-            // Mijenjamo samo prozirnost (Alpha), ostavljamo originalne RGB boje
             uiElement.color = new Color(startColor.r, startColor.g, startColor.b, currentAlpha);
             yield return null;
         }
 
-        // Osiguravamo točnu prozirnost na kraju
         uiElement.color = new Color(startColor.r, startColor.g, startColor.b, targetAlpha);
     }
 }

@@ -22,6 +22,9 @@ public class MirandaController : MonoBehaviour
     public Transform mirandaTijelo;
     public Transform mirandaGlava;
 
+    [Header("UI Reference")]
+    public DeathScreenMiranda deathScreenManager;
+    private bool deathScreenTriggered = false;
 
     public float rotationMultiplier = 60f;
     private float currentRotation = 0f;
@@ -115,12 +118,22 @@ public class MirandaController : MonoBehaviour
 
     public void Die()
     {
+        if (currentState == MirandaState.Dead) return;
+
         currentState = MirandaState.Dead;
         isControlled = false;
+
         if (controller != null)
         {
             controller.Move(Vector3.zero);
         }
+
+        if (!deathScreenTriggered && deathScreenManager != null)
+        {
+            deathScreenTriggered = true;
+            deathScreenManager.ShowDeathScreen();
+        }
+
         Debug.Log("Miranda je eliminirana!");
     }
 }

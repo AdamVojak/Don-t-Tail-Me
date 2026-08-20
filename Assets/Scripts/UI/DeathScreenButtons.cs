@@ -3,7 +3,8 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
-public class DeathScreenButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+// Dodan IPointerClickHandler za automatsku detekciju klika
+public class DeathScreenButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
     public enum ButtonType { Restart, Exit }
 
@@ -31,6 +32,12 @@ public class DeathScreenButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
         if (slikaGumba != null && normalniSprite != null) slikaGumba.sprite = normalniSprite;
     }
 
+    // NOVO: Unityjev EventSystem automatski poziva ovo na klik!
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        IzvrsiAkciju();
+    }
+
     public void IzvrsiAkciju()
     {
         if (tipGumba == ButtonType.Restart)
@@ -42,9 +49,9 @@ public class DeathScreenButton : MonoBehaviour, IPointerEnterHandler, IPointerEx
         {
             Application.Quit();
 
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
-            #endif
+#endif
         }
     }
 }

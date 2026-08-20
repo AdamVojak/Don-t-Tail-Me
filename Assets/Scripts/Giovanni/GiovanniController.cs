@@ -217,7 +217,7 @@ public class GiovanniController : MonoBehaviour
         if (currentState == GiovanniState.Dead) return;
 
         currentState = GiovanniState.Dead;
-
+        flashlightLight.enabled = false;
         if (!deathScreenTriggered && deathScreen!= null)
         {
             deathUI.SetActive(true);

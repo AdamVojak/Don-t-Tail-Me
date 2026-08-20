@@ -71,9 +71,6 @@ public class GiovanniStats : MonoBehaviour
             currentStamina += staminaRegenIdle * Time.deltaTime;
         }
 
-        if (viperFish == null) { return; }
-        else
-        {
             if (isMoving)
             {
                 float currentDrain = isSprinting ? threatDrainSprinting : threatDrainWalking;
@@ -88,7 +85,6 @@ public class GiovanniStats : MonoBehaviour
             {
                 currentThreat -= threatDrainFlashlight * Time.deltaTime;
             }
-        }
 
         currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
         currentThreat = Mathf.Clamp(currentThreat, 0, maxThreat);
