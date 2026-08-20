@@ -49238,7 +49238,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &358173959
 Transform:
   m_ObjectHideFlags: 0
@@ -92100,7 +92100,7 @@ MonoBehaviour:
   buttonsContainer: {fileID: 237040306}
   delayBeforeScreen: 2
   backgroundFadeDuration: 2
-  causeFadeDuration: 3
+  causeFadeDuration: 2
   maxAlphaCause: 0.8
 --- !u!114 &649874947
 MonoBehaviour:
@@ -98161,7 +98161,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &698250696
 Transform:
   m_ObjectHideFlags: 0
@@ -129112,7 +129112,7 @@ Camera:
   far clip plane: 1000
   field of view: 30
   orthographic: 1
-  orthographic size: 3
+  orthographic size: 5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -157124,6 +157124,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1093852884}
+  - component: {fileID: 1093852885}
   m_Layer: 3
   m_Name: MinskoPolje
   m_TagString: Untagged
@@ -160442,6 +160443,21 @@ Transform:
   - {fileID: 1414049902}
   m_Father: {fileID: 2010073659}
   m_LocalEulerAnglesHint: {x: 0, y: 90.299, z: 0}
+--- !u!114 &1093852885
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1093852883}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41c27fc0d27f05340a925287a98f61a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MinskoPolje
+  minUpozorenja: 3
+  maxUpozorenja: 6
+  explosionEffectPrefab: {fileID: 0}
 --- !u!1001 &1094199638
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -172167,7 +172183,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1184683888
 Transform:
   m_ObjectHideFlags: 0
@@ -172296,7 +172312,6 @@ MonoBehaviour:
   flashlightBeamObject: {fileID: 1333243979}
   gravity: -9.81
   uhvacen: 0
-  aktiviranBomb: 0
   cameraRoot: {fileID: 1375407}
   cameraPoint: {fileID: 1767401304}
   virtualCamera: {fileID: 950846529}
@@ -241741,7 +241756,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1693932842
 Transform:
   m_ObjectHideFlags: 0
@@ -244346,6 +244361,7 @@ GameObject:
   - component: {fileID: 1714738153}
   - component: {fileID: 1714738155}
   - component: {fileID: 1714738154}
+  - component: {fileID: 1714738156}
   m_Layer: 10
   m_Name: Death_Kursor
   m_TagString: Kursor
@@ -244410,6 +244426,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1714738152}
   m_CullTransparentMesh: 1
+--- !u!114 &1714738156
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1714738152}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d62727d44c4078b4bb7aac325d353c31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  tiltSensitivity: 0.075
+  maxTiltAngle: 60
+  smoothSpeed: 8
 --- !u!1001 &1715219850
 PrefabInstance:
   m_ObjectHideFlags: 0

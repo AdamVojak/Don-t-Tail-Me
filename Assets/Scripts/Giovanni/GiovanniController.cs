@@ -36,7 +36,6 @@ public class GiovanniController : MonoBehaviour
     private GiovanniStats stats;
     private TijeloGiovanni tijeloGiovanniRef;
     public bool uhvacen;
-    public bool aktiviranBomb;
 
     [Header("Kamera")]
     [SerializeField] private Transform cameraRoot;
@@ -74,17 +73,12 @@ public class GiovanniController : MonoBehaviour
     void Update()
     {
         uhvacen = tijeloGiovanniRef.uhvacen;
-        aktiviranBomb = tijeloGiovanniRef.aktiviranBomb;
 
         if (currentState != GiovanniState.Dead)
         {
             if (uhvacen)
             {
-                Die(1); // 1 = Viper
-            }
-            else if (aktiviranBomb)
-            {
-                Die(0); // 0 = Bomb
+                Die(1); // 1 = Viper riba
             }
         }
 

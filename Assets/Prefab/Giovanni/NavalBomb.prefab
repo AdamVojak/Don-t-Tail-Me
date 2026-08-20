@@ -126,9 +126,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 021e49016b57d034b90ab0d13019cb01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bomba
-  minUpozorenja: 3
-  maxUpozorenja: 6
+  minUpozorenja: 2
+  maxUpozorenja: 4
   cooldownTrzanja: 1
+  explosionEffectPrefab: {fileID: 0}
 --- !u!65 &313101928614245129
 BoxCollider:
   m_ObjectHideFlags: 0

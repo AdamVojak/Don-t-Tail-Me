@@ -2,84 +2,34 @@ using UnityEngine;
 
 public class Bomba : MonoBehaviour
 {
-    [Header("Postavke Upozorenja")]
-    [SerializeField] private int minUpozorenja = 3;
-    [SerializeField] private int maxUpozorenja = 6;
-    private int preostaloUpozorenja;
+    [Header("Lokalni Cooldown")]
+    [Tooltip("Koliko ova specifična bomba mora čekati prije nego opet registrira dodir")]
+    [SerializeField] private float lokalniCooldown = 1.0f;
+    private float zadnjiDodir = -1f;
 
-    [Header("Cooldown Trzanja Lanca")]
-    [Tooltip("Koliko sekundi mora proći prije nego lanac može ponovno zveckati")]
-    [SerializeField] private float cooldownTrzanja = 1.0f;
-    private float zadnjeTrzanje = -1f;
-
-    [Header("Vizualni Efekt Eksplozije (Opcionalno)")]
-    //[SerializeField] private GameObject explosionEffectPrefab; // Prefab čestica/vatre ako ga imaš
-
-    private GiovanniController giovanniControllerRef;
-    private bool isExploded = false;
+    private MinskoPolje minskoPoljeRef;
 
     void Start()
     {
-        if (giovanniControllerRef == null)
-        {
-            giovanniControllerRef = FindFirstObjectByType<GiovanniController>();
-        }
+        minskoPoljeRef = GetComponentInParent<MinskoPolje>();
 
-        // NOVO: Nasumičan broj upozorenja (od 3 do 6 uključivo)
-        preostaloUpozorenja = Random.Range(minUpozorenja, maxUpozorenja + 1);
+        if (minskoPoljeRef == null)
+        {
+            minskoPoljeRef = FindFirstObjectByType<MinskoPolje>();
+        }
     }
 
     void OnTriggerEnter(Collider other)
     {
-        if (isExploded) return;
-
-        // Provjera je li Giovanni dotaknuo senzor/lanac
-        if (other.CompareTag("Giovanni"))
+        if (other.CompareTag("Giovanni") && minskoPoljeRef != null)
         {
-            // Provjera cooldowna da se ne potroše sva upozorenja u jednoj milisekundi
-            if (Time.time < zadnjeTrzanje + cooldownTrzanja) return;
+            // Provjera cooldowna SAMO ZA OVU BOMBU
+            if (Time.time < zadnjiDodir + lokalniCooldown) return;
 
-            zadnjeTrzanje = Time.time;
+            zadnjiDodir = Time.time;
 
-            if (preostaloUpozorenja > 1)
-            {
-                preostaloUpozorenja--;
-
-                // ZVUK TRZAJA SENZORA
-                if (SFX.zvucniEfekti != null && SFX.zvucniEfekti.ZvukNeuspjehaUdarcaVent != null)
-                {
-                    SFX.zvucniEfekti.ZvukNeuspjehaUdarcaVent.Play();
-                }
-
-                Debug.Log("Trzaj senzora na bombi! Preostalo dodira: " + preostaloUpozorenja);
-            }
-            else
-            {
-                // Nema više upozorenja -> BUM!
-                Explode();
-            }
+            // Šalje signal u Minsko Polje (odmah, bez čekanja drugih bombi!)
+            minskoPoljeRef.RegistrirajDodir(transform.position, gameObject);
         }
-    }
-
-    void Explode()
-    {
-        if (isExploded) return;
-        isExploded = true;
-
-        Debug.Log("BUM! Bomba je eksplodirala.");
-
-        // Stvori efekt eksplozije na poziciji bombe
-        /*if (explosionEffectPrefab != null)
-        {
-            Instantiate(explosionEffectPrefab, transform.position, Quaternion.identity);
-        }*/
-
-        // Poveznica s Death Screenom: Šaljemo 0 (Bomba) kako bi se upalio točan ekran smrti!
-        if (giovanniControllerRef != null)
-        {
-            giovanniControllerRef.Die(0);
-        }
-
-        Destroy(gameObject);
     }
 }
