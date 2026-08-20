@@ -40,9 +40,25 @@ public class SashaInventory : MonoBehaviour
 
     public void OpenUI()
     {
+        StopAllCoroutines();
+        isFlashing = false;
+
         isUIOpen = true;
         inventoryUIPanel.SetActive(true);
         selectedIndex = 0;
+
+        if (selectionFrames != null)
+        {
+            for (int i = 0; i < selectionFrames.Length; i++)
+            {
+                if (selectionFrames[i] != null)
+                {
+                    Image frameImg = selectionFrames[i].GetComponent<Image>();
+                    if (frameImg != null) frameImg.color = Color.white;
+                }
+            }
+        }
+
         UpdateUI();
     }
 
@@ -79,54 +95,43 @@ public class SashaInventory : MonoBehaviour
 
     public bool TrySendSelectedItem()
     {
-        GameObject mirandaObj = GameObject.FindGameObjectWithTag("Miranda");
-        bool mirandaPrisutna = mirandaObj != null && mirandaObj.activeInHierarchy;
-
-        if (mirandaPrisutna)
+        // 1. Provjeri ima li Sasha uopće taj item
+        if (!HasItem(selectedIndex))
         {
-            if (mirandinaVentilacija != null && !mirandinaVentilacija.MozePrimiti())
-            {
-                StartCoroutine(FlashUIRoutine());
-                return false;
-            }
-        }
-        else
-        {
-            if (giovanniVentilacija != null && !giovanniVentilacija.MozePrimiti)
-            {
-                StartCoroutine(FlashUIRoutine());
-                return false;
-            }
+            Debug.Log("Sasha nema taj item!");
+            return false;
         }
 
-        if (HasItem(selectedIndex))
+        // 2. Pronađi trenutnu ventilaciju
+        SashaController controller = GetComponent<SashaController>();
+        if (controller == null || controller.trenutnaVentilacija == null)
         {
+            Debug.LogWarning("Sasha nije kraj ventilacije!");
+            return false;
+        }
+
+        // 3. Pokušaj poslati item kroz ventilaciju
+        // (Ventilacija će sama provjeriti preko GameManager-a tko je u igri i je li cijev slobodna)
+        bool uspjesnoPoslano = controller.trenutnaVentilacija.PrimiItemUVentilaciju(selectedIndex);
+
+        if (uspjesnoPoslano)
+        {
+            // Ako je slanje uspjelo: prikaži sprite u ruci i obriši item iz inventara
             if (itemURuciSpriteRenderer != null)
             {
                 itemURuciSpriteRenderer.sprite = itemSprites[selectedIndex];
                 itemURuciSpriteRenderer.gameObject.SetActive(true);
             }
 
-            if (mirandaPrisutna)
-            {
-                SashaController controller = GetComponent<SashaController>();
-                if (controller != null && controller.trenutnaVentilacija != null)
-                {
-                    controller.trenutnaVentilacija.PrimiItemUVentilaciju(selectedIndex);
-                }
-            }
-            else
-            {
-                if (giovanniVentilacija != null)
-                {
-                    giovanniVentilacija.SpremiItemZaGiovannia(selectedIndex);
-                }
-            }
-
             RemoveItem(selectedIndex);
             return true;
         }
-        return false;
+        else
+        {
+            // Ako slanje nije uspjelo (cijev je puna ili nema nikoga), zabljeskaj crveno
+            StartCoroutine(FlashUIRoutine());
+            return false;
+        }
     }
 
     private System.Collections.IEnumerator FlashUIRoutine()

@@ -439,6 +439,26 @@ public class SashaController : MonoBehaviour
         }
     }
 
+    public void PrisilnoPrekiniInterakciju()
+    {
+        if (currentState == SashaState.Interactive)
+        {
+            currentState = SashaState.Active;
+
+            if (animacijaTijela != null)
+            {
+                animacijaTijela.SetBool("odabir", false);
+                animacijaTijela.SetBool("dodavanje", false);
+                animacijaTijela.Play("Idle");
+            }
+
+            if (sashaInventory != null)
+            {
+                sashaInventory.CloseUI();
+            }
+        }
+    }
+
     public void ZavrsiDodavanje()
     {
         if (animacijaTijela != null)

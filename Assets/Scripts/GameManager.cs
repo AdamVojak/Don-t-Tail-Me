@@ -62,17 +62,21 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+
         if (sunLight != null) sunLight.SetActive(false);
 
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
         RenderSettings.ambientLight = Color.black;
         RenderSettings.reflectionIntensity = 0;
 
+        // 1. AUTOMATSKA DETEKCIJA: Tko je ugašen u Hierarchyju prije pokretanja, NE IGRA!
+        if (sashaScript != null && !sashaScript.gameObject.activeSelf) sashaOdabran = false;
+        if (mirandaScript != null && !mirandaScript.gameObject.activeSelf) mirandaOdabrana = false;
+        if (giovanniScript != null && !giovanniScript.gameObject.activeSelf) giovanniOdabran = false;
 
-        if (sashaScript == null || !sashaScript.gameObject.activeSelf) sashaOdabran = false;
-        if (mirandaScript == null || !mirandaScript.gameObject.activeSelf) mirandaOdabrana = false;
-        if (giovanniScript == null || !giovanniScript.gameObject.activeSelf) giovanniOdabran = false;
-
+        // 2. BRISANJE: Oni koji nisu odabrani se potpuno brišu iz memorije
         if (!sashaOdabran)
         {
             if (sashaLevel != null) Destroy(sashaLevel);
@@ -468,6 +472,10 @@ public class GameManager : MonoBehaviour
         if (mirandaScript != null) mirandaScript.isControlled = false;
         if (giovanniScript != null) giovanniScript.isControlled = false;
 
+        if (sashaScript != null) sashaScript.gameObject.SetActive(false);
+        if (mirandaScript != null) mirandaScript.gameObject.SetActive(false);
+        if (giovanniScript != null) giovanniScript.gameObject.SetActive(false);
+
         if (kursorSasha != null) kursorSasha.SetActive(false);
 
         if (UI_Sasha != null) UI_Sasha.SetActive(false);
@@ -496,15 +504,18 @@ public class GameManager : MonoBehaviour
 
     void ToggleLevels(ActiveCharacter targetCharacter)
     {
-        // Palimo samo level lika na kojeg prelazimo, ostale gasimo
-        if (sashaLevel != null) sashaLevel.SetActive(targetCharacter == ActiveCharacter.Sasha);
-        if (mirandaLevel != null) mirandaLevel.SetActive(targetCharacter == ActiveCharacter.Miranda);
-        if (giovanniLevel != null) giovanniLevel.SetActive(targetCharacter == ActiveCharacter.Giovanni);
+        if (sashaLevel != null && sashaOdabran) sashaLevel.SetActive(true);
+        if (mirandaLevel != null && mirandaOdabrana) mirandaLevel.SetActive(true);
+        if (giovanniLevel != null && giovanniOdabran) giovanniLevel.SetActive(true);
 
-        // Također palimo/gasimo same Player objekte (ako nisu unutar Level roditelja)
-        if (sashaScript != null) sashaScript.gameObject.SetActive(targetCharacter == ActiveCharacter.Sasha);
-        if (mirandaScript != null) mirandaScript.gameObject.SetActive(targetCharacter == ActiveCharacter.Miranda);
-        if (giovanniScript != null) giovanniScript.gameObject.SetActive(targetCharacter == ActiveCharacter.Giovanni);
+        if (sashaScript != null && sashaOdabran)
+            sashaScript.gameObject.SetActive(targetCharacter == ActiveCharacter.Sasha);
+
+        if (mirandaScript != null && mirandaOdabrana)
+            mirandaScript.gameObject.SetActive(targetCharacter == ActiveCharacter.Miranda);
+
+        if (giovanniScript != null && giovanniOdabran)
+            giovanniScript.gameObject.SetActive(targetCharacter == ActiveCharacter.Giovanni);
     }
 
     void FinalizeCharacterSwitch(ActiveCharacter newCharacter)
@@ -585,10 +596,33 @@ public class GameManager : MonoBehaviour
 
     void DisableAllControls()
     {
-        // Samo oduzimamo kontrole, UI ostaje upaljen!
-        if (sashaScript != null) sashaScript.isControlled = false;
-        if (mirandaScript != null) mirandaScript.isControlled = false;
-        if (giovanniScript != null) giovanniScript.isControlled = false;
+        if (sashaScript != null)
+        {
+            sashaScript.PrisilnoPrekiniInterakciju();
+            sashaScript.isControlled = false;
+        }
+
+        if (mirandaScript != null)
+        {
+            if (mirandaScript.GetComponent<MirandaController>() != null)
+                mirandaScript.GetComponent<MirandaController>().SetLock(false);
+
+            Ventilacija_In_Miranda mirandaVent = FindFirstObjectByType<Ventilacija_In_Miranda>();
+            if (mirandaVent != null) mirandaVent.SendMessage("CloseUI", SendMessageOptions.DontRequireReceiver);
+
+            mirandaScript.isControlled = false;
+        }
+
+        if (giovanniScript != null)
+        {
+            if (giovanniScript.GetComponent<GiovanniController>() != null)
+                giovanniScript.GetComponent<GiovanniController>().SetLock(false);
+
+            Computer komp = FindFirstObjectByType<Computer>();
+            if (komp != null) komp.ToggleComputerState(false);
+
+            giovanniScript.isControlled = false;
+        }
 
         if (kursorSasha != null) kursorSasha.SetActive(false);
     }

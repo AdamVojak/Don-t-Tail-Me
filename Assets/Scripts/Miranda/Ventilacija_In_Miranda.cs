@@ -92,7 +92,7 @@ public class Ventilacija_In_Miranda : MonoBehaviour
         int prevItemIndex = selectedItemIndex;
         int prevRecipientIndex = selectedRecipientIndex;
 
-        // Navigacija za PRIMATELJA (W / S)
+        // Navigacija za PRIMATELJA (W / S) - Sada UVIJEK dopušta prebacivanje
         if (Input.GetKeyDown(KeyCode.W)) selectedRecipientIndex = 0; // Sasha
         else if (Input.GetKeyDown(KeyCode.S)) selectedRecipientIndex = 1; // Giovanni
 
@@ -113,6 +113,7 @@ public class Ventilacija_In_Miranda : MonoBehaviour
 
     private void UpdateUI()
     {
+        // 1. Prikaz itema u boji ili zatamnjeno
         for (int i = 0; i < 3; i++)
         {
             int checkID = (i == 0) ? 5 : (i == 1 ? 1 : 2);
@@ -124,19 +125,25 @@ public class Ventilacija_In_Miranda : MonoBehaviour
             itemSelectionFrames[i].SetActive(i == selectedItemIndex);
         }
 
-        bool sashaSlobodan = sashaVentilacija != null && sashaVentilacija.MozePrimiti();
-        bool giovanniSlobodan = giovanniVentilacija != null && giovanniVentilacija.MozePrimiti;
+        // 2. Provjera jesu li likovi u igri i jesu li im cijevi slobodne
+        bool sashaU_Igri = GameManager.Instance != null && GameManager.Instance.sashaOdabran;
+        bool giovanniU_Igri = GameManager.Instance != null && GameManager.Instance.giovanniOdabran;
 
+        bool sashaSlobodan = sashaU_Igri && sashaVentilacija != null && sashaVentilacija.MozePrimiti();
+        bool giovanniSlobodan = giovanniU_Igri && giovanniVentilacija != null && giovanniVentilacija.MozePrimiti;
+
+        // 3. Okvir/Strelica za Sashu (BIJELO = slobodan, CRVENO = nije u igri ili je cijev puna)
         if (sashaSelectionFrame != null)
         {
-            sashaSelectionFrame.SetActive(selectedRecipientIndex == 0 || !sashaSlobodan);
+            sashaSelectionFrame.SetActive(selectedRecipientIndex == 0);
             Image img = sashaSelectionFrame.GetComponent<Image>();
             if (img != null) img.color = sashaSlobodan ? Color.white : Color.red;
         }
 
+        // 4. Okvir/Strelica za Giovannija (BIJELO = slobodan, CRVENO = nije u igri ili je cijev puna)
         if (giovanniSelectionFrame != null)
         {
-            giovanniSelectionFrame.SetActive(selectedRecipientIndex == 1 || !giovanniSlobodan);
+            giovanniSelectionFrame.SetActive(selectedRecipientIndex == 1);
             Image img = giovanniSelectionFrame.GetComponent<Image>();
             if (img != null) img.color = giovanniSlobodan ? Color.white : Color.red;
         }
@@ -146,41 +153,53 @@ public class Ventilacija_In_Miranda : MonoBehaviour
     {
         int itemIDToSend = (selectedItemIndex == 0) ? 5 : (selectedItemIndex == 1 ? 1 : 2);
 
-        if (inventory.HasItem(itemIDToSend))
+        // Provjeri ima li Miranda taj item
+        if (!inventory.HasItem(itemIDToSend))
         {
-            if (selectedRecipientIndex == 0 && sashaVentilacija != null)
+            Debug.Log("Miranda nema odabrani predmet za slanje!");
+            return;
+        }
+
+        bool sashaU_Igri = GameManager.Instance != null && GameManager.Instance.sashaOdabran;
+        bool giovanniU_Igri = GameManager.Instance != null && GameManager.Instance.giovanniOdabran;
+
+        // --- 1. POKUŠAJ SLANJA SASHI ---
+        if (selectedRecipientIndex == 0)
+        {
+            // Mora biti odabran u igri, referenca mora postojati i cijev mora biti prazna
+            if (sashaU_Igri && sashaVentilacija != null && sashaVentilacija.MozePrimiti())
             {
-                if (!sashaVentilacija.MozePrimiti())
-                {
-                    StartCoroutine(FlashUIRoutine());
-                    return;
-                }
                 sashaVentilacija.SpremiItemZaSashu(itemIDToSend);
                 Debug.Log("Miranda je poslala predmet ID: " + itemIDToSend + " Sashi.");
             }
-            else if (selectedRecipientIndex == 1 && giovanniVentilacija != null)
+            else
             {
-                if (!giovanniVentilacija.MozePrimiti)
-                {
-                    StartCoroutine(FlashUIRoutine());
-                    return;
-                }
+                // Ako Sasha nije u igri ILI mu je cijev puna -> Zabljeskaj crveno i odbij
+                StartCoroutine(FlashUIRoutine());
+                Debug.LogWarning("Slanje Sashi nije uspjelo (nije u igri ili mu je cijev puna)!");
+                return;
+            }
+        }
+        // --- 2. POKUŠAJ SLANJA GIOVANNIJU ---
+        else if (selectedRecipientIndex == 1)
+        {
+            if (giovanniU_Igri && giovanniVentilacija != null && giovanniVentilacija.MozePrimiti)
+            {
                 giovanniVentilacija.SpremiItemZaGiovannia(itemIDToSend);
                 Debug.Log("Miranda je poslala predmet ID: " + itemIDToSend + " Giovanniju.");
             }
             else
             {
-                Debug.LogWarning("Primatelj nije ispravno povezan u Inspectoru!");
+                // Ako Giovanni nije u igri ILI mu je cijev puna -> Zabljeskaj crveno i odbij
+                StartCoroutine(FlashUIRoutine());
+                Debug.LogWarning("Slanje Giovanniju nije uspjelo (nije u igri ili mu je cijev puna)!");
                 return;
             }
+        }
 
-            inventory.RemoveItem(itemIDToSend);
-            CloseUI();
-        }
-        else
-        {
-            Debug.Log("Miranda nema odabrani predmet za slanje!");
-        }
+        // Ako je slanje uspjelo: oduzmi item i zatvori UI
+        inventory.RemoveItem(itemIDToSend);
+        CloseUI();
     }
 
     private System.Collections.IEnumerator FlashUIRoutine()

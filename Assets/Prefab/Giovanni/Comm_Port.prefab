@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3622757595960930266}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Comm_Port
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -24,7 +24,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 487518287888446009}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0.27515242, z: -0, w: 0.9614006}
+  m_LocalRotation: {x: 0, y: -0.2751508, z: 0, w: 0.9614011}
   m_LocalPosition: {x: 310.4, y: 0, z: -189.4}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -43,7 +43,7 @@ GameObject:
   m_Component:
   - component: {fileID: 664644972983345044}
   - component: {fileID: 595494351519729272}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -95,7 +95,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2009833635934188973}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Collider-i
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -132,7 +132,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4269518095829554152}
   - component: {fileID: 6426815136849708171}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -187,7 +187,7 @@ GameObject:
   - component: {fileID: 8987917264151488606}
   - component: {fileID: 7863649292318001289}
   - component: {fileID: 1529248621610314277}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Dno
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -203,7 +203,7 @@ Transform:
   m_GameObject: {fileID: 5152495490437631510}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.00000005960463, z: -0, w: 1}
-  m_LocalPosition: {x: 0.74994636, y: 0, z: -9.999826}
+  m_LocalPosition: {x: 0.74994636, y: -0.0025, z: -10}
   m_LocalScale: {x: 22.500002, y: 0.01, z: 20}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -297,7 +297,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7488726663334063827}
   - component: {fileID: 1953121449530700372}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -350,7 +350,7 @@ GameObject:
   m_Component:
   - component: {fileID: 9007819310506318897}
   - component: {fileID: 3028698932289384964}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Collider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -616,7 +616,8 @@ PrefabInstance:
       propertyPath: m_LocalPosition.y
       value: -0.07167
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2577978315509162249, guid: ce05cf1645d486b4bbfe9ea35d772bc4, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
