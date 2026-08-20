@@ -24,6 +24,13 @@ public class GameManager : MonoBehaviour
     public MirandaController mirandaScript;
     public GiovanniController giovanniScript;
 
+    public static GameManager Instance;
+
+    [Header("Odabir Likova u Igri")]
+    public bool sashaOdabran = true;
+    public bool mirandaOdabrana = true;
+    public bool giovanniOdabran = true;
+
     [Header("Managers")]
     public LoadingManager loadingManager;
 
@@ -53,10 +60,6 @@ public class GameManager : MonoBehaviour
     private bool isTransitioning = false;
     private bool goingForward = true;
 
-    private bool sashaInGame = false;
-    private bool mirandaInGame = false;
-    private bool giovanniInGame = false;
-
     private void Awake()
     {
         if (sunLight != null) sunLight.SetActive(false);
@@ -65,9 +68,28 @@ public class GameManager : MonoBehaviour
         RenderSettings.ambientLight = Color.black;
         RenderSettings.reflectionIntensity = 0;
 
-        sashaInGame = sashaScript != null && sashaScript.gameObject.activeInHierarchy;
-        mirandaInGame = mirandaScript != null && mirandaScript.gameObject.activeInHierarchy;
-        giovanniInGame = giovanniScript != null && giovanniScript.gameObject.activeInHierarchy;
+
+        if (sashaScript == null || !sashaScript.gameObject.activeSelf) sashaOdabran = false;
+        if (mirandaScript == null || !mirandaScript.gameObject.activeSelf) mirandaOdabrana = false;
+        if (giovanniScript == null || !giovanniScript.gameObject.activeSelf) giovanniOdabran = false;
+
+        if (!sashaOdabran)
+        {
+            if (sashaLevel != null) Destroy(sashaLevel);
+            if (sashaScript != null) Destroy(sashaScript.gameObject);
+        }
+
+        if (!mirandaOdabrana)
+        {
+            if (mirandaLevel != null) Destroy(mirandaLevel);
+            if (mirandaScript != null) Destroy(mirandaScript.gameObject);
+        }
+
+        if (!giovanniOdabran)
+        {
+            if (giovanniLevel != null) Destroy(giovanniLevel);
+            if (giovanniScript != null) Destroy(giovanniScript.gameObject);
+        }
     }
 
     void Start()
@@ -116,13 +138,13 @@ public class GameManager : MonoBehaviour
         switch (character)
         {
             case ActiveCharacter.Sasha:
-                return sashaInGame && sashaScript != null && sashaCam != null && sashaScript.currentState != SashaController.SashaState.Dead;
+                return sashaOdabran && sashaScript != null && sashaCam != null && sashaScript.currentState != SashaController.SashaState.Dead;
 
             case ActiveCharacter.Miranda:
-                return mirandaInGame && mirandaScript != null && mirandaCam != null && mirandaScript.currentState != MirandaController.MirandaState.Dead;
+                return mirandaOdabrana && mirandaScript != null && mirandaCam != null && mirandaScript.currentState != MirandaController.MirandaState.Dead;
 
             case ActiveCharacter.Giovanni:
-                return giovanniInGame && giovanniScript != null && giovanniCam != null && giovanniScript.currentState != GiovanniController.GiovanniState.Dead;
+                return giovanniOdabran && giovanniScript != null && giovanniCam != null && giovanniScript.currentState != GiovanniController.GiovanniState.Dead;
 
             default:
                 return false;
