@@ -1,137 +1,65 @@
 using UnityEngine;
 
-public class MirandaRoboticArm : MonoBehaviour
+public class MirandaRuka : MonoBehaviour
 {
-    [Header("Reference na Inventar")]
-    public MirandaInventory inventar;
+    [Header("Reference - Drugi dio ruke")]
+    public Transform shakaObjekt;
+    public Transform spojShaka;
 
-    [Header("Hijerarhija Ruke")]
-    public GameObject mirandaRuka;
-    public Transform spojRuke;
-    public Transform lakat;
+    [Header("Reference - Granice izvlačenja")]
+    public Transform pocetakShaka;
+    public Transform krajShaka;
 
-    [Header("Postavke Šake i Hvatanja")]
-    public SpriteRenderer sakaRenderer;
-    public Sprite otvorenaSakaSprite;
-    public Sprite zatvorenaSakaSprite;
+    [Header("Postavke")]
+    public float brzinaIzvlacenja = 15f;
+    [Tooltip("Ako ruka ne pokazuje točno u miša, upiši 90, -90 ili 180 ovdje")]
+    public float offsetKuta = 0f;
 
-    // OVDJE JE PROMJENA: Umjesto odLakta i radijusa, vučemo fizički Collider šake!
-    public SphereCollider sakaCollider;
-    public LayerMask pickupLayer;
-
-    [Header("Jednostavne Postavke")]
-    public float maksimalniDometRuke = 4f;
-    public bool savijajUnutra = true;
-
-    private bool rukaAktivna = false;
+    private Camera glavnaKamera;
 
     void Start()
     {
-        if (inventar == null) inventar = GetComponentInParent<MirandaInventory>();
-
-        if (mirandaRuka != null) mirandaRuka.SetActive(false);
-        if (sakaRenderer != null) sakaRenderer.sprite = otvorenaSakaSprite;
-
-        // Ako nisi povukao collider, probaj ga naći na OdLakta objektu
-        if (sakaCollider == null && lakat != null)
-        {
-            sakaCollider = lakat.GetComponentInChildren<SphereCollider>();
-        }
+        glavnaKamera = Camera.main;
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.F))
+        if (shakaObjekt == null || spojShaka == null || pocetakShaka == null || krajShaka == null) return;
+
+        // 1. PRONALAZAK MIŠA NA Y-Z RAVNINI
+        Plane yzRavnina = new Plane(Vector3.right, transform.position);
+        Ray zrakaIzKamere = glavnaKamera.ScreenPointToRay(Input.mousePosition);
+
+        float udaljenostDoRavnine;
+        Vector3 pozicijaMisaUSvijetu = Vector3.zero;
+
+        if (yzRavnina.Raycast(zrakaIzKamere, out udaljenostDoRavnine))
         {
-            if (inventar != null && inventar.ImaRuku)
-            {
-                rukaAktivna = !rukaAktivna;
-                if (mirandaRuka != null) mirandaRuka.SetActive(rukaAktivna);
-            }
+            pozicijaMisaUSvijetu = zrakaIzKamere.GetPoint(udaljenostDoRavnine);
         }
 
-        if (!rukaAktivna) return;
+        // 2. STABILNA ROTACIJA (Sada u pravom smjeru!)
+        Vector3 smjer = pozicijaMisaUSvijetu - transform.position;
 
-        PratiMisa();
+        float kut = Mathf.Atan2(smjer.y, smjer.z) * Mathf.Rad2Deg;
+        kut += offsetKuta;
 
-        if (Input.GetMouseButtonDown(1)) ZatvoriSaku();
-        else if (Input.GetMouseButtonUp(1)) OtvoriSaku();
-    }
+        // OVDJE JE POPRAVAK: Dodali smo MINUS ispred 'kut' (-kut) da obrnemo smjer rotacije!
+        Quaternion fiksniY = Quaternion.Euler(0f, -90f, 0f);
+        Quaternion rotacijaOkoX = Quaternion.AngleAxis(-kut, Vector3.right);
 
-    void PratiMisa()
-    {
-        if (Camera.main == null) return;
+        transform.rotation = rotacijaOkoX * fiksniY;
 
-        // 1. Pozicija miša u YZ ravnini (X je dubina)
-        Vector3 mousePos = Input.mousePosition;
-        mousePos.z = Mathf.Abs(Camera.main.transform.position.x - spojRuke.position.x);
+        // 3. TELESKOPSKA LOGIKA SA OFFSETOM
+        float udaljenostMisa = Vector3.Distance(transform.position, pozicijaMisaUSvijetu);
+        float minUdaljenost = Vector3.Distance(transform.position, pocetakShaka.position);
+        float maxUdaljenost = Vector3.Distance(transform.position, krajShaka.position);
 
-        Vector3 targetPos = Camera.main.ScreenToWorldPoint(mousePos);
-        targetPos.x = spojRuke.position.x; // Drži metu u istoj YZ ravnini u kojoj je i rame
+        float postotakIzvlacenja = Mathf.InverseLerp(minUdaljenost, maxUdaljenost, udaljenostMisa);
 
-        // 2. Kut od ramena prema mišu u YZ ravnini
-        Vector3 smjerMete = targetPos - spojRuke.position;
-        float bazniKutRamena = Mathf.Atan2(smjerMete.y, smjerMete.z) * Mathf.Rad2Deg;
+        Vector3 ciljnaPozicijaSpoja = Vector3.Lerp(pocetakShaka.localPosition, krajShaka.localPosition, postotakIzvlacenja);
+        Vector3 ciljnaPozicijaShake = ciljnaPozicijaSpoja - spojShaka.localPosition;
 
-        // 3. Računanje udaljenosti za jednostavno savijanje
-        float udaljenost = Vector3.Distance(spojRuke.position, targetPos);
-        float faktorSavijanja = Mathf.Clamp01(1f - (udaljenost / maksimalniDometRuke));
-
-        float kutLakta = faktorSavijanja * 130f;
-        float kutRamenaOffset = faktorSavijanja * 45f;
-
-        float rotacijaRamena = 0f;
-        float rotacijaLakta = 0f;
-
-        if (savijajUnutra)
-        {
-            rotacijaRamena = bazniKutRamena - kutRamenaOffset;
-            rotacijaLakta = kutLakta;
-        }
-        else
-        {
-            rotacijaRamena = bazniKutRamena + kutRamenaOffset;
-            rotacijaLakta = -kutLakta;
-        }
-
-        // --- POPRAVAK: ROTIRAMO SAMO OKO X OSI, Y I Z SU NA 0 ---
-        // Ovo ne dira tvoje točke niti ih premješta, a Y rotaciju drži na 0
-        spojRuke.localRotation = Quaternion.Euler(-rotacijaRamena, 0f, 0f);
-        lakat.localRotation = Quaternion.Euler(-rotacijaLakta, 0f, 0f);
-    }
-
-    void ZatvoriSaku()
-    {
-        if (sakaRenderer != null) sakaRenderer.sprite = zatvorenaSakaSprite;
-        if (sakaCollider == null) return;
-
-        // OVDJE KORISTIMO KOORDINATE I RADIJUS TVOG COLLIDERA!
-        Collider[] pronadjeniPredmeti = Physics.OverlapSphere(sakaCollider.transform.position, sakaCollider.radius, pickupLayer);
-
-        foreach (Collider predmet in pronadjeniPredmeti)
-        {
-            MirandaPickup item = predmet.GetComponent<MirandaPickup>();
-
-            if (item != null && inventar != null)
-            {
-                inventar.CollectItem(item.itemTip);
-                Destroy(predmet.gameObject);
-                Debug.Log("Robotska ruka je uspješno pokupila predmet ID: " + item.itemTip);
-            }
-        }
-    }
-
-    void OtvoriSaku()
-    {
-        if (sakaRenderer != null) sakaRenderer.sprite = otvorenaSakaSprite;
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        if (sakaCollider != null)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(sakaCollider.transform.position, sakaCollider.radius);
-        }
+        shakaObjekt.localPosition = Vector3.Lerp(shakaObjekt.localPosition, ciljnaPozicijaShake, Time.deltaTime * brzinaIzvlacenja);
     }
 }

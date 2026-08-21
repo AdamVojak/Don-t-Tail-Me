@@ -14,23 +14,14 @@ public class MirandaPickup : MonoBehaviour
     {
         if (other.CompareTag("Miranda"))
         {
-            MirandaInventory inventar = other.GetComponent<MirandaInventory>();
-            if (inventar != null)
+            MirandaInventory inv = other.GetComponent<MirandaInventory>();
+            if (inv != null)
             {
-                if (itemTip == 0)
-                {
-                    inventar.CollectKey((int)Kljucevi.TipKljuca.Zuti);
-                    Destroy(gameObject);
-                }
-                else if ((itemTip == 1 || itemTip == 2 || itemTip == 3))
-                {
-                    inventar.CollectItem(itemTip);
-                    Destroy(gameObject);
-                }
-                else
-                {
-                    Debug.Log("Miranda je našla oružje, ali njen inventar trenutno prima samo ključeve!");
-                }
+                // Šaljemo bilo koji itemTip (0, 1, 2, 3, 4, 5) direktno u MirandaInventory
+                inv.CollectItem(itemTip);
+
+                Debug.Log($"Miranda je uspješno pokupila item ID: {itemTip}");
+                Destroy(gameObject); // Obriši s poda
             }
         }
     }

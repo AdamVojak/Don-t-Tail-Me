@@ -26,6 +26,8 @@ public class MirandaController : MonoBehaviour
     public DeathScreenMiranda deathScreenManager;
     private bool deathScreenTriggered = false;
 
+    public GameObject HintUI;
+
     public float rotationMultiplier = 60f;
     private float currentRotation = 0f;
 
@@ -42,6 +44,7 @@ public class MirandaController : MonoBehaviour
     void Start()
     {
         controller = GetComponent<CharacterController>();
+        HintUI.SetActive(false);
     }
 
     void Update()
@@ -93,12 +96,12 @@ public class MirandaController : MonoBehaviour
         if (mirandaTijelo != null)
         {
             currentRotation += currentZSpeed * currentRotMultiplier * Time.deltaTime;
-            mirandaTijelo.localRotation = Quaternion.Euler(0, 90, currentRotation);
+            mirandaTijelo.localRotation = Quaternion.Euler(0, -90, currentRotation);
         }
 
         if (mirandaGlava != null)
         {
-            mirandaGlava.localRotation = Quaternion.Euler(0, 90, 0);
+            mirandaGlava.localRotation = Quaternion.Euler(0, -90, 0);
         }
 
         if ((flags & CollisionFlags.Above) != 0 && verticalVelocity > 0)

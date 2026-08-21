@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 2005957727433768310}
   - component: {fileID: 420519082107029605}
   - component: {fileID: 313101928614245129}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: NavalBomb
   m_TagString: Bomb
   m_Icon: {fileID: 0}
@@ -126,10 +126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 021e49016b57d034b90ab0d13019cb01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Bomba
-  minUpozorenja: 2
-  maxUpozorenja: 4
-  cooldownTrzanja: 1
-  explosionEffectPrefab: {fileID: 0}
+  lokalniCooldown: 1
 --- !u!65 &313101928614245129
 BoxCollider:
   m_ObjectHideFlags: 0
