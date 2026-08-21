@@ -95,7 +95,7 @@ public class MirandaController : MonoBehaviour
 
         if (mirandaTijelo != null)
         {
-            currentRotation += currentZSpeed * currentRotMultiplier * Time.deltaTime;
+            currentRotation -= currentZSpeed * currentRotMultiplier * Time.deltaTime;
             mirandaTijelo.localRotation = Quaternion.Euler(0, -90, currentRotation);
         }
 

@@ -163382,12 +163382,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c03bf05877a32f64599fdf9678f5f1af, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  shakaSpriteRenderer: {fileID: 2046509936}
+  spriteOtvorenaShaka: {fileID: 1896261871, guid: 0a6671ddecb03714ca696da8eecb23a9, type: 3}
+  spriteStisnutaShaka: {fileID: -1436200605, guid: 0a6671ddecb03714ca696da8eecb23a9, type: 3}
+  isStisnuta: 0
   shakaObjekt: {fileID: 2046509935}
   spojShaka: {fileID: 1996771282}
   pocetakShaka: {fileID: 428258582}
   krajShaka: {fileID: 1590156214}
-  brzinaIzvlacenja: 15
-  offsetKuta: 0
+  glatkocaIzvlacenja: 0.15
+  pragUvlacenja: 1.5
+  offsetKuta: -90
 --- !u!1 &1124676843
 GameObject:
   m_ObjectHideFlags: 0
@@ -302016,14 +302021,6 @@ PrefabInstance:
       propertyPath: mirandaController
       value: 
       objectReference: {fileID: 1693932844}
-    - target: {fileID: 4076880590610941686, guid: 0475dfa49dde17c42a24296c6901b920, type: 3}
-      propertyPath: m_Size.z
-      value: 0.7
-      objectReference: {fileID: 0}
-    - target: {fileID: 4076880590610941686, guid: 0475dfa49dde17c42a24296c6901b920, type: 3}
-      propertyPath: m_Center.z
-      value: 0.35
-      objectReference: {fileID: 0}
     - target: {fileID: 7331360336822273047, guid: 0475dfa49dde17c42a24296c6901b920, type: 3}
       propertyPath: m_Name
       value: Head_Worm

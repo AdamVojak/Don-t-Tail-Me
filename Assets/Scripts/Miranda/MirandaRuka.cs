@@ -2,6 +2,14 @@ using UnityEngine;
 
 public class MirandaRuka : MonoBehaviour
 {
+    [Header("Spriteovi Šake (Otvorena / Stisnuta)")]
+    public SpriteRenderer shakaSpriteRenderer; // SpriteRenderer na objektu Shaka
+    public Sprite spriteOtvorenaShaka;          // Prirodna / Ispružena ruka
+    public Sprite spriteStisnutaShaka;          // Stisnuta šaka (Fist / Grab)
+
+    [HideInInspector]
+    public bool isStisnuta = false; // Javna varijabla koju ćemo kasnije koristiti za levere
+
     [Header("Reference - Drugi dio ruke")]
     public Transform shakaObjekt;
     public Transform spojShaka;
@@ -11,9 +19,13 @@ public class MirandaRuka : MonoBehaviour
     public Transform krajShaka;
 
     [Header("Postavke")]
-    public float brzinaIzvlacenja = 15f;
-    [Tooltip("Ako ruka ne pokazuje točno u miša, upiši 90, -90 ili 180 ovdje")]
-    public float offsetKuta = 0f;
+    public float glatkocaIzvlacenja = 0.15f;
+
+    private Vector3 trenutnaBrzinaShake; // Služi Unityju za izračun inercije
+
+    public float pragUvlacenja = 1.5f; // NOVO: Tampon zona oko lika
+
+    public float offsetKuta = -90f;
 
     private Camera glavnaKamera;
 
@@ -50,16 +62,41 @@ public class MirandaRuka : MonoBehaviour
 
         transform.rotation = rotacijaOkoX * fiksniY;
 
-        // 3. TELESKOPSKA LOGIKA SA OFFSETOM
+        // 3. TELESKOPSKA LOGIKA SA OFFSETOM I TAMPON ZONOM
         float udaljenostMisa = Vector3.Distance(transform.position, pozicijaMisaUSvijetu);
-        float minUdaljenost = Vector3.Distance(transform.position, pocetakShaka.position);
-        float maxUdaljenost = Vector3.Distance(transform.position, krajShaka.position);
 
+        // Dodajemo pragUvlacenja na min i max granice
+        float minUdaljenost = Vector3.Distance(transform.position, pocetakShaka.position) + pragUvlacenja;
+        float maxUdaljenost = Vector3.Distance(transform.position, krajShaka.position) + pragUvlacenja;
+
+        // Sada će InverseLerp vratiti 0 (skroz uvučeno) čim miš dođe unutar tog kruga oko Mirande!
         float postotakIzvlacenja = Mathf.InverseLerp(minUdaljenost, maxUdaljenost, udaljenostMisa);
 
         Vector3 ciljnaPozicijaSpoja = Vector3.Lerp(pocetakShaka.localPosition, krajShaka.localPosition, postotakIzvlacenja);
         Vector3 ciljnaPozicijaShake = ciljnaPozicijaSpoja - spojShaka.localPosition;
 
-        shakaObjekt.localPosition = Vector3.Lerp(shakaObjekt.localPosition, ciljnaPozicijaShake, Time.deltaTime * brzinaIzvlacenja);
+        // Primjena kretanja (SmoothDamp)
+        shakaObjekt.localPosition = Vector3.SmoothDamp(
+            shakaObjekt.localPosition,
+            ciljnaPozicijaShake,
+            ref trenutnaBrzinaShake,
+            glatkocaIzvlacenja
+        );
+
+        // 4. LOGIKA ZA PROMJENU SPRITE-A ŠAKE (Lijevi klik za stisak)
+        if (shakaSpriteRenderer != null)
+        {
+            // Provjeravamo drži li igrač lijevi klik miša (0 = lijevi klik)
+            isStisnuta = Input.GetMouseButton(0);
+
+            if (isStisnuta && spriteStisnutaShaka != null)
+            {
+                shakaSpriteRenderer.sprite = spriteStisnutaShaka;
+            }
+            else if (!isStisnuta && spriteOtvorenaShaka != null)
+            {
+                shakaSpriteRenderer.sprite = spriteOtvorenaShaka;
+            }
+        }
     }
 }
