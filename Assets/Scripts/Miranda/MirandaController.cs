@@ -3,7 +3,6 @@
 public class MirandaController : MonoBehaviour
 {
     public enum MirandaState { Active, Dead }
-
     public MirandaState currentState = MirandaState.Active;
 
     [Header("Kretanje (Inercija)")]
@@ -21,48 +20,62 @@ public class MirandaController : MonoBehaviour
     [Header("Vizuali (Djeca)")]
     public Transform mirandaTijelo;
     public Transform mirandaGlava;
+    public GameObject mirandaRukaObjekt; // NOVO: Povuci objekt 'Miranda_Ruka' ovdje
+
+    [Header("Ruka i Interakcije")]
+    [Tooltip("Uključi ovo iz drugih skripti (npr. Ventilacija) kada Miranda stoji u njihovom triggeru")]
+    public bool isInteracting = false;
+    private bool rukaAktivna = false;
+    private MirandaInventory inventar;
 
     [Header("UI Reference")]
     public DeathScreenMiranda deathScreenManager;
     private bool deathScreenTriggered = false;
-
     public GameObject HintUI;
 
     public float rotationMultiplier = 60f;
     private float currentRotation = 0f;
 
-    //[Header("Inventar")]
-    public enum Inventar { None, KljucZ, KljucLj };
-    public Inventar skupljeno;
-
-
     [Header("Fizika")]
     public float gravity = -15f;
     private float verticalVelocity;
 
-
     void Start()
     {
         controller = GetComponent<CharacterController>();
-        HintUI.SetActive(false);
+        inventar = GetComponent<MirandaInventory>();
+
+        if (HintUI != null) HintUI.SetActive(false);
+
+        // Na početku igre ruka je skrivena (ugašena)
+        if (mirandaRukaObjekt != null)
+        {
+            mirandaRukaObjekt.SetActive(false);
+            rukaAktivna = false;
+        }
     }
 
     void Update()
     {
-        //if (!isControlled || currentState == MirandaState.Dead) return;
-
         float zInput = 0f;
         bool isSprinting = false;
         bool jumpPressed = false;
 
-        // 3. Čitamo prave tipke SAMO ako igrač ima kontrolu i Miranda je živa
+        // Čitamo kontrole samo ako je Miranda živa i pod kontrolom
         if (isControlled && currentState != MirandaState.Dead)
         {
             zInput = Input.GetAxisRaw("Horizontal");
             isSprinting = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
             jumpPressed = Input.GetKeyDown(KeyCode.W);
+
+            // --- NOVO: LOGIKA ZA PALJENJE / GAŠENJE RUKE (Tipka F) ---
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                PokusajAktiviratiRuku();
+            }
         }
 
+        // 1. Kretanje i fizika
         float currentMaxSpeed = isSprinting ? sprintSpeed : normalMoveSpeed;
         float currentRotMultiplier = isSprinting ? sprintRotationMultiplier : rotationMultiplier;
 
@@ -93,6 +106,7 @@ public class MirandaController : MonoBehaviour
         Vector3 move = new Vector3(0, verticalVelocity, currentZSpeed);
         CollisionFlags flags = controller.Move(move * Time.deltaTime);
 
+        // 2. Rotacija tijela i glave
         if (mirandaTijelo != null)
         {
             currentRotation -= currentZSpeed * currentRotMultiplier * Time.deltaTime;
@@ -107,6 +121,39 @@ public class MirandaController : MonoBehaviour
         if ((flags & CollisionFlags.Above) != 0 && verticalVelocity > 0)
         {
             verticalVelocity = 0f;
+        }
+    }
+
+    void PokusajAktiviratiRuku()
+    {
+        // 1. Provjeri ima li uopće ruku u inventaru
+        if (inventar == null || !inventar.ImaRuku)
+        {
+            Debug.Log("Miranda nema robotsku ruku u inventaru!");
+            return;
+        }
+
+        // 2. Provjeri je li otvoren HintUI (papir na zidu)
+        bool hintOtvoren = (HintUI != null && HintUI.activeSelf);
+        if (hintOtvoren)
+        {
+            // Igrač gleda papir, nemoj dirati ruku
+            return;
+        }
+
+        // 3. Provjeri je li Miranda u triggeru ventilacije ili nekog drugog objekta
+        if (isInteracting)
+        {
+            // Druga interakcija ima prioritet
+            return;
+        }
+
+        // AKO JE SVE ČISTO -> Pali / gasi ruku!
+        if (mirandaRukaObjekt != null)
+        {
+            rukaAktivna = !rukaAktivna;
+            mirandaRukaObjekt.SetActive(rukaAktivna);
+            Debug.Log($"Robotska ruka: {(rukaAktivna ? "UPALJENA" : "UGAŠENA")}");
         }
     }
 
@@ -125,6 +172,13 @@ public class MirandaController : MonoBehaviour
 
         currentState = MirandaState.Dead;
         isControlled = false;
+
+        // Ugasi ruku ako Miranda umre
+        if (mirandaRukaObjekt != null)
+        {
+            mirandaRukaObjekt.SetActive(false);
+            rukaAktivna = false;
+        }
 
         if (controller != null)
         {

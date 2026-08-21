@@ -51,6 +51,7 @@ public class MirandaHint : MonoBehaviour
     {
         if (other.CompareTag("Miranda"))
         {
+            other.GetComponent<MirandaController>().isInteracting = true;
             miranda = true;
 
             if (HintMiranda != null)
@@ -73,6 +74,7 @@ public class MirandaHint : MonoBehaviour
             UIOpen = false;
             if (HintMiranda != null) HintMiranda.SetActive(false);
             if (UI != null) UI.SetActive(false);
+            other.GetComponent<MirandaController>().isInteracting = false;
         }
     }
 }

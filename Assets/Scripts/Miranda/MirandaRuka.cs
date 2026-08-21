@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class MirandaRuka : MonoBehaviour
 {
+    [Header("Točka Hvatanja (Pinceta / Prsti)")]
+    public Transform tockaHvatanja;
+
     [Header("Spriteovi Šake (Otvorena / Stisnuta)")]
     public SpriteRenderer shakaSpriteRenderer; // SpriteRenderer na objektu Shaka
     public Sprite spriteOtvorenaShaka;          // Prirodna / Ispružena ruka
@@ -28,6 +31,14 @@ public class MirandaRuka : MonoBehaviour
     public float offsetKuta = -90f;
 
     private Camera glavnaKamera;
+
+    [Header("Collider Šake")]
+    public Collider shakaCollider;
+
+    public Transform GetTockaHvatanja()
+    {
+        return (tockaHvatanja != null) ? tockaHvatanja : shakaObjekt;
+    }
 
     void Start()
     {
@@ -86,9 +97,9 @@ public class MirandaRuka : MonoBehaviour
         // 4. LOGIKA ZA PROMJENU SPRITE-A ŠAKE (Lijevi klik za stisak)
         if (shakaSpriteRenderer != null)
         {
-            // Provjeravamo drži li igrač lijevi klik miša (0 = lijevi klik)
             isStisnuta = Input.GetMouseButton(0);
 
+            // Promjena spritea
             if (isStisnuta && spriteStisnutaShaka != null)
             {
                 shakaSpriteRenderer.sprite = spriteStisnutaShaka;
@@ -96,6 +107,12 @@ public class MirandaRuka : MonoBehaviour
             else if (!isStisnuta && spriteOtvorenaShaka != null)
             {
                 shakaSpriteRenderer.sprite = spriteOtvorenaShaka;
+            }
+
+            // NOVO: Collider je upaljen SAMO dok je šaka stisnuta!
+            if (shakaCollider != null)
+            {
+                shakaCollider.enabled = isStisnuta;
             }
         }
     }

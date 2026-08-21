@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: d081eb78338dbb14089c4be7ca684a76
+guid: 0a6671ddecb03714ca696da8eecb23a9
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -97,13 +97,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Miranda_Hand_0
+      name: Miranda_Ruka_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 32
-        width: 16
-        height: 16
+        y: 128
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -112,20 +112,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 19e5fa1ad7d9e7f40a3f5539d52b33fb
-      internalID: 2134952157
+      spriteID: d7edd98bc9369584bb0eff7cd9b1e4b6
+      internalID: 1896261871
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Miranda_Hand_1
+      name: Miranda_Ruka_1
       rect:
         serializedVersion: 2
-        x: 16
-        y: 32
-        width: 16
-        height: 16
+        x: 64
+        y: 128
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -134,20 +134,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 82b3474cf17741245a948af0a3b126bb
-      internalID: 1055279756
+      spriteID: f79a94195d9d8d34c9d13fce9aa74c0e
+      internalID: -1436200605
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Miranda_Hand_2
+      name: Miranda_Ruka_2
       rect:
         serializedVersion: 2
         x: 0
-        y: 16
-        width: 16
-        height: 16
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -156,20 +156,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: eb63677b17d357f4494c4febaba201a4
-      internalID: 1156285385
+      spriteID: 5ed604b7cd8e63c458c0dc10310e6865
+      internalID: 1628448063
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Miranda_Hand_3
+      name: Miranda_Ruka_3
       rect:
         serializedVersion: 2
-        x: 16
-        y: 16
-        width: 16
-        height: 16
+        x: 64
+        y: 64
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -178,20 +178,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d40c7b3eca892be4ba2f114be3f42f03
-      internalID: -2040389604
+      spriteID: 0fdfd5ba3bf52194ca86b7f83f8e9a4e
+      internalID: -1286539140
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Miranda_Hand_4
+      name: Miranda_Ruka_4
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 16
-        height: 16
+        width: 64
+        height: 64
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -200,8 +200,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 03fb5bdf023b8e643bc9dcda6bd69c28
-      internalID: -1599996047
+      spriteID: b163ba73593b38c4dbdbb5d72da894c5
+      internalID: -1055106783
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Miranda_Ruka_5
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 0
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: b3adecc6c1ca73f4f9977bf1dd146b02
+      internalID: -1405224475
       vertices: []
       indices: 
       edges: []
@@ -210,7 +232,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 47249486ff837c042bb9ecdfcbecf510
+    spriteID: 6efb0000be50f2447a740c50ae6903d4
     internalID: 0
     vertices: []
     indices: 
@@ -220,13 +242,14 @@ TextureImporter:
     spriteCustomMetadata:
       entries:
       - key: SpriteEditor.SliceSettings
-        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":16.0,"y":16.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      Miranda_Hand_0: 2134952157
-      Miranda_Hand_1: 1055279756
-      Miranda_Hand_2: 1156285385
-      Miranda_Hand_3: -2040389604
-      Miranda_Hand_4: -1599996047
+      Miranda_Ruka_0: 1896261871
+      Miranda_Ruka_1: -1436200605
+      Miranda_Ruka_2: 1628448063
+      Miranda_Ruka_3: -1286539140
+      Miranda_Ruka_4: -1055106783
+      Miranda_Ruka_5: -1405224475
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

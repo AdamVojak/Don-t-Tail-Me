@@ -36,6 +36,7 @@ TagManager:
   - Bomb
   - BeamCone
   - Pajser
+  - Shaka
   layers:
   - Default
   - TransparentFX

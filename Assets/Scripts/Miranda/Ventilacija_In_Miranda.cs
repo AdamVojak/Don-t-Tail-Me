@@ -40,12 +40,20 @@ public class Ventilacija_In_Miranda : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Miranda")) isPlayerNear = true;
+        if (other.CompareTag("Miranda"))
+        {
+            isPlayerNear = true;
+            other.GetComponent<MirandaController>().isInteracting = true;
+        }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Miranda")) isPlayerNear = false;
+        if (other.CompareTag("Miranda"))
+        {
+            isPlayerNear = false;
+            other.GetComponent<MirandaController>().isInteracting = false;
+        }
     }
 
     void Update()

@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 0a6671ddecb03714ca696da8eecb23a9
+guid: 851479503e78f954e91280b8fb7eda08
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -48,7 +48,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 65
+  spritePixelsToUnits: 50
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -97,51 +97,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Miranda_Ruka_0
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 128
-        width: 64
-        height: 64
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: d7edd98bc9369584bb0eff7cd9b1e4b6
-      internalID: 1896261871
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Miranda_Ruka_1
-      rect:
-        serializedVersion: 2
-        x: 64
-        y: 128
-        width: 64
-        height: 64
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: f79a94195d9d8d34c9d13fce9aa74c0e
-      internalID: -1436200605
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Miranda_Ruka_2
+      name: MirandaLever_0
       rect:
         serializedVersion: 2
         x: 0
@@ -156,14 +112,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 5ed604b7cd8e63c458c0dc10310e6865
-      internalID: 1628448063
+      spriteID: 15295c8f659657b4d9f60e34c54a3d54
+      internalID: -472107402
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Miranda_Ruka_3
+      name: MirandaLever_1
       rect:
         serializedVersion: 2
         x: 64
@@ -178,14 +134,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 0fdfd5ba3bf52194ca86b7f83f8e9a4e
-      internalID: -1286539140
+      spriteID: c23b70d215b7bd14eaf0a0c7e7e81e05
+      internalID: 1167892101
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Miranda_Ruka_4
+      name: MirandaLever_2
       rect:
         serializedVersion: 2
         x: 0
@@ -200,14 +156,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b163ba73593b38c4dbdbb5d72da894c5
-      internalID: -1055106783
+      spriteID: e64919a03f2e57540a3349fac5e4340a
+      internalID: 1075027665
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: Miranda_Ruka_5
+      name: MirandaLever_3
       rect:
         serializedVersion: 2
         x: 64
@@ -222,8 +178,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: b3adecc6c1ca73f4f9977bf1dd146b02
-      internalID: -1405224475
+      spriteID: 4ce9cb4a370d74649b08b0abb666b5d5
+      internalID: -1341239791
       vertices: []
       indices: 
       edges: []
@@ -232,7 +188,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 6efb0000be50f2447a740c50ae6903d4
+    spriteID: ac14f44082664324d92453e5b890246b
     internalID: 0
     vertices: []
     indices: 
@@ -244,12 +200,10 @@ TextureImporter:
       - key: SpriteEditor.SliceSettings
         value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":1,"keepEmptyRects":false,"isAlternate":false}'
     nameFileIdTable:
-      Miranda_Ruka_0: 1896261871
-      Miranda_Ruka_1: -1436200605
-      Miranda_Ruka_2: 1628448063
-      Miranda_Ruka_3: -1286539140
-      Miranda_Ruka_4: -1055106783
-      Miranda_Ruka_5: -1405224475
+      MirandaLever_0: -472107402
+      MirandaLever_1: 1167892101
+      MirandaLever_2: 1075027665
+      MirandaLever_3: -1341239791
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
