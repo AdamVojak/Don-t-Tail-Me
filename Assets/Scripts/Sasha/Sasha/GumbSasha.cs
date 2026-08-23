@@ -25,12 +25,13 @@ public class GumbSasha : MonoBehaviour
         {
             spriteRenderer.sprite = pritisnut;
             Debug.Log("Gumb pritisnut!");
+            Čekanje();
         }
     }
 
     private void OnTriggerStay(Collider other)
     {
-        if (other.CompareTag("Sasha") || other.CompareTag("Melee") || other.CompareTag("Gun") || other.CompareTag("Minigun") || other.CompareTag("Projectile") || other.CompareTag("Bullet") || other.CompareTag("Pajser"))
+        if (other.CompareTag("Sasha") || other.CompareTag("Gun") || other.CompareTag("Minigun") || other.CompareTag("Projectile") || other.CompareTag("Bullet"))
         {
             spriteRenderer.sprite = pritisnut;
             Debug.Log("Gumb pritisnut!");
@@ -43,7 +44,7 @@ public class GumbSasha : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Sasha") || other.CompareTag("Melee") || other.CompareTag("Gun") || other.CompareTag("Minigun") || other.CompareTag("Projectile") || other.CompareTag("Bullet") || other.CompareTag("Pajser"))
+        if (other.CompareTag("Sasha") || other.CompareTag("Gun") || other.CompareTag("Minigun") || other.CompareTag("Projectile") || other.CompareTag("Bullet"))
         {
             Čekanje();
             spriteRenderer.sprite = normalan;

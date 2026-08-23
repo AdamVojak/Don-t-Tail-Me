@@ -124,8 +124,8 @@ public class Computer : MonoBehaviour
     {
         for (int i = 0; i < 3; i++)
         {
-            // Mapiranje: 0=Ruka(ID 3), 1=Gun(ID 1), 2=Minigun(ID 2)
-            int checkID = (i == 0) ? 3 : (i == 1 ? 1 : 2);
+            // NOVO MAPIRANJE: 0 = Ruka (ID 3), 1 = Pajser (ID 5), 2 = Minigun (ID 2)
+            int checkID = (i == 0) ? 3 : (i == 1 ? 5 : 2);
 
             if (inventory != null)
             {
@@ -133,6 +133,64 @@ public class Computer : MonoBehaviour
             }
             selectionFrames[i].SetActive(i == selectedIndex);
         }
+    }
+
+    public void TrySendSelectedItem()
+    {
+        // NOVO MAPIRANJE: 0 = Ruka (ID 3), 1 = Pajser (ID 5), 2 = Minigun (ID 2)
+        int itemIDToSend = (selectedIndex == 0) ? 3 : (selectedIndex == 1 ? 5 : 2);
+
+        // 1. Provjeri ima li Giovanni taj item
+        if (!inventory.HasItem(itemIDToSend))
+        {
+            Debug.Log("Giovanni nema odabrani predmet!");
+            return;
+        }
+
+        // 2. Provjera tko je u igri preko GameManager-a
+        bool mirandaU_Igri = GameManager.Instance != null && GameManager.Instance.mirandaOdabrana;
+        bool sashaU_Igri = GameManager.Instance != null && GameManager.Instance.sashaOdabran;
+
+        // --- SCENARIJ A: ŠALJEMO MIRANDI ---
+        if (mirandaU_Igri && mirandinaVentilacija != null)
+        {
+            if (!mirandinaVentilacija.MozePrimiti())
+            {
+                StartCoroutine(FlashUIRoutine());
+                Debug.LogWarning("Mirandina cijev je puna! Čeka se da pokupi item.");
+                return;
+            }
+
+            if (tube_In != null) tube_In.PokreniAnimacijuSlanja(itemIDToSend);
+
+            mirandinaVentilacija.SpremiItemZaMirandu(itemIDToSend);
+            Debug.Log("Giovanni je poslao predmet ID: " + itemIDToSend + " Mirandi.");
+        }
+        // --- SCENARIJ B: ŠALJEMO SASHI (Fallback) ---
+        else if (sashaU_Igri && sashaVentilacija != null)
+        {
+            if (!sashaVentilacija.MozePrimiti())
+            {
+                StartCoroutine(FlashUIRoutine());
+                Debug.LogWarning("Sashina cijev je puna! Čeka se da pokupi item.");
+                return;
+            }
+
+            if (tube_In != null) tube_In.PokreniAnimacijuSlanja(itemIDToSend);
+
+            sashaVentilacija.SpremiItemZaSashu(itemIDToSend);
+            Debug.Log("Mirande nema u igri. Giovanni šalje predmet ID: " + itemIDToSend + " direktno Sashi!");
+        }
+        else
+        {
+            StartCoroutine(FlashUIRoutine());
+            Debug.LogError("Nema dostupnih likova za primanje Giovannijevog itema!");
+            return;
+        }
+
+        inventory.RemoveItem(itemIDToSend);
+        UpdateUI();
+        ToggleComputerState(false);
     }
 
     public void ToggleComputerState(bool state)
@@ -201,67 +259,5 @@ public class Computer : MonoBehaviour
 
         screenLight.enabled = false;
         isReadyToSend = false;
-    }
-
-    public void TrySendSelectedItem()
-    {
-        int itemIDToSend = (selectedIndex == 0) ? 5 : (selectedIndex == 1 ? 1 : 2);
-
-        // 1. Provjeri ima li Giovanni taj item
-        if (!inventory.HasItem(itemIDToSend))
-        {
-            Debug.Log("Giovanni nema odabrani predmet!");
-            return;
-        }
-
-        // 2. Provjera tko je u igri preko GameManager-a
-        bool mirandaU_Igri = GameManager.Instance != null && GameManager.Instance.mirandaOdabrana;
-        bool sashaU_Igri = GameManager.Instance != null && GameManager.Instance.sashaOdabran;
-
-        // --- SCENARIJ A: ŠALJEMO MIRANDI (Prvi prioritet) ---
-        if (mirandaU_Igri && mirandinaVentilacija != null)
-        {
-            // Provjeri je li Mirandina cijev slobodna
-            if (!mirandinaVentilacija.MozePrimiti())
-            {
-                StartCoroutine(FlashUIRoutine());
-                Debug.LogWarning("Mirandina cijev je puna! Čeka se da pokupi item.");
-                return;
-            }
-
-            // Pokreni animaciju usisavanja u cijev
-            if (tube_In != null) tube_In.PokreniAnimacijuSlanja(itemIDToSend);
-
-            // Pošalji Mirandi
-            mirandinaVentilacija.SpremiItemZaMirandu(itemIDToSend);
-            Debug.Log("Giovanni je poslao predmet ID: " + itemIDToSend + " Mirandi.");
-        }
-        // --- SCENARIJ B: ŠALJEMO SASHI (Fallback ako nema Mirande) ---
-        else if (sashaU_Igri && sashaVentilacija != null)
-        {
-            // Provjeri je li Sashina cijev slobodna
-            if (!sashaVentilacija.MozePrimiti())
-            {
-                StartCoroutine(FlashUIRoutine());
-                Debug.LogWarning("Sashina cijev je puna! Čeka se da pokupi item.");
-                return;
-            }
-
-            if (tube_In != null) tube_In.PokreniAnimacijuSlanja(itemIDToSend);
-
-            sashaVentilacija.SpremiItemZaSashu(itemIDToSend);
-            Debug.Log("Mirande nema u igri. Giovanni šalje predmet ID: " + itemIDToSend + " direktno Sashi!");
-        }
-
-        else
-        {
-            StartCoroutine(FlashUIRoutine());
-            Debug.LogError("Nema dostupnih likova za primanje Giovannijevog itema!");
-            return;
-        }
-
-        inventory.RemoveItem(itemIDToSend);
-        UpdateUI();
-        ToggleComputerState(false);
     }
 }

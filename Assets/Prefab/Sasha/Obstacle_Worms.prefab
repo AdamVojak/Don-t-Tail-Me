@@ -11,8 +11,9 @@ GameObject:
   - component: {fileID: 1573080449567026738}
   - component: {fileID: 7264688046150363073}
   - component: {fileID: 2259561034202146119}
-  - component: {fileID: 2120104828229241070}
-  - component: {fileID: 8935332810743686583}
+  - component: {fileID: 4993075233510890716}
+  - component: {fileID: 4240256026079837882}
+  - component: {fileID: 3654402880363544407}
   m_Layer: 7
   m_Name: Obstacle_Worms
   m_TagString: Obstacle
@@ -119,31 +120,10 @@ Rigidbody:
   m_UseGravity: 0
   m_IsKinematic: 0
   m_Interpolate: 1
-  m_Constraints: 120
+  m_Constraints: 56
   m_CollisionDetection: 1
---- !u!65 &2120104828229241070
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3128621315459632700}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1.75, y: 1.75, z: 1.2}
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!65 &8935332810743686583
-BoxCollider:
+--- !u!136 &4993075233510890716
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -160,6 +140,43 @@ BoxCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 1.5, y: 1.5, z: 1.2}
+  serializedVersion: 2
+  m_Radius: 0.75
+  m_Height: 2.75
+  m_Direction: 2
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!136 &4240256026079837882
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3128621315459632700}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 1.15
+  m_Height: 3
+  m_Direction: 2
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &3654402880363544407
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3128621315459632700}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b42d273e41794844838bb5372d3f110, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'

@@ -135,11 +135,19 @@ public class Worms : MonoBehaviour, IDamageable
         kretanjeCoroutine = StartCoroutine(KretanjePetlja());
     }
 
-    public void TakeDamage(int amount)
+    public void TakeDamage(int amount, DamageType damageType = DamageType.Physical)
     {
         SFX.zvucniEfekti.ZvukUdarca.Play();
-        Debug.Log("Udarac sa " + amount + " štete.");
-        PrimiStrujniUdar(amount);
+        Debug.Log("Udarac sa " + amount + " štete. Tip štete: " + damageType);
+
+        if (damageType == DamageType.Electric)
+        {
+            PrimiStrujniUdar(amount);
+        }
+        else
+        {
+            PrimiUdarac(amount);
+        }
     }
 
     void Update()

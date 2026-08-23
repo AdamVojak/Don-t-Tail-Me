@@ -12,6 +12,8 @@ public class SashaHint : MonoBehaviour
     private bool sasha = false;
     private bool UIOpen = false;
 
+    private SashaController sashaController;
+
     private void Start()
     {
         ovajRenderer = GetComponent<SpriteRenderer>();
@@ -23,6 +25,11 @@ public class SashaHint : MonoBehaviour
             UI.SetActive(false);
         }
 
+        if (sashaController == null)
+        {
+            sashaController = FindFirstObjectByType<SashaController>();
+        }
+
         if (HintSasha != null)
         {
             HintSasha.SetActive(false);
@@ -31,7 +38,7 @@ public class SashaHint : MonoBehaviour
 
     private void Update()
     {
-        if (sasha)
+        if (sasha && sashaController.currentState == SashaController.SashaState.Active)
         {
             if (Input.GetKeyDown(KeyCode.F))
             {
@@ -49,7 +56,7 @@ public class SashaHint : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Sasha"))
+        if (other.CompareTag("Sasha") && sashaController.currentState == SashaController.SashaState.Active)
         {
             sasha = true;
 

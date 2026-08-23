@@ -130,7 +130,7 @@ public class Melee : MonoBehaviour
         if (damageable != null)
         {
             int finalDamage = Mathf.RoundToInt(baseDamage * currentMultiplier);
-            damageable.TakeDamage(finalDamage);
+            damageable.TakeDamage(finalDamage, DamageType.Electric);
         }
     }
 }

@@ -78,6 +78,10 @@ public class Ventilacija_In_Miranda : MonoBehaviour
 
     private void OpenUI()
     {
+        // 1. Zaustavi eventualno crveno bljeskanje od prošlog puta
+        StopAllCoroutines();
+        isFlashing = false;
+
         isUIOpen = true;
         uiPanel.SetActive(true);
         playerController.SetLock(true);
@@ -85,6 +89,20 @@ public class Ventilacija_In_Miranda : MonoBehaviour
         selectedItemIndex = 0;
         selectedRecipientIndex = 0; // Defaultno je odabran Sasha (W)
 
+        // 2. Resetiraj boje okvira u slučaju da su ostale crvene od greške
+        if (itemSelectionFrames != null)
+        {
+            for (int i = 0; i < itemSelectionFrames.Length; i++)
+            {
+                if (itemSelectionFrames[i] != null)
+                {
+                    Image frameImg = itemSelectionFrames[i].GetComponent<Image>();
+                    if (frameImg != null) frameImg.color = Color.white;
+                }
+            }
+        }
+
+        // 3. Osvježi stanje predmeta i primatelja
         UpdateUI();
     }
 

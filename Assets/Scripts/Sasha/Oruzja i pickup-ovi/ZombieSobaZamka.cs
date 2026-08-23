@@ -15,13 +15,11 @@ public class ZombieSobaZamka : MonoBehaviour
 
     private bool trapActivated = false;
     private bool allTurnedOff = false;
-    private bool sashaExitedRoom = false;
 
     private void Awake()
     {
         glavnoSvijetlo.SetActive(true);
         crvenaSvijetla.SetActive(false);
-        strujaUI.SetActive(false);
         allTurnedOff = false;
     }
 
@@ -51,7 +49,6 @@ public class ZombieSobaZamka : MonoBehaviour
         // 2. KORAK: Ako je zamka aktivna, a još nismo ugasili obje sklopke...
         if (trapActivated && !allTurnedOff)
         {
-            // Provjeravamo je li ijedna sklopka još uvijek upaljena
             bool imaUkljucenaSklopka = false;
 
             foreach (SklopkaSpawner sk in sklopke)
@@ -59,7 +56,7 @@ public class ZombieSobaZamka : MonoBehaviour
                 if (sk.isOn)
                 {
                     imaUkljucenaSklopka = true;
-                    break; // Dovoljno je da je jedna upaljena, nema potrebe dalje provjeravati u ovom frameu
+                    break;
                 }
             }
 
@@ -77,7 +74,6 @@ public class ZombieSobaZamka : MonoBehaviour
 
         glavnoSvijetlo.SetActive(false);
         crvenaSvijetla.SetActive(true);
-        strujaUI.SetActive(true);
 
         foreach (Spawner s in spawneri)
         {
@@ -95,48 +91,29 @@ public class ZombieSobaZamka : MonoBehaviour
     // Ova funkcija se poziva točno JEDNOM čim se obje sklopke ugase
     void DeaktivirajCrvenaSvjetla()
     {
-        allTurnedOff = true; // Osigurava da se ovo izvrši samo jednom i nikad više
+        glavnoSvijetlo.SetActive(true);
+        allTurnedOff = true;
         crvenaSvijetla.SetActive(false);
-        strujaUI.SetActive(false);
 
-        // Opcionalno: Ako želiš vratiti normalno svjetlo kad ugase sklopke:
-        // glavnoSvijetlo.SetActive(true);
+        // Vraćamo glavno svjetlo kako bi ga sustav za struju mogao prepoznati i kontrolirati
+        glavnoSvijetlo.SetActive(true);
 
-        Debug.Log("Sve sklopke su isključene! Crvena svjetla trajno ugašena.");
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        // Ako se zamka aktivirala, Sasha još nije izašla, i objekt koji izlazi ima tag "Sasha"
-        if (trapActivated && !sashaExitedRoom && other.CompareTag("Sasha"))
-        {
-            IskljuciSveSpawnere();
-        }
-    }
-
-    void IskljuciSveSpawnere()
-    {
-        sashaExitedRoom = true;
-
-        // Ugasi sve spawnere
+        // ODMAH gasimo sve spawnere
         foreach (Spawner s in spawneri)
         {
             s.SetActiveState(false);
             s.enabled = false;
         }
 
-        // Ugasi sve sklopke
-        foreach (SklopkaSpawner sk in sklopke)
-        {
-            sk.enabled = false;
-            sk.SetState(false);
-        }
+        Debug.Log("Sve sklopke su isključene! Spawneri ugašeni.");
 
-        Debug.Log("Sasha je izašla iz sobe sa zamkom. Svi spawneri su trajno isključeni!");
-
-        // AKTIVIRAMO SUSTAV UPRAVLJANJA SVJETLIMA NA LEVELIMA!
+        // ODMAH PREBACUJEMO IGRU NA MIRANDIN SUSTAV STRUJE
         if (SashaSvjetlaKontroler.Instance != null)
         {
+            // Opcionalno: Ako želiš biti 100% siguran da će igra pasti u mrak iste sekunde 
+            // (da natjeraš igrača da prebaci na Mirandu), možeš nasilno srušiti struju na 0 ovdje:
+            // if (EnergyManager.Instance != null) EnergyManager.Instance.struja = 0f;
+
             SashaSvjetlaKontroler.Instance.AktivirajUpravljanje();
         }
     }

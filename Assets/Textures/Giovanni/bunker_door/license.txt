@@ -1,0 +1,11 @@
+Model Information:
+* title:	Bunker Door
+* source:	https://sketchfab.com/3d-models/bunker-door-153c7436da9b47e59f7539c1c54104f1
+* author:	Skotchet (https://sketchfab.com/Skotcher)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Bunker Door" (https://sketchfab.com/3d-models/bunker-door-153c7436da9b47e59f7539c1c54104f1) by Skotchet (https://sketchfab.com/Skotcher) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

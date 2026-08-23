@@ -130,18 +130,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ab87334b31b9c048b448155d9bce6f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Worms
-  brzina: 0.65
+  brzina: 1
   vrijemeKoraka: 0.5
-  vrijemeStajanja: 0.75
+  vrijemeStajanja: 0.25
   sashaControllerRef: {fileID: 0}
   aktivan: 0
   triggerArea: {fileID: 1469273813957414012}
   maliCrvPrefab: {fileID: 716727949480597294, guid: 2024701a6c30e7145b4a920a798e000c, type: 3}
-  intervalSpawna: 8
-  udaljenostSpawna: 1.25
+  intervalSpawna: 4
+  udaljenostSpawna: 1.75
   maksimalnoCrvi: 8
   zemljaKupPrefab: {fileID: 3128621315459632700, guid: 5bfc5242442ccf744a1005866beed011, type: 3}
-  health: 100
+  health: 20
   vrijemeOsamucenosti: 1
   stetaCooldown: 0.1
   vrijemeStrujnogUdara: 1

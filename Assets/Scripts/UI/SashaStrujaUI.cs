@@ -14,6 +14,15 @@ public class SashaStrujaUI : MonoBehaviour
         // Ako nema EnergyManagera ili UI slike, prekidamo
         if (EnergyManager.Instance == null || uiSlika == null || slicice.Length == 0) return;
 
+        // NOVO: Provjeravamo je li sustav struje uopće preuzeo kontrolu nad igrom (nakon zamke)
+        // Ako zamka još nije riješena, skrivamo UI i prekidamo Update.
+        if (SashaSvjetlaKontroler.Instance != null && !SashaSvjetlaKontroler.Instance.upravljanjeAktivno)
+        {
+            uiSlika.enabled = false;
+            return;
+        }
+
+        // Ako smo prošli gornji uvjet, znači da je zamka riješena i igra ovisi o Mirandi!
         float trenutnaStruja = EnergyManager.Instance.struja;
         float maxStruja = EnergyManager.Instance.maxStruja;
 

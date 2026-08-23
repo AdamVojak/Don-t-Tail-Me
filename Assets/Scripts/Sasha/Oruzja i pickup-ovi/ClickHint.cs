@@ -6,9 +6,16 @@ public class ClickHint : MonoBehaviour
     private SpriteRenderer hintImg;
     public Sprite hintClick;
 
+    private SashaController sashaController;
+
 
     private void Start()
     {
+        if (sashaController == null)
+        {
+            sashaController = FindFirstObjectByType<SashaController>();
+        }
+
         if (hintsObject != null)
         {
             hintImg = hintsObject.GetComponent<SpriteRenderer>();
@@ -18,7 +25,7 @@ public class ClickHint : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        if (other.CompareTag("Sasha"))
+        if (other.CompareTag("Sasha") || sashaController.currentState == SashaController.SashaState.Active)
         {
             hintsObject.SetActive(true);
                 hintImg.sprite = hintClick;

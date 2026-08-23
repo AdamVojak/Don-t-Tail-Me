@@ -77,10 +77,6 @@ public class Enemy_Worm : MonoBehaviour, IDamageable
         {
             igracMeta = sashaControllerRef.transform;
         }
-        else
-        {
-            Debug.LogWarning(gameObject.name + " ne može pronaći SashaController u sceni!");
-        }
     }
 
     public void PocetakKoraka()
@@ -143,11 +139,19 @@ public class Enemy_Worm : MonoBehaviour, IDamageable
         }
     }
 
-    public void TakeDamage(int amount)
+    public void TakeDamage(int amount, DamageType damageType = DamageType.Physical)
     {
         SFX.zvucniEfekti.ZvukUdarca.Play();
-        Debug.Log("Udarac sa " + amount + " štete.");
-        PrimiStrujniUdar(amount);
+        Debug.Log("Udarac sa " + amount + " štete. Tip štete: " + damageType);
+
+        if (damageType == DamageType.Electric)
+        {
+            PrimiStrujniUdar(amount);
+        }
+        else
+        {
+            PrimiUdarac(amount);
+        }
     }
 
     void OnTriggerEnter(Collider other)

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Low Poly military case
+* source:	https://sketchfab.com/3d-models/low-poly-military-case-ca732007c5f740a881121c29ab8ba34b
+* author:	stayalivedudexxx (https://sketchfab.com/stayalivedudexxx)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Low Poly military case" (https://sketchfab.com/3d-models/low-poly-military-case-ca732007c5f740a881121c29ab8ba34b) by stayalivedudexxx (https://sketchfab.com/stayalivedudexxx) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

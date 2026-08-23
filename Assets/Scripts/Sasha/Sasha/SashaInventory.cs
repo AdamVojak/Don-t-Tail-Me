@@ -93,16 +93,48 @@ public class SashaInventory : MonoBehaviour
     }
 
 
+    private void UpdateUI()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            // NOVO MAPIRANJE: 0 = Žuti ključ (ID 0), 1 = Gun (ID 1), 2 = Pajser (ID 5)
+            int checkID = (i == 0) ? 0 : (i == 1 ? 1 : 5);
+
+            if (itemSprites.Length > i && itemSprites[i] != null)
+            {
+                itemImages[i].sprite = itemSprites[i];
+            }
+
+            // Provjeravamo točan ID umjesto indeksa 'i'
+            if (HasItem(checkID))
+            {
+                itemImages[i].color = Color.white;
+            }
+            else
+            {
+                itemImages[i].color = Color.black;
+            }
+
+            if (selectionFrames.Length > i && selectionFrames[i] != null)
+            {
+                selectionFrames[i].SetActive(i == selectedIndex);
+            }
+        }
+    }
+
     public bool TrySendSelectedItem()
     {
-        // 1. Provjeri ima li Sasha uopće taj item
-        if (!HasItem(selectedIndex))
+        // NOVO MAPIRANJE: 0 = Žuti ključ (ID 0), 1 = Gun (ID 1), 2 = Pajser (ID 5)
+        int itemIDToSend = (selectedIndex == 0) ? 0 : (selectedIndex == 1 ? 1 : 5);
+
+        // 1. Provjeri ima li Sasha taj točan item
+        if (!HasItem(itemIDToSend))
         {
-            Debug.Log("Sasha nema taj item!");
+            Debug.Log("Sasha nema odabrani predmet!");
             return false;
         }
 
-        // 2. Pronađi trenutnu ventilaciju
+        // 2. Pronađi ventilaciju
         SashaController controller = GetComponent<SashaController>();
         if (controller == null || controller.trenutnaVentilacija == null)
         {
@@ -110,25 +142,23 @@ public class SashaInventory : MonoBehaviour
             return false;
         }
 
-        // 3. Pokušaj poslati item kroz ventilaciju
-        // (Ventilacija će sama provjeriti preko GameManager-a tko je u igri i je li cijev slobodna)
-        bool uspjesnoPoslano = controller.trenutnaVentilacija.PrimiItemUVentilaciju(selectedIndex);
+        // 3. Pošalji točan ID kroz ventilaciju
+        bool uspjesnoPoslano = controller.trenutnaVentilacija.PrimiItemUVentilaciju(itemIDToSend);
 
         if (uspjesnoPoslano)
         {
-            // Ako je slanje uspjelo: prikaži sprite u ruci i obriši item iz inventara
             if (itemURuciSpriteRenderer != null)
             {
                 itemURuciSpriteRenderer.sprite = itemSprites[selectedIndex];
                 itemURuciSpriteRenderer.gameObject.SetActive(true);
             }
 
-            RemoveItem(selectedIndex);
+            // Oduzimamo točan ID (npr. 5 za Pajser)
+            RemoveItem(itemIDToSend);
             return true;
         }
         else
         {
-            // Ako slanje nije uspjelo (cijev je puna ili nema nikoga), zabljeskaj crveno
             StartCoroutine(FlashUIRoutine());
             return false;
         }
@@ -167,31 +197,6 @@ public class SashaInventory : MonoBehaviour
 
         isFlashing = false;
         UpdateUI();
-    }
-
-    private void UpdateUI()
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            if (itemSprites.Length > i && itemSprites[i] != null)
-            {
-                itemImages[i].sprite = itemSprites[i];
-            }
-
-            if (HasItem(i))
-            {
-                itemImages[i].color = Color.white;
-            }
-            else
-            {
-                itemImages[i].color = Color.black;
-            }
-
-            if (selectionFrames.Length > i && selectionFrames[i] != null)
-            {
-                selectionFrames[i].SetActive(i == selectedIndex);
-            }
-        }
     }
 
 

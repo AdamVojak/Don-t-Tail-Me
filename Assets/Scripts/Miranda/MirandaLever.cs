@@ -28,7 +28,7 @@ public class Lever : MonoBehaviour
 
     private bool isDragging = false;
     private float fiksniX;
-    private MirandaRuka ruka;
+    [SerializeField] private MirandaRuka ruka;
 
     void Start()
     {
@@ -50,7 +50,7 @@ public class Lever : MonoBehaviour
     {
         if (ruka == null)
         {
-            ruka = Object.FindAnyObjectByType<MirandaRuka>();
+            ruka = Object.FindFirstObjectByType<MirandaRuka>();
             if (ruka == null) Debug.LogError("Lever: Ne mogu pronaći skriptu MirandaRuka u sceni!");
         }
     }

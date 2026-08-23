@@ -9,11 +9,17 @@ public class HintBreakVent : MonoBehaviour
     public Sprite hintClick;
     public Sprite hintF;
     public Ventilacija_In_Sasha ventInRef;
+    private SashaController sashaController;
     public bool otvoren = false;
 
 
     private void Start()
     {
+        if (sashaController == null)
+        {
+            sashaController = FindFirstObjectByType<SashaController>();
+        }
+
         if (hintsObject != null)
         {
             hintImg = hintsObject.GetComponent<SpriteRenderer>();
@@ -33,7 +39,7 @@ public class HintBreakVent : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        if (other.CompareTag("Sasha"))
+        if (other.CompareTag("Sasha") && sashaController.currentState == SashaController.SashaState.Active)
         {
             hintsObject.SetActive(true);
             if (!otvoren)
@@ -44,6 +50,11 @@ public class HintBreakVent : MonoBehaviour
             {
                 hintImg.sprite = hintF;
             }
+        }
+
+        if (other.CompareTag("Sasha") && sashaController.currentState != SashaController.SashaState.Active)
+        {
+            hintsObject.SetActive(false);
         }
     }
 

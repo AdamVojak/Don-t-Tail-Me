@@ -47,11 +47,51 @@ public class MirandaController : MonoBehaviour
 
         if (HintUI != null) HintUI.SetActive(false);
 
-        // Na početku igre ruka je skrivena (ugašena)
+        // --- PROVJERA INVENTARA ODMAH NA STARTU ---
+        // Ako nema ruku u inventaru (ili ako inventar još nije spreman), 
+        // prisilno ugasi objekt ruke čak i ako je bio upaljen u Unity Editoru!
+        bool posjedujeRuku = (inventar != null && inventar.ImaRuku);
+
         if (mirandaRukaObjekt != null)
         {
             mirandaRukaObjekt.SetActive(false);
             rukaAktivna = false;
+
+            if (!posjedujeRuku)
+            {
+                Debug.Log("Miranda na startu NEMA ruku -> Ruka je zaključana i ugašena.");
+            }
+        }
+    }
+
+    void PokusajAktiviratiRuku()
+    {
+        // 1. STRIKTNA PROVJERA INVENTARA:
+        // Ako Miranda NEMA ruku, ignoriraj tipku F i osiguraj da je ruka ugašena!
+        if (inventar == null || !inventar.ImaRuku)
+        {
+            if (mirandaRukaObjekt != null && mirandaRukaObjekt.activeSelf)
+            {
+                mirandaRukaObjekt.SetActive(false);
+                rukaAktivna = false;
+            }
+            // Potpuno ignoriraj pritisak tipke F
+            return;
+        }
+
+        // 2. Provjeri je li otvoren HintUI (papir na zidu)
+        bool hintOtvoren = (HintUI != null && HintUI.activeSelf);
+        if (hintOtvoren) return;
+
+        // 3. Provjeri je li u tijeku druga interakcija (ventilacija itd.)
+        if (isInteracting) return;
+
+        // 4. AKO IMA RUKU I SVE JE SLOBODNO -> Pali / gasi ruku!
+        if (mirandaRukaObjekt != null)
+        {
+            rukaAktivna = !rukaAktivna;
+            mirandaRukaObjekt.SetActive(rukaAktivna);
+            Debug.Log($"Robotska ruka: {(rukaAktivna ? "UPALJENA" : "UGAŠENA")}");
         }
     }
 
@@ -121,39 +161,6 @@ public class MirandaController : MonoBehaviour
         if ((flags & CollisionFlags.Above) != 0 && verticalVelocity > 0)
         {
             verticalVelocity = 0f;
-        }
-    }
-
-    void PokusajAktiviratiRuku()
-    {
-        // 1. Provjeri ima li uopće ruku u inventaru
-        if (inventar == null || !inventar.ImaRuku)
-        {
-            Debug.Log("Miranda nema robotsku ruku u inventaru!");
-            return;
-        }
-
-        // 2. Provjeri je li otvoren HintUI (papir na zidu)
-        bool hintOtvoren = (HintUI != null && HintUI.activeSelf);
-        if (hintOtvoren)
-        {
-            // Igrač gleda papir, nemoj dirati ruku
-            return;
-        }
-
-        // 3. Provjeri je li Miranda u triggeru ventilacije ili nekog drugog objekta
-        if (isInteracting)
-        {
-            // Druga interakcija ima prioritet
-            return;
-        }
-
-        // AKO JE SVE ČISTO -> Pali / gasi ruku!
-        if (mirandaRukaObjekt != null)
-        {
-            rukaAktivna = !rukaAktivna;
-            mirandaRukaObjekt.SetActive(rukaAktivna);
-            Debug.Log($"Robotska ruka: {(rukaAktivna ? "UPALJENA" : "UGAŠENA")}");
         }
     }
 

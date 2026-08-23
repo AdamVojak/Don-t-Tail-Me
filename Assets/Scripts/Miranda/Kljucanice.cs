@@ -4,18 +4,22 @@ public class Kljucanice : MonoBehaviour
 {
     public enum PotrebanTipKljuca
     {
-        Zuti = 0,
-        Ljubicasti = 4
+        Zuti = 0,        // ID 0 u unificiranom inventaru
+        Ljubicasti = 4   // ID 4 u unificiranom inventaru
     }
 
+    [Header("Postavke Ključanice")]
     [SerializeField] private PotrebanTipKljuca potrebniKljuc;
 
-    [SerializeField] private SpriteRenderer spriteRenderer; // Referenca na SpriteRenderer komponentu
-    [SerializeField] private Sprite otkljucanaZuta; // Sprite za otključanu žutu ključanicu
-    [SerializeField] private Sprite otkljucanaLjub; // Sprite za otključanu ljubičastu ključanicu
+    [Header("Vizuali")]
+    [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private Sprite otkljucanaZuta;
+    [SerializeField] private Sprite otkljucanaLjub;
 
+    [Header("Vrata")]
     [SerializeField] private Vrata vrata;
 
+    [HideInInspector]
     public bool otkljucana = false;
 
     void Start()
@@ -25,21 +29,31 @@ public class Kljucanice : MonoBehaviour
             spriteRenderer = GetComponent<SpriteRenderer>();
             if (spriteRenderer == null)
             {
-                Debug.LogError("SpriteRenderer komponenta nije pronađena na ključanici " + gameObject.name);
+                Debug.LogError("SpriteRenderer nije pronađen na ključanici: " + gameObject.name);
             }
         }
     }
 
     private void OnTriggerStay(Collider other)
     {
-        if (!otkljucana && other.CompareTag("Miranda"))
+        if (otkljucana) return;
+
+        // Prepoznajemo i ako Miranda priđe tijelom i ako pruži ruku ("Shaka")
+        if (other.CompareTag("Miranda") || other.CompareTag("Shaka"))
         {
-            MirandaInventory mirandaInventory = other.GetComponentInParent<MirandaInventory>();
-            if (mirandaInventory != null)
+            MirandaInventory inv = other.GetComponentInParent<MirandaInventory>();
+            if (inv == null) inv = Object.FindFirstObjectByType<MirandaInventory>();
+
+            if (inv != null)
             {
-                if (mirandaInventory.HasKey((int)potrebniKljuc))
+                // Provjeravamo ima li odgovarajući ključ u unificiranom inventaru
+                bool imaKljuc = false;
+                if (potrebniKljuc == PotrebanTipKljuca.Zuti) imaKljuc = inv.ImaZutiKljuc;
+                else if (potrebniKljuc == PotrebanTipKljuca.Ljubicasti) imaKljuc = inv.ImaLjubicastiKljuc;
+
+                if (imaKljuc)
                 {
-                    UnlockDoor(mirandaInventory);
+                    UnlockDoor(inv);
                 }
             }
         }
@@ -48,9 +62,12 @@ public class Kljucanice : MonoBehaviour
     private void UnlockDoor(MirandaInventory mirandaInventory)
     {
         otkljucana = true;
-        mirandaInventory.RemoveKey((int)potrebniKljuc);
-        Debug.Log(gameObject.name + " je otključana!");
 
+        // UNIFICIRANO: Koristimo standardnu RemoveItem metodu s ID-jem (0 ili 4)
+        mirandaInventory.RemoveItem((int)potrebniKljuc);
+        Debug.Log($"Ključanica {gameObject.name} je uspješno OTKLJUČANA!");
+
+        // Promjena spritea
         if (potrebniKljuc == PotrebanTipKljuca.Zuti && otkljucanaZuta != null)
         {
             spriteRenderer.sprite = otkljucanaZuta;
@@ -60,6 +77,7 @@ public class Kljucanice : MonoBehaviour
             spriteRenderer.sprite = otkljucanaLjub;
         }
 
+        // Obavijesti vrata
         if (vrata != null)
         {
             vrata.ProvjeriKljucanice();

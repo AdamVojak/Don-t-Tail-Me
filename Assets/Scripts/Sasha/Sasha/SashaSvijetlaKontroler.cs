@@ -9,9 +9,16 @@ public class SashaSvjetlaKontroler : MonoBehaviour
     public string imeSashaLeveli = "Sasha_Leveli";
     public bool upravljanjeAktivno = false;
 
-    private GameObject sashaLeveliObj;
-    private Light[] svaSvjetla;
-    private SklopkaSpawner[] sveSklopke; // Ako koristiš sklopke u sobama
+    // Pomoćna klasa u kojoj pamtimo svjetlo i njegov originalni intenzitet
+    [System.Serializable]
+    public class PodaciSvjetla
+    {
+        public Light svjetlo;
+        public float originalniIntenzitet;
+    }
+
+    // Lista u kojoj držimo sva svjetla iz svih 5 soba
+    private List<PodaciSvjetla> svaSvjetla = new List<PodaciSvjetla>();
 
     private void Awake()
     {
@@ -19,63 +26,65 @@ public class SashaSvjetlaKontroler : MonoBehaviour
         else Destroy(gameObject);
     }
 
+    // Poziva se iz ZombieSobaZamka skripte
     public void AktivirajUpravljanje()
     {
         upravljanjeAktivno = true;
-        OsveziKomponente();
-        Debug.Log("Sustav struje preuzeo kontrolu nad svjetlima u Sasha_Leveli!");
+        SkenirajSvaSvjetla();
+        Debug.Log("Sustav struje preuzeo kontrolu nad svjetlima. Započinjem praćenje 10% pravila!");
     }
 
-    // Pronalazi sve objekte, čak i ako su ugašeni!
-    public void OsveziKomponente()
+    // Skenira cijeli Sasha_Leveli objekt i sprema originalne vrijednosti
+    private void SkenirajSvaSvjetla()
     {
-        sashaLeveliObj = GameObject.Find(imeSashaLeveli);
+        svaSvjetla.Clear();
+        GameObject sashaLeveliObj = GameObject.Find(imeSashaLeveli);
 
         if (sashaLeveliObj != null)
         {
-            // Druga varijabla (true) znači: "Traži čak i unutar ugašenih (Inactive) objekata!"
-            svaSvjetla = sashaLeveliObj.GetComponentsInChildren<Light>(true);
-            sveSklopke = sashaLeveliObj.GetComponentsInChildren<SklopkaSpawner>(true);
+            // (true) znači da pronalazi svjetla čak i u sobama koje su trenutno SetActive(false)
+            Light[] pronadjenaSvjetla = sashaLeveliObj.GetComponentsInChildren<Light>(true);
+
+            foreach (Light l in pronadjenaSvjetla)
+            {
+                // Spremamo referencu na svjetlo i njegov početni intenzitet
+                PodaciSvjetla noviPodatak = new PodaciSvjetla();
+                noviPodatak.svjetlo = l;
+                noviPodatak.originalniIntenzitet = l.intensity;
+
+                svaSvjetla.Add(noviPodatak);
+            }
         }
     }
 
     private void Update()
     {
-        if (!upravljanjeAktivno) return;
+        if (!upravljanjeAktivno || EnergyManager.Instance == null) return;
 
-        // Ako se leveli učitaju/odspoje u runtime-u, ponovno osveži listu
-        if (sashaLeveliObj == null || svaSvjetla == null || svaSvjetla.Length == 0)
+        // 1. Računamo postotak struje (0 do 100)
+        float trenutnaStruja = EnergyManager.Instance.struja;
+        float maxStruja = EnergyManager.Instance.maxStruja;
+        float postotakStruje = (trenutnaStruja / maxStruja) * 100f;
+
+        // 2. Određujemo množitelj intenziteta
+        float mnoziteljIntenziteta = 1f; // Po defaultu je 1 (svjetla rade 100% normalno)
+
+        if (postotakStruje <= 10f)
         {
-            OsveziKomponente();
+            // Ako je struja na 10%, množitelj je 1. Ako je na 5%, množitelj je 0.5. Ako je 0, množitelj je 0.
+            mnoziteljIntenziteta = postotakStruje / 10f;
         }
 
-        if (svaSvjetla == null) return;
-
-        // Provjeravamo ima li struje u centralnom sustavu
-        bool imaStruje = EnergyManager.Instance != null && EnergyManager.Instance.struja > 0;
-
-        // 1. UPRAVLJANJE SVJETLIMA
-        foreach (Light l in svaSvjetla)
+        // 3. Primjenjujemo matematiku na sva svjetla
+        foreach (PodaciSvjetla podatak in svaSvjetla)
         {
-            if (l != null)
+            // Provjeravamo postoji li svjetlo i je li njegova soba trenutno upaljena (radi optimizacije)
+            if (podatak.svjetlo != null && podatak.svjetlo.gameObject.activeInHierarchy)
             {
-                // Svjetlo radi SAMO ako ima struje.
-                // Ako je roditeljski objekt svjetla ugašen polugom/gumbom, 
-                // Unity ga automatski neće prikazati u igri, što je savršeno!
-                l.enabled = imaStruje;
-            }
-        }
-
-        // 2. OPIONALNO: Ako želiš da se sklopke/gumbi uopće ne mogu stiskati dok nema struje:
-        if (sveSklopke != null)
-        {
-            foreach (SklopkaSpawner sk in sveSklopke)
-            {
-                if (sk != null)
-                {
-                    // Onemogućujemo rad sklopki ako nema struje
-                    sk.enabled = imaStruje;
-                }
+                // Mijenjamo intenzitet. 
+                // Ako je struja > 10%, množi se s 1 (ostaje isto).
+                // Ako je struja u padu ispod 10%, množi se s decimalnim brojem i radi fade-out.
+                podatak.svjetlo.intensity = podatak.originalniIntenzitet * mnoziteljIntenziteta;
             }
         }
     }

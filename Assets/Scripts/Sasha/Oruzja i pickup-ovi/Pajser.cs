@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Pajser : MonoBehaviour
 {
-    public float baseDamage = 10f;
+    public float baseDamage = 30f;
 
     private Animator animacijaMelee;
 
@@ -61,8 +61,7 @@ public class Pajser : MonoBehaviour
         if (damageable != null)
         {
             Debug.Log("Pajser je uspješno udario zombija!");
-            damageable.TakeDamage(Mathf.RoundToInt(baseDamage));
-
+            damageable.TakeDamage(Mathf.RoundToInt(baseDamage), DamageType.Physical);
             if (meleeCollider != null) meleeCollider.enabled = false;
         }
     }

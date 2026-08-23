@@ -130,7 +130,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8e60a53c11071942a75ba4bad57c043, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy_Worm
-  brzina: 1
+  brzina: 1.25
   sashaControllerRef: {fileID: 0}
   aktivan: 0
   health: 25
