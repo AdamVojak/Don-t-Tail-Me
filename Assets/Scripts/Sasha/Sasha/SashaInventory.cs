@@ -124,17 +124,25 @@ public class SashaInventory : MonoBehaviour
 
     public bool TrySendSelectedItem()
     {
+        // 1. Provjera je li Sasha već iskoristio svoje 1 slanje u ovoj igri
+        if (VentNetworkManager.Instance != null && VentNetworkManager.Instance.sashaJePoslaoItem)
+        {
+            Debug.LogWarning("Sasha je već poslao svoj dozvoljeni item u ovoj igri!");
+            StartCoroutine(FlashUIRoutine());
+            return false;
+        }
+
         // NOVO MAPIRANJE: 0 = Žuti ključ (ID 0), 1 = Gun (ID 1), 2 = Pajser (ID 5)
         int itemIDToSend = (selectedIndex == 0) ? 0 : (selectedIndex == 1 ? 1 : 5);
 
-        // 1. Provjeri ima li Sasha taj točan item
+        // 2. Provjeri ima li Sasha taj točan item
         if (!HasItem(itemIDToSend))
         {
             Debug.Log("Sasha nema odabrani predmet!");
             return false;
         }
 
-        // 2. Pronađi ventilaciju
+        // 3. Pronađi ventilaciju
         SashaController controller = GetComponent<SashaController>();
         if (controller == null || controller.trenutnaVentilacija == null)
         {
@@ -142,26 +150,26 @@ public class SashaInventory : MonoBehaviour
             return false;
         }
 
-        // 3. Pošalji točan ID kroz ventilaciju
+        // 4. Pošalji točan ID kroz ventilaciju
         bool uspjesnoPoslano = controller.trenutnaVentilacija.PrimiItemUVentilaciju(itemIDToSend);
 
         if (uspjesnoPoslano)
         {
+            // Zabilježi u VentNetworkManageru da je Sasha poslao svoj 1 item
+            if (VentNetworkManager.Instance != null) VentNetworkManager.Instance.sashaPoslanoUkupno++;
+
             if (itemURuciSpriteRenderer != null)
             {
                 itemURuciSpriteRenderer.sprite = itemSprites[selectedIndex];
                 itemURuciSpriteRenderer.gameObject.SetActive(true);
             }
 
-            // Oduzimamo točan ID (npr. 5 za Pajser)
             RemoveItem(itemIDToSend);
             return true;
         }
-        else
-        {
-            StartCoroutine(FlashUIRoutine());
-            return false;
-        }
+
+        StartCoroutine(FlashUIRoutine());
+        return false;
     }
 
     private System.Collections.IEnumerator FlashUIRoutine()

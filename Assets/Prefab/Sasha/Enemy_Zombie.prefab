@@ -232,8 +232,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.75, y: 0.6, z: 1}
-  m_Center: {x: 0, y: 0.55, z: 0}
+  m_Size: {x: 1.65, y: 0.65, z: 1}
+  m_Center: {x: 0, y: 0.5, z: 0}
 --- !u!1 &8895857496377544948
 GameObject:
   m_ObjectHideFlags: 0
@@ -320,7 +320,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 0.75, z: 1}
+  m_Size: {x: 1.2, y: 0.75, z: 1}
   m_Center: {x: 0, y: 0.05, z: 0}
 --- !u!114 &3848720090412756750
 MonoBehaviour:
@@ -334,10 +334,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edfa7add6e2962c43856f4401a3e4a6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
-  pocetnaBrzina: 0.1
+  pocetnaBrzina: 0.2
   maksimalnaBrzina: 3
-  brzinaUbrzavanja: 2
-  snagaZakoraka: 0.25
+  brzinaUbrzavanja: 2.5
+  snagaZakoraka: 0.3
   trajanjeZakoraka: 0.1
   sashaControllerRef: {fileID: 0}
   gameManagerRef: {fileID: 0}
@@ -345,9 +345,9 @@ MonoBehaviour:
   triggerArea: {fileID: 7547460880595829042}
   fist: {fileID: 791886985049089385}
   health: 100
-  vrijemeOsamucenosti: 0.5
+  vrijemeOsamucenosti: 0.25
   stetaCooldown: 0.01
-  vrijemeStrujnogUdara: 2
+  vrijemeStrujnogUdara: 0.75
   sokiraniSprite: {fileID: 1612328258, guid: 544925f4b3803a34092002c3d2983a7c, type: 3}
   brojTreptajaBoje: 10
   tijelo: {fileID: 6073398989815672572}
@@ -454,5 +454,5 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.9, y: 0.6, z: 1}
+  m_Size: {x: 1, y: 0.6, z: 1}
   m_Center: {x: 0, y: 0, z: 0}

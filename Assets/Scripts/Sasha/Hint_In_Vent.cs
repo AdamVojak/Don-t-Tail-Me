@@ -8,46 +8,55 @@ public class HintBreakVent : MonoBehaviour
     public Sprite hintF;
     public Ventilacija_In_Sasha ventInRef;
 
-    private SashaController sashaController;
-    public bool otvoren = false;
-    private bool isSashaNear = false; // Pamtimo je li Sasha fizički u zoni
-
-    private void Start()
+    void Start()
     {
-        if (sashaController == null) sashaController = FindFirstObjectByType<SashaController>();
-        if (ventInRef == null) ventInRef = FindFirstObjectByType<Ventilacija_In_Sasha>();
-
         if (hintsObject != null)
         {
             hintImg = hintsObject.GetComponent<SpriteRenderer>();
             hintsObject.SetActive(false);
         }
-    }
 
-    private void Update()
-    {
-        if (ventInRef != null) otvoren = ventInRef.jeOtvorena;
-
-        if (isSashaNear && sashaController.currentState == SashaController.SashaState.Active && sashaController.isControlled)
+        if (ventInRef == null)
         {
-            hintsObject.SetActive(true);
-
-            if (!otvoren) hintImg.sprite = hintClick;
-            else hintImg.sprite = hintF;
-        }
-        else
-        {
-            hintsObject.SetActive(false);
+            ventInRef = FindFirstObjectByType<Ventilacija_In_Sasha>();
         }
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerStay(Collider other)
     {
-        if (other.CompareTag("Sasha")) isSashaNear = true;
+        if (other.CompareTag("Sasha"))
+        {
+            // Uzimamo Sashu direktno iz objekta koji stoji u triggeru
+            SashaController sasha = other.GetComponentInParent<SashaController>();
+
+            // Ako je Sasha tu i aktivna je
+            if (sasha != null && sasha.currentState == SashaController.SashaState.Active)
+            {
+                if (hintsObject != null)
+                {
+                    hintsObject.SetActive(true);
+
+                    // Provjeravamo je li ventilacija otvorena
+                    bool otvoren = (ventInRef != null) && ventInRef.jeOtvorena;
+
+                    if (hintImg != null)
+                    {
+                        hintImg.sprite = otvoren ? hintF : hintClick;
+                    }
+                }
+            }
+            else // Ako si prebacio na drugog lika -> ugasi hint
+            {
+                if (hintsObject != null) hintsObject.SetActive(false);
+            }
+        }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Sasha")) isSashaNear = false;
+        if (other.CompareTag("Sasha"))
+        {
+            if (hintsObject != null) hintsObject.SetActive(false);
+        }
     }
 }

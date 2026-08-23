@@ -166,7 +166,6 @@ public class Enemy_Worm : MonoBehaviour, IDamageable
             if (projectile != null)
             {
                 PrimiUdarac(projectile.damage);
-                Destroy(other.gameObject);
             }
         }
 
@@ -176,7 +175,6 @@ public class Enemy_Worm : MonoBehaviour, IDamageable
             if (bullet != null)
             {
                 PrimiUdarac(bullet.damage);
-                Destroy(other.gameObject);
             }
         }
     }

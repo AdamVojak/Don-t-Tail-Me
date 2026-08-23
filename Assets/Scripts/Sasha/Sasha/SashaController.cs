@@ -195,6 +195,12 @@ public class SashaController : MonoBehaviour
         }
         else
         {
+            // --- SIGURNOSNA PROVJERA (Ako smo u stanju guranja, ali je kutija uništena/nestala) ---
+            if (currentState == SashaState.Pushing)
+            {
+                StopPushing(); // Automatski prekini guranje i teleportiraj Sashu natrag
+            }
+
             // --- NORMALNO KRETANJE (Kada ne guramo) ---
             if (moveDirection.magnitude > 1f)
             {
@@ -513,23 +519,7 @@ public class SashaController : MonoBehaviour
             currentState = SashaState.Active;
             if (animacijaTijela != null) animacijaTijela.SetBool("guranje", false);
 
-            // --- NOVO: Vrati Sashu na njezinu originalnu poziciju i rotaciju ---
-            if (controller != null)
-            {
-                controller.enabled = false; // Isključujemo CharacterController radi sigurnog teleporta
-            }
-
-            transform.position = prePushPosition;
-
-            if (tijelo != null)
-            {
-                tijelo.transform.rotation = prePushRotation;
-            }
-
-            if (controller != null)
-            {
-                controller.enabled = true; // Ponovno uključujemo kontroler
-            }
+            // --- TELEPORTACIJA JE UKLONJENA: Sasha sada ostaje točno tamo gdje je zadnje bila ---
 
             if (lockedBox != null)
             {
@@ -553,7 +543,7 @@ public class SashaController : MonoBehaviour
             }
             relativeOffset = Vector3.zero;
             lockedPushDir = Vector3.zero;
-            Debug.Log("Sasha: Otključan entitet guranja i uspješno vraćen na početnu poziciju.");
+            Debug.Log("Sasha: Otključan entitet guranja (ostaje na trenutnoj poziciji).");
         }
     }
 

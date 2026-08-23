@@ -130,7 +130,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ab87334b31b9c048b448155d9bce6f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Worms
-  brzina: 1
+  brzina: 0.9
   vrijemeKoraka: 0.5
   vrijemeStajanja: 0.25
   sashaControllerRef: {fileID: 0}
@@ -141,10 +141,10 @@ MonoBehaviour:
   udaljenostSpawna: 1.75
   maksimalnoCrvi: 8
   zemljaKupPrefab: {fileID: 3128621315459632700, guid: 5bfc5242442ccf744a1005866beed011, type: 3}
-  health: 20
-  vrijemeOsamucenosti: 1
+  health: 10
+  vrijemeOsamucenosti: 0.5
   stetaCooldown: 0.1
-  vrijemeStrujnogUdara: 1
+  vrijemeStrujnogUdara: 0.75
   sokiraniSprite: {fileID: 21300000, guid: a73a3ddeea737f44db38f75c6ab23ea4, type: 3}
   brojTreptajaBoje: 8
   playerTag: Sasha

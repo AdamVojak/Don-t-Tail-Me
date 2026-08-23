@@ -6,13 +6,8 @@ public class ClickHint : MonoBehaviour
     private SpriteRenderer hintImg;
     public Sprite hintClick;
 
-    private SashaController sashaController;
-    private bool isSashaNear = false; // Pamtimo je li Sasha fizički u zoni
-
-    private void Start()
+    void Start()
     {
-        if (sashaController == null) sashaController = FindFirstObjectByType<SashaController>();
-
         if (hintsObject != null)
         {
             hintImg = hintsObject.GetComponent<SpriteRenderer>();
@@ -20,26 +15,34 @@ public class ClickHint : MonoBehaviour
         }
     }
 
-    private void Update()
+    private void OnTriggerStay(Collider other)
     {
-        if (isSashaNear && sashaController.currentState == SashaController.SashaState.Active && sashaController.isControlled)
+        if (other.CompareTag("Sasha"))
         {
-            hintsObject.SetActive(true);
-            hintImg.sprite = hintClick;
-        }
-        else
-        {
-            hintsObject.SetActive(false);
-        }
-    }
+            // Uzimamo skriptu direktno s lika koji je dotaknuo trigger
+            SashaController sasha = other.GetComponentInParent<SashaController>();
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Sasha")) isSashaNear = true;
+            // Ako je kontroler tu I ako trenutno igraš sa Sashom -> UPALI
+            if (sasha != null && sasha.currentState == SashaController.SashaState.Active)
+            {
+                if (hintsObject != null)
+                {
+                    hintsObject.SetActive(true);
+                    if (hintImg != null) hintImg.sprite = hintClick;
+                }
+            }
+            else // Ako si u triggeru, ali si prebacio na Mirandu -> UGASI
+            {
+                if (hintsObject != null) hintsObject.SetActive(false);
+            }
+        }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Sasha")) isSashaNear = false;
+        if (other.CompareTag("Sasha"))
+        {
+            if (hintsObject != null) hintsObject.SetActive(false);
+        }
     }
 }

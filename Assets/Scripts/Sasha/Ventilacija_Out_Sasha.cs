@@ -13,30 +13,37 @@ public class Ventilacija_Out_Sasha : MonoBehaviour
     public GameObject prefabMinigun;  // ID 2
     public GameObject prefabPajser;   // ID 5
 
-    private bool imaItemNaCekanju = false;
+    //private bool imaItemNaCekanju = false;
     private int cekajuciItemTip;
     public bool obrniSmjerLeta = false;
     private GameObject trenutniStvoreniItem;
 
+    // Cijev je slobodna ako GameManager kaže da nitko ne čeka i ako na podu nema itema
     public bool MozePrimiti()
     {
-        return !imaItemNaCekanju && trenutniStvoreniItem == null;
+        return VentNetworkManager.Instance != null && !VentNetworkManager.Instance.sashaCekaItem && trenutniStvoreniItem == null;
     }
 
     public void SpremiItemZaSashu(int tip)
     {
-        imaItemNaCekanju = true;
-        cekajuciItemTip = tip;
-        Debug.Log("Ventilacija kod Sashe je zaprimila item ID: " + tip + " i čeka da Sasha priđe.");
+        // Spremamo u VentNetworkManager kako bi BILO KOJA soba znala za item!
+        if (VentNetworkManager.Instance != null)
+        {
+            VentNetworkManager.Instance.sashaCekaItem = true;
+            VentNetworkManager.Instance.sashaPendingItemID = tip;
+        }
+        Debug.Log("Item ID: " + tip + " čeka Sashu u globalnoj cijevi.");
     }
 
-    // Pokreće se tek kada Sasha uđe u Trigger ventilacije
     private void OnTriggerEnter(Collider other)
     {
-        // NAPOMENA: Provjeri je li Sashin Tag u Unityju točno "Sasha" (ili promijeni ovdje u "Player" ako koristiš taj)
-        if (imaItemNaCekanju && other.CompareTag("Sasha"))
+        // Kada Sasha priđe BILO KOJOJ izlaznoj ventilaciji u sceni
+        if (VentNetworkManager.Instance != null && VentNetworkManager.Instance.sashaCekaItem && other.CompareTag("Sasha"))
         {
-            imaItemNaCekanju = false;
+            cekajuciItemTip = VentNetworkManager.Instance.sashaPendingItemID;
+            VentNetworkManager.Instance.sashaCekaItem = false; // Cijev se prazni
+            VentNetworkManager.Instance.sashaPendingItemID = -1;
+
             IzbaciItem();
         }
     }

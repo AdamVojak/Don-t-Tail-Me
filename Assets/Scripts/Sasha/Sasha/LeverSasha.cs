@@ -15,6 +15,11 @@ public class LeverSasha : MonoBehaviour
         aktiviran = false;
     }
 
+    private void Update()
+    {
+        spriteRenderer.sprite = aktiviran ? on : off;
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Melee") || other.CompareTag("Pajser"))

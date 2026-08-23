@@ -7,18 +7,16 @@ public class SashaHint : MonoBehaviour
     private Image hintUI;
     public GameObject HintSasha;
     public Sprite clickF;
-
     private SpriteRenderer ovajRenderer;
     private Sprite ovajSprite;
 
-    private bool isSashaNear = false;
     private bool UIOpen = false;
-    private SashaController sashaController;
+    private SashaController sashaUKrugu = null; // Sprema Sashu samo dok je u zoni
 
-    private void Start()
+    void Start()
     {
         ovajRenderer = GetComponent<SpriteRenderer>();
-        ovajSprite = ovajRenderer.sprite;
+        if (ovajRenderer != null) ovajSprite = ovajRenderer.sprite;
 
         if (UI != null)
         {
@@ -26,15 +24,16 @@ public class SashaHint : MonoBehaviour
             UI.SetActive(false);
         }
 
-        if (sashaController == null) sashaController = FindFirstObjectByType<SashaController>();
-        if (HintSasha != null) HintSasha.SetActive(false);
+        if (HintSasha != null)
+        {
+            HintSasha.SetActive(false);
+        }
     }
 
-    private void Update()
+    void Update()
     {
-        bool isSashaActive = sashaController.currentState == SashaController.SashaState.Active;
-
-        if (isSashaNear && isSashaActive && sashaController.isControlled)
+        // Radi SAMO ako je Sasha fizički u krugu I ako je trenutno aktivna
+        if (sashaUKrugu != null && sashaUKrugu.currentState == SashaController.SashaState.Active)
         {
             if (HintSasha != null && !HintSasha.activeSelf)
             {
@@ -43,16 +42,22 @@ public class SashaHint : MonoBehaviour
                 if (sr != null) sr.sprite = clickF;
             }
 
+            // Pritisak tipke F za otvaranje/zatvaranje papira
             if (Input.GetKeyDown(KeyCode.F))
             {
                 UIOpen = !UIOpen;
-                UI.SetActive(UIOpen);
-                if (UIOpen) hintUI.sprite = ovajSprite;
+                if (UI != null) UI.SetActive(UIOpen);
+
+                if (UIOpen && hintUI != null)
+                {
+                    hintUI.sprite = ovajSprite;
+                }
             }
         }
         else
         {
-            if (HintSasha != null) HintSasha.SetActive(false);
+            // Ako Sasha nije u krugu ili si prebacio lika -> ugasi hint i zatvori papir
+            if (HintSasha != null && HintSasha.activeSelf) HintSasha.SetActive(false);
 
             if (UIOpen)
             {
@@ -64,11 +69,26 @@ public class SashaHint : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Sasha")) isSashaNear = true;
+        if (other.CompareTag("Sasha"))
+        {
+            // Dajemo Update metodi referencu direktno iz collidera
+            sashaUKrugu = other.GetComponentInParent<SashaController>();
+        }
+    }
+
+    private void OnTriggerStay(Collider other)
+    {
+        if (other.CompareTag("Sasha") && sashaUKrugu == null)
+        {
+            sashaUKrugu = other.GetComponentInParent<SashaController>();
+        }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Sasha")) isSashaNear = false;
+        if (other.CompareTag("Sasha"))
+        {
+            sashaUKrugu = null; // Brišemo referencu jer je Sasha otišla
+        }
     }
 }
