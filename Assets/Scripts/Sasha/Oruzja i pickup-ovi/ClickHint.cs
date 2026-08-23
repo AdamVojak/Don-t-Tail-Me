@@ -7,14 +7,11 @@ public class ClickHint : MonoBehaviour
     public Sprite hintClick;
 
     private SashaController sashaController;
-
+    private bool isSashaNear = false; // Pamtimo je li Sasha fizički u zoni
 
     private void Start()
     {
-        if (sashaController == null)
-        {
-            sashaController = FindFirstObjectByType<SashaController>();
-        }
+        if (sashaController == null) sashaController = FindFirstObjectByType<SashaController>();
 
         if (hintsObject != null)
         {
@@ -23,20 +20,26 @@ public class ClickHint : MonoBehaviour
         }
     }
 
-    private void OnTriggerStay(Collider other)
+    private void Update()
     {
-        if (other.CompareTag("Sasha") || sashaController.currentState == SashaController.SashaState.Active)
+        if (isSashaNear && sashaController.currentState == SashaController.SashaState.Active && sashaController.isControlled)
         {
             hintsObject.SetActive(true);
-                hintImg.sprite = hintClick;
+            hintImg.sprite = hintClick;
         }
+        else
+        {
+            hintsObject.SetActive(false);
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Sasha")) isSashaNear = true;
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Sasha"))
-        {
-            hintsObject.SetActive(false);
-        }
+        if (other.CompareTag("Sasha")) isSashaNear = false;
     }
 }

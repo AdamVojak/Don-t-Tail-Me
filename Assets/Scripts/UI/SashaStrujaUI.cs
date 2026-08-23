@@ -11,41 +11,37 @@ public class SashaStrujaUI : MonoBehaviour
 
     void Update()
     {
-        // Ako nema EnergyManagera ili UI slike, prekidamo
+        // Osigurač
         if (EnergyManager.Instance == null || uiSlika == null || slicice.Length == 0) return;
 
-        // NOVO: Provjeravamo je li sustav struje uopće preuzeo kontrolu nad igrom (nakon zamke)
-        // Ako zamka još nije riješena, skrivamo UI i prekidamo Update.
+        // 1. FAZA: ZAMKA JOŠ NIJE RIJEŠENA
+        // Ako sustav struje još nije preuzeo kontrolu, skrivamo UI sliku i prekidamo kod.
         if (SashaSvjetlaKontroler.Instance != null && !SashaSvjetlaKontroler.Instance.upravljanjeAktivno)
         {
             uiSlika.enabled = false;
             return;
         }
 
-        // Ako smo prošli gornji uvjet, znači da je zamka riješena i igra ovisi o Mirandi!
+        // 2. FAZA: ZAMKA JE RIJEŠENA (Kratki spoj se dogodio)
+        // Od ovog trenutka nadalje, UI slika je UVIJEK upaljena!
+        if (!uiSlika.enabled)
+        {
+            uiSlika.enabled = true;
+        }
+
+        // 3. PRIKAZ RAZINE STRUJE (Čak i kada je 0)
         float trenutnaStruja = EnergyManager.Instance.struja;
         float maxStruja = EnergyManager.Instance.maxStruja;
 
-        if (trenutnaStruja <= 0)
-        {
-            uiSlika.enabled = false; // Skrivamo sliku ako nema struje
-        }
-        else
-        {
-            if (!uiSlika.enabled)
-            {
-                uiSlika.enabled = true; // Palimo sliku ako ima struje
-            }
+        float max = (maxStruja > 0) ? maxStruja : 100f;
+        float postotak = trenutnaStruja / max;
 
-            // LOGIKA ZA SPRITEOVE
-            float max = (maxStruja > 0) ? maxStruja : 100f;
-            float postotak = trenutnaStruja / max;
+        // Računanje indeksa sličice
+        int normalniIndex = Mathf.RoundToInt(postotak * (slicice.Length - 1));
+        int obrnutiIndex = (slicice.Length - 1) - normalniIndex;
+        int finalniIndex = Mathf.Clamp(obrnutiIndex, 0, slicice.Length - 1);
 
-            int normalniIndex = Mathf.RoundToInt(postotak * (slicice.Length - 1));
-            int obrnutiIndex = (slicice.Length - 1) - normalniIndex;
-            int finalniIndex = Mathf.Clamp(obrnutiIndex, 0, slicice.Length - 1);
-
-            uiSlika.sprite = slicice[finalniIndex];
-        }
+        // Postavljanje sličice (ako je struja 0, stavit će zadnju sličicu - praznu bateriju)
+        uiSlika.sprite = slicice[finalniIndex];
     }
 }
