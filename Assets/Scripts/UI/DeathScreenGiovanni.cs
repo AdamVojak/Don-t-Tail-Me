@@ -24,8 +24,12 @@ public class DeathScreenGiovanni : MonoBehaviour
     [Range(0f, 1f)]
     public float maxAlphaCause = 0.8f;
 
+    [SerializeField] private DeathScreenAudio deathAudio;
+
     public void ShowDeathScreen(int cause)
     {
+        if (deathAudio != null) deathAudio.StartStatic(1, false);
+
         // 1. STATIC ODMAH PALIMO (Image i Animator = true, Alpha = 1)
         if (tvStaticBackground != null)
         {
@@ -58,11 +62,19 @@ public class DeathScreenGiovanni : MonoBehaviour
             yield return StartCoroutine(FadeIn(targetImage, causeFadeDuration, maxAlphaCause));
         }
 
+        // ZVUČNA SEKVENCA ZA KURSOR:
         yield return new WaitForSeconds(0.5f);
+
+        if (deathAudio != null)
+        {
+            deathAudio.PlayHandSaw();
+            yield return new WaitForSeconds(1.0f);
+        }
 
         CursorManager cursorManager = FindFirstObjectByType<CursorManager>();
         if (cursorManager != null)
         {
+            deathAudio.PlayBoneCrack();
             cursorManager.ActivateDeathCursor();
         }
 

@@ -20,7 +20,7 @@ public class Worms : MonoBehaviour, IDamageable
     public bool aktivan;
 
     [Header("Postavke zaustavljanja")]
-    [SerializeField] private Collider triggerArea;
+    [SerializeField] private float zaustavnaUdaljenost = 2.0f;
     private bool uDometu = false;
 
     [Header("Worms - Spawning")]
@@ -162,18 +162,20 @@ public class Worms : MonoBehaviour, IDamageable
             }
         }
 
-        if (sashaControllerRef != null)
-        {
-            aktivan = sashaControllerRef.isControlled;
-        }
+        aktivan = (sashaControllerRef != null) ? sashaControllerRef.isControlled : false;
 
+        bool sashaMrtva = (sashaControllerRef == null || sashaControllerRef.currentState == SashaController.SashaState.Dead);
 
-        if (aktivan == false || currentState != WormsState.Active || igracMeta == null || sashaControllerRef.currentState == SashaController.SashaState.Dead)
+        if (aktivan == false || currentState != WormsState.Active || igracMeta == null || sashaMrtva)
         {
             mozeSeKretati = false;
             return;
         }
 
+        if (sashaControllerRef != null)
+        {
+            aktivan = sashaControllerRef.isControlled;
+        }
 
 
         Vector3 smjerDoIgraca = igracMeta.position - transform.position;
@@ -181,12 +183,16 @@ public class Worms : MonoBehaviour, IDamageable
         float kut = Mathf.Atan2(smjerDoIgraca.y, smjerDoIgraca.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0, 0, kut);
 
-        if (triggerArea != null && igracMeta != null)
+        if (igracMeta != null)
         {
-            uDometu = triggerArea.bounds.Contains(igracMeta.position);
+            float distance = Vector2.Distance(
+                new Vector2(transform.position.x, transform.position.y),
+                new Vector2(igracMeta.position.x, igracMeta.position.y)
+            );
+            uDometu = distance <= zaustavnaUdaljenost;
         }
 
-        if (mozeSeKretati && !uDometu)
+            if (mozeSeKretati && !uDometu)
         {
             Vector3 targetPosition = new Vector3(igracMeta.position.x, igracMeta.position.y, transform.position.z);
             transform.position = Vector3.MoveTowards(transform.position, targetPosition, brzina * Time.deltaTime);

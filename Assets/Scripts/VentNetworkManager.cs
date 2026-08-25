@@ -21,17 +21,6 @@ public class VentNetworkManager : MonoBehaviour
     public bool mirandaItemNaPodu = false;
     public bool giovanniItemNaPodu = false;
 
-    [Header("Limiti Slanja")]
-    public int sashaPoslanoUkupno = 0;      // Sasha smije poslati MAX 1 item
-    public int giovanniPoslanoUkupno = 0;   // Giovanni smije poslati MAX 1 item
-
-    // NOVO: Omogućava da sashaJePoslaoItem i giovanniJePoslaoItem rade automatski!
-    public bool sashaJePoslaoItem => sashaPoslanoUkupno >= 1;
-    public bool giovanniJePoslaoItem => giovanniPoslanoUkupno >= 1;
-
-    public bool mirandaPoslalaSashi = false;
-    public bool mirandaPoslalaGiovanniju = false;
-
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -54,39 +43,13 @@ public class VentNetworkManager : MonoBehaviour
         }
     }
 
-    // 2. PROVJERA: Smije li pošiljatelj još slati?
-    public bool SmijePoslati(Lik posiljatelj, Lik primatelj)
-    {
-        if (posiljatelj == Lik.Sasha)
-        {
-            return sashaPoslanoUkupno < 1;
-        }
-        else if (posiljatelj == Lik.Giovanni)
-        {
-            return giovanniPoslanoUkupno < 1;
-        }
-        else if (posiljatelj == Lik.Miranda)
-        {
-            if (primatelj == Lik.Sasha) return !mirandaPoslalaSashi;
-            if (primatelj == Lik.Giovanni) return !mirandaPoslalaGiovanniju;
-        }
-        return false;
-    }
-
-    // 3. GLAVNA AKCIJA: Slanje itema kroz mrežu
+    // 2. GLAVNA AKCIJA: Slanje itema kroz mrežu (NEMA LIMITA - šalji koliko god puta želiš ako imaš item!)
     public bool PosaljiItem(Lik posiljatelj, Lik primatelj, int itemID)
     {
-        // Provjeri limit pošiljatelja
-        if (!SmijePoslati(posiljatelj, primatelj))
-        {
-            Debug.LogWarning($"[MREŽA] {posiljatelj} je već iskoristio limit slanja prema {primatelj}!");
-            return false;
-        }
-
-        // Provjeri je li cijev primatelja slobodna
+        // Provjeri samo je li cijev primatelja slobodna
         if (!MozePrimiti(primatelj))
         {
-            Debug.LogWarning($"[MREŽA] Cijev/Pod kod {primatelj} je puna! Čeka se preuzimanje.");
+            Debug.LogWarning($"[MREŽA] Cijev/Pod kod {primatelj} je puna! Čeka se da preuzme prethodni item.");
             return false;
         }
 
@@ -107,20 +70,11 @@ public class VentNetworkManager : MonoBehaviour
             giovanniPendingItemID = itemID;
         }
 
-        // Zabilježi iskorišteni limit
-        if (posiljatelj == Lik.Sasha) sashaPoslanoUkupno++;
-        else if (posiljatelj == Lik.Giovanni) giovanniPoslanoUkupno++;
-        else if (posiljatelj == Lik.Miranda)
-        {
-            if (primatelj == Lik.Sasha) mirandaPoslalaSashi = true;
-            if (primatelj == Lik.Giovanni) mirandaPoslalaGiovanniju = true;
-        }
-
-        Debug.Log($"[MREŽA] {posiljatelj} je uspješno poslao item ID {itemID} -> {primatelj}.");
+        Debug.Log($"[MREŽA] {posiljatelj} je poslao item ID {itemID} -> {primatelj}.");
         return true;
     }
 
-    // 4. GLAVNA AKCIJA: Kada bilo koja izlazna ventilacija u sobi izbacuje item
+    // 3. GLAVNA AKCIJA: Kada bilo koja izlazna ventilacija u sobi izbacuje item
     public int PreuzmiItemIzCijevi(Lik lik)
     {
         int itemID = -1;
@@ -130,7 +84,7 @@ public class VentNetworkManager : MonoBehaviour
             itemID = sashaPendingItemID;
             sashaCekaItem = false;
             sashaPendingItemID = -1;
-            sashaItemNaPodu = true; // Sada leži na podu sobe
+            sashaItemNaPodu = true;
         }
         else if (lik == Lik.Miranda && mirandaCekaItem)
         {
@@ -150,13 +104,13 @@ public class VentNetworkManager : MonoBehaviour
         return itemID;
     }
 
-    // 5. OBAVIJEST: Kada lik pokupi item s poda (oslobađa se mjesto za novi paket)
+    // 4. OBAVIJEST: Kada lik pokupi item s poda (oslobađa se mjesto za novi paket)
     public void ItemPokupljenSPoda(Lik lik)
     {
         if (lik == Lik.Sasha) sashaItemNaPodu = false;
         if (lik == Lik.Miranda) mirandaItemNaPodu = false;
         if (lik == Lik.Giovanni) giovanniItemNaPodu = false;
 
-        Debug.Log($"[MREŽA] {lik} je pokupio item s poda. Njegova ventilacija je ponovno potpuno slobodna!");
+        Debug.Log($"[MREŽA] {lik} je pokupio item s poda. Ventilacija je ponovno slobodna za prijem!");
     }
 }

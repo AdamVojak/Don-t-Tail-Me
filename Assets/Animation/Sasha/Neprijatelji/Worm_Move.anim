@@ -22,17 +22,17 @@ AnimationClip:
     curve:
     - time: 0
       value: {fileID: -1580890624, guid: b3dd5da291170404c9919f85d48f6ddf, type: 3}
-    - time: 0.2
+    - time: 0.15
       value: {fileID: -465248260, guid: b3dd5da291170404c9919f85d48f6ddf, type: 3}
-    - time: 0.33333334
+    - time: 0.26666668
       value: {fileID: -2057851321, guid: b3dd5da291170404c9919f85d48f6ddf, type: 3}
-    - time: 0.5
+    - time: 0.38333333
       value: {fileID: -191015494, guid: b3dd5da291170404c9919f85d48f6ddf, type: 3}
-    - time: 0.6666667
+    - time: 0.51666665
       value: {fileID: 1907920862, guid: b3dd5da291170404c9919f85d48f6ddf, type: 3}
-    - time: 0.8333333
+    - time: 0.6333333
       value: {fileID: 1463354116, guid: b3dd5da291170404c9919f85d48f6ddf, type: 3}
-    - time: 0.98333335
+    - time: 0.73333335
       value: {fileID: 1463354116, guid: b3dd5da291170404c9919f85d48f6ddf, type: 3}
     attribute: m_Sprite
     path: 
@@ -68,7 +68,7 @@ AnimationClip:
     m_AdditiveReferencePoseClip: {fileID: 0}
     m_AdditiveReferencePoseTime: 0
     m_StartTime: 0
-    m_StopTime: 1
+    m_StopTime: 0.75
     m_OrientationOffsetY: 0
     m_Level: 0
     m_CycleOffset: 0
@@ -95,7 +95,7 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 0.2
+  - time: 0.15
     functionName: PocetakKoraka
     data: 
     objectReferenceParameter: {fileID: 0}

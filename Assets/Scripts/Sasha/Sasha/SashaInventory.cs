@@ -29,8 +29,11 @@ public class SashaInventory : MonoBehaviour
     public Ventilacija_Out_Miranda mirandinaVentilacija;
     public Ventilacija_Out_Giovanni giovanniVentilacija;
 
+    [SerializeField] private SashaAudio sashaAudio;
+
     void Start()
     {
+        if (sashaAudio == null) sashaAudio = GetComponent<SashaAudio>();
         if (inventoryUIPanel != null) inventoryUIPanel.SetActive(false);
         imaZutiKljuc = false;
         imaGun = false;
@@ -81,13 +84,15 @@ public class SashaInventory : MonoBehaviour
         else if (scroll > 0f) selectedIndex--;
 
         if (Input.GetKeyDown(KeyCode.E)) selectedIndex++;
-        if (Input.GetKeyDown(KeyCode.Q) || Input.GetKeyDown(KeyCode.A)) selectedIndex--;
+        if (Input.GetKeyDown(KeyCode.Q)) selectedIndex--;
 
         if (selectedIndex > 2) selectedIndex = 0;
         if (selectedIndex < 0) selectedIndex = 2;
 
         if (previousIndex != selectedIndex)
         {
+            if (sashaAudio != null) sashaAudio.PlayNavClick();
+
             UpdateUI();
         }
     }
@@ -124,25 +129,14 @@ public class SashaInventory : MonoBehaviour
 
     public bool TrySendSelectedItem()
     {
-        // 1. Provjera je li Sasha već iskoristio svoje 1 slanje u ovoj igri
-        if (VentNetworkManager.Instance != null && VentNetworkManager.Instance.sashaJePoslaoItem)
-        {
-            Debug.LogWarning("Sasha je već poslao svoj dozvoljeni item u ovoj igri!");
-            StartCoroutine(FlashUIRoutine());
-            return false;
-        }
-
-        // NOVO MAPIRANJE: 0 = Žuti ključ (ID 0), 1 = Gun (ID 1), 2 = Pajser (ID 5)
         int itemIDToSend = (selectedIndex == 0) ? 0 : (selectedIndex == 1 ? 1 : 5);
 
-        // 2. Provjeri ima li Sasha taj točan item
         if (!HasItem(itemIDToSend))
         {
             Debug.Log("Sasha nema odabrani predmet!");
             return false;
         }
 
-        // 3. Pronađi ventilaciju
         SashaController controller = GetComponent<SashaController>();
         if (controller == null || controller.trenutnaVentilacija == null)
         {
@@ -150,13 +144,15 @@ public class SashaInventory : MonoBehaviour
             return false;
         }
 
-        // 4. Pošalji točan ID kroz ventilaciju
         bool uspjesnoPoslano = controller.trenutnaVentilacija.PrimiItemUVentilaciju(itemIDToSend);
 
         if (uspjesnoPoslano)
         {
-            // Zabilježi u VentNetworkManageru da je Sasha poslao svoj 1 item
-            if (VentNetworkManager.Instance != null) VentNetworkManager.Instance.sashaPoslanoUkupno++;
+            if (sashaAudio != null)
+            {
+                sashaAudio.PlayConfirmClick();
+                sashaAudio.ExitInteractiveState();
+            }
 
             if (itemURuciSpriteRenderer != null)
             {

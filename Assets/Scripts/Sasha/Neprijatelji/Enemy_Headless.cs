@@ -12,6 +12,9 @@ public enum HeadlessState
 
 public class Headless : MonoBehaviour, IDamageable {
 
+    [Header("Audio")]
+    [SerializeField] private HeadlessAudio enemyAudio;
+
     [Header("Postavke Brzine i Juriša")]
     [SerializeField] float pocetnaBrzina = 6f;      // Brzina čim se stvori
     [SerializeField] float maksimalnaBrzina = 14f;  // Ekstremna brzina trka
@@ -45,7 +48,7 @@ public class Headless : MonoBehaviour, IDamageable {
     public SpriteRenderer tijelo;
 
     [Header("Death Settings")]
-    public GameObject deadZombiePrefab;
+    public GameObject deadHeadlessPrefab;
 
     [Header("NOGE")]
     public Animator animacijaNogu;
@@ -65,6 +68,7 @@ public class Headless : MonoBehaviour, IDamageable {
         animator = GetComponent<Animator>();
         if (fist == null) fist = GetComponent<GameObject>();
         if (gameManagerRef == null) gameManagerRef = FindFirstObjectByType<GameManager>();
+        if (enemyAudio == null) enemyAudio = GetComponent<HeadlessAudio>();
 
         OkreniSePremaIgracu();
     }
@@ -76,6 +80,8 @@ public class Headless : MonoBehaviour, IDamageable {
         OkreniSePremaIgracu();
 
         ResetirajUbrzanje();
+
+        if (enemyAudio != null) enemyAudio.PlayAttackShout();
     }
 
     private void Start()
@@ -143,6 +149,8 @@ public class Headless : MonoBehaviour, IDamageable {
                 if (noge != null) noge.SetActive(false);
                 if (animator != null) animator.SetBool("uDometu", true);
 
+                if (enemyAudio != null) enemyAudio.PlayAttackShout();
+
                 IzvediZamah();
             }
             else if (!sashaJeBlizu && uDometu)
@@ -188,7 +196,19 @@ public class Headless : MonoBehaviour, IDamageable {
 
     public void TakeDamage(int amount, DamageType damageType = DamageType.Physical)
     {
-        SFX.zvucniEfekti.ZvukUdarca.Play();
+        if (enemyAudio != null)
+        {
+            if (damageType == DamageType.Physical)
+            {
+                enemyAudio.PlayPajserHit();
+            }
+            else if (damageType == DamageType.Electric)
+            {
+                enemyAudio.PlayElectricMeleeHit();
+            }
+            enemyAudio.PlayHurtSound();
+        }
+
         Debug.Log("Udarac sa " + amount + " štete. Tip štete: " + damageType);
 
         if (damageType == DamageType.Electric)
@@ -216,6 +236,7 @@ public class Headless : MonoBehaviour, IDamageable {
 
                 if (Time.time >= zadnjeVrijemeStete + stetaCooldown)
                 {
+                    enemyAudio.PlayHurtSound();
                     PrimiUdarac(projectile.damage);
                 }
             }
@@ -230,6 +251,7 @@ public class Headless : MonoBehaviour, IDamageable {
 
                 if (Time.time >= zadnjeVrijemeStete + stetaCooldown)
                 {
+                    enemyAudio.PlayHurtSound();
                     PrimiUdarac(bullet.damage);
                 }
             }
@@ -318,9 +340,9 @@ public class Headless : MonoBehaviour, IDamageable {
         void Umri()
     {
         currentState = HeadlessState.Dead;
-        if (deadZombiePrefab != null)
+        if (deadHeadlessPrefab != null)
         {
-            Instantiate(deadZombiePrefab, transform.position, transform.rotation);
+            Instantiate(deadHeadlessPrefab, transform.position, transform.rotation);
         }
         Collider col = GetComponent<Collider>();
         if (col != null) col.enabled = false;
@@ -371,7 +393,7 @@ public class Headless : MonoBehaviour, IDamageable {
 
         if (tijelo != null) tijelo.material.color = Color.white;
 
-        SFX.zvucniEfekti.ZvukElektrosoka.Play();
+        if (enemyAudio != null) enemyAudio.PlayShockSound();
 
         currentState = HeadlessState.Shocked;
 
@@ -415,6 +437,8 @@ public class Headless : MonoBehaviour, IDamageable {
         animacijaNogu.Play("Idle", 0);
 
         ResetirajUbrzanje();
+
+        if (enemyAudio != null) enemyAudio.PlayAttackShout();
     }
 
     private void OkreniSePremaIgracu()

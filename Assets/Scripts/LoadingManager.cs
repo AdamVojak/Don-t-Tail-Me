@@ -21,10 +21,13 @@ public class LoadingManager : MonoBehaviour
     public float wallOnscreenY = 0f;
 
     private RectTransform wallRect;
-    private RectTransform emitterRect; // NOVO: RectTransform od mjehurića
+    private RectTransform emitterRect; 
+    [SerializeField] private LoadingScreenAudio loadingAudio;
 
     private void Awake()
     {
+        if (loadingAudio == null) loadingAudio = GetComponent<LoadingScreenAudio>();
+
         if (blackPanel != null) wallRect = blackPanel.GetComponent<RectTransform>();
         if (bubbleEmitter != null) emitterRect = bubbleEmitter.GetComponent<RectTransform>();
         LoadingUI.SetActive(true);
@@ -64,6 +67,8 @@ public class LoadingManager : MonoBehaviour
         if (bubbleEmitter != null) bubbleEmitter.Play();
         if (loadingSpinner != null) loadingSpinner.SetActive(false);
 
+        if (loadingAudio != null) loadingAudio.PlayTransitionBubbles();
+
         float elapsed = 0f;
         Vector2 startPos = new Vector2(0, wallOffscreenY);
         Vector2 endPos = new Vector2(0, wallOnscreenY);
@@ -89,9 +94,10 @@ public class LoadingManager : MonoBehaviour
 
     public IEnumerator RaiseWallRoutine(float duration)
     {
-        // 1. PALIMO MJEHURIĆE DOK SE ZID DIŽE!
         if (bubbleEmitter != null) bubbleEmitter.Play();
-        if (loadingSpinner != null) loadingSpinner.SetActive(false); // Gasimo kotačić
+        if (loadingSpinner != null) loadingSpinner.SetActive(false);
+
+        if (loadingAudio != null) loadingAudio.PlayTransitionBubbles();
 
         float elapsed = 0f;
         Vector2 startPos = new Vector2(0, wallOnscreenY);

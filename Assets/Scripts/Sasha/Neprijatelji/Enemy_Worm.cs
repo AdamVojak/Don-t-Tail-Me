@@ -34,9 +34,14 @@ public class Enemy_Worm : MonoBehaviour, IDamageable
     private float zadnjeVrijemeStete = -1f;
     private bool mozeSeKretati = false;
 
+    [Header("Audio")]
+    [SerializeField] private WormAudio wormAudio;
+
     void Awake()
     {
         DohvatiIgraca();
+
+        if (wormAudio == null) wormAudio = GetComponent<WormAudio>();
 
         tijelo = GetComponent<SpriteRenderer>();
         if (tijelo == null)
@@ -141,7 +146,12 @@ public class Enemy_Worm : MonoBehaviour, IDamageable
 
     public void TakeDamage(int amount, DamageType damageType = DamageType.Physical)
     {
-        SFX.zvucniEfekti.ZvukUdarca.Play();
+        if (wormAudio != null)
+        {
+            if (damageType == DamageType.Physical) wormAudio.PlayPajserHit();
+            else if (damageType == DamageType.Electric) wormAudio.PlayElectricMeleeHit();
+        }
+
         Debug.Log("Udarac sa " + amount + " štete. Tip štete: " + damageType);
 
         if (damageType == DamageType.Electric)
@@ -268,7 +278,7 @@ public class Enemy_Worm : MonoBehaviour, IDamageable
             originalniSprite = tijelo.sprite;
         }
 
-        SFX.zvucniEfekti.ZvukElektrosoka.Play();
+        if (wormAudio != null) wormAudio.PlayShockSound();
 
         currentState = WormState.Shocked;
 

@@ -12,8 +12,8 @@ GameObject:
   - component: {fileID: 4553678797410749002}
   - component: {fileID: 6994380140266368464}
   - component: {fileID: 1402647717632535097}
+  - component: {fileID: 7798655444917796867}
   - component: {fileID: 7802635874101742089}
-  - component: {fileID: 1469273813957414012}
   - component: {fileID: 3052038574060608273}
   m_Layer: 9
   m_Name: Enemy_Worms
@@ -130,25 +130,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ab87334b31b9c048b448155d9bce6f3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Worms
-  brzina: 0.9
-  vrijemeKoraka: 0.5
-  vrijemeStajanja: 0.25
+  brzina: 0.75
+  vrijemeKoraka: 0.6
+  vrijemeStajanja: 0.2
   sashaControllerRef: {fileID: 0}
   aktivan: 0
-  triggerArea: {fileID: 1469273813957414012}
+  zaustavnaUdaljenost: 5
   maliCrvPrefab: {fileID: 716727949480597294, guid: 2024701a6c30e7145b4a920a798e000c, type: 3}
-  intervalSpawna: 4
-  udaljenostSpawna: 1.75
-  maksimalnoCrvi: 8
+  intervalSpawna: 6
+  udaljenostSpawna: 0.75
+  maksimalnoCrvi: 10
   zemljaKupPrefab: {fileID: 3128621315459632700, guid: 5bfc5242442ccf744a1005866beed011, type: 3}
-  health: 10
+  health: 250
   vrijemeOsamucenosti: 0.5
   stetaCooldown: 0.1
-  vrijemeStrujnogUdara: 0.75
+  vrijemeStrujnogUdara: 0.5
   sokiraniSprite: {fileID: 21300000, guid: a73a3ddeea737f44db38f75c6ab23ea4, type: 3}
   brojTreptajaBoje: 8
   playerTag: Sasha
---- !u!136 &7802635874101742089
+--- !u!136 &7798655444917796867
 CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -167,12 +167,12 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 1
-  m_Height: 4
+  m_Radius: 0.75
+  m_Height: 3
   m_Direction: 2
   m_Center: {x: 0, y: 0, z: -1}
---- !u!135 &1469273813957414012
-SphereCollider:
+--- !u!136 &7802635874101742089
+CapsuleCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -189,8 +189,10 @@ SphereCollider:
   m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 2.5
+  serializedVersion: 2
+  m_Radius: 1
+  m_Height: 4
+  m_Direction: 2
   m_Center: {x: 0, y: 0, z: -1}
 --- !u!54 &3052038574060608273
 Rigidbody:

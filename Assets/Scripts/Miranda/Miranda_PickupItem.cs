@@ -14,7 +14,7 @@ public class MirandaPickup : MonoBehaviour
 
         if (inventar == null)
         {
-            Debug.LogWarning("MirandaPickup: MirandaInventory nije pronađen u sceni!");
+            inventar = Object.FindFirstObjectByType<MirandaInventory>();
         }
     }
 

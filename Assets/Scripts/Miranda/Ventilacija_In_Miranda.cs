@@ -43,7 +43,13 @@ public class Ventilacija_In_Miranda : MonoBehaviour
         if (other.CompareTag("Miranda"))
         {
             isPlayerNear = true;
-            other.GetComponent<MirandaController>().isInteracting = true;
+
+            // NOVO: Tražimo i na roditeljskom objektu i provjeravamo postoji li
+            MirandaController mc = other.GetComponentInParent<MirandaController>();
+            if (mc != null)
+            {
+                mc.isInteracting = true;
+            }
         }
     }
 
@@ -52,7 +58,13 @@ public class Ventilacija_In_Miranda : MonoBehaviour
         if (other.CompareTag("Miranda"))
         {
             isPlayerNear = false;
-            other.GetComponent<MirandaController>().isInteracting = false;
+
+            // NOVO: Sigurno gašenje bez grešaka
+            MirandaController mc = other.GetComponentInParent<MirandaController>();
+            if (mc != null)
+            {
+                mc.isInteracting = false;
+            }
         }
     }
 

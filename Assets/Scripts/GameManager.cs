@@ -33,6 +33,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Managers")]
     public LoadingManager loadingManager;
+    [SerializeField] private LoadingScreenAudio loadingAudio;
 
     [Header("Level Objects (Roditelji terena)")]
     public GameObject sashaLevel;
@@ -54,7 +55,7 @@ public class GameManager : MonoBehaviour
     [Header("Transition Settings")]
     [SerializeField] private GameObject UI_Tranzicija;
     [SerializeField] private Slider tranzicijskiSlider;
-    [SerializeField] private float transitionDuration = 1.5f; // Vrijeme putovanja slidera
+    [SerializeField] private float transitionDuration = 2f; // Vrijeme putovanja slidera
     [SerializeField] private float loadingDuration = 1.0f;    // NOVO: Koliko dugo traje crni ekran s kotačićem
 
     private bool isTransitioning = false;
@@ -66,6 +67,11 @@ public class GameManager : MonoBehaviour
         else Destroy(gameObject);
 
         if (sunLight != null) sunLight.SetActive(false);
+
+        if (loadingAudio == null && loadingManager != null)
+        {
+            loadingAudio = loadingManager.GetComponent<LoadingScreenAudio>();
+        }
 
         RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
         RenderSettings.ambientLight = Color.black;
@@ -282,31 +288,34 @@ public class GameManager : MonoBehaviour
         // --- 3. JITTERY FADE-IN (Drhtavo paljenje) ---
         if (UI_Tranzicija != null)
         {
+            // DODAJ OVE DVIJE LINIJE (Zvuk paljenja kompjutera + Flicker):
+            if (loadingAudio != null) loadingAudio.PlayComputerStartup();
+            if (loadingAudio != null) loadingAudio.PlayFlicker();
+
             UI_Tranzicija.SetActive(true);
 
             CanvasGroup cg = UI_Tranzicija.GetComponent<CanvasGroup>();
             if (cg == null) cg = UI_Tranzicija.AddComponent<CanvasGroup>();
 
-            float fadeDuration = 0.4f; // Koliko dugo traje paljenje
+            float fadeDuration = 0.4f;
             float elapsedFade = 0f;
 
             while (elapsedFade < fadeDuration)
             {
                 elapsedFade += Time.deltaTime;
-                float baseAlpha = elapsedFade / fadeDuration; // Ide od 0 do 1
-
-                // Dodajemo "drhtanje" (nasumično variranje prozirnosti za +/- 25%)
+                float baseAlpha = elapsedFade / fadeDuration;
                 float jitter = Random.Range(-0.25f, 0.25f);
-
-                cg.alpha = Mathf.Clamp01(baseAlpha + jitter); // Clamp01 drži vrijednost između 0 i 1
+                cg.alpha = Mathf.Clamp01(baseAlpha + jitter);
                 yield return null;
             }
-            cg.alpha = 1f; // Na kraju je 100% vidljivo
+            cg.alpha = 1f;
         }
 
 
         // --- 4. SLIDER ANIMACIJA ---
         float elapsed = 0f;
+        int lastClickTick = Mathf.RoundToInt(startValue); // DODAJ OVO (Pamti zadnji klik)
+
         while (elapsed < transitionDuration)
         {
             elapsed += Time.deltaTime;
@@ -315,38 +324,50 @@ public class GameManager : MonoBehaviour
             if (tranzicijskiSlider != null)
             {
                 tranzicijskiSlider.value = Mathf.Lerp(startValue, endValue, t);
+
+                // DODAJ OVO (Brzi klik zvuk dok slider prelazi preko cijelih brojeva):
+                int currentTick = Mathf.RoundToInt(tranzicijskiSlider.value);
+                if (currentTick != lastClickTick)
+                {
+                    lastClickTick = currentTick;
+                    if (loadingAudio != null) loadingAudio.PlayPlayerSwitchClick();
+                }
             }
 
             yield return null;
         }
 
         if (tranzicijskiSlider != null) tranzicijskiSlider.value = endValue;
+
+        // DODAJ OVU LINIJU (Goofy akord kada slider stigne na metu!):
+        if (loadingAudio != null) loadingAudio.PlayPlayerSelectedChord();
+
         yield return new WaitForSeconds(0.3f);
 
 
         // --- 5. JITTERY FADE-OUT (Drhtavo gašenje) ---
         if (UI_Tranzicija != null)
         {
-            CanvasGroup cg = UI_Tranzicija.GetComponent<CanvasGroup>();
+            // DODAJ OVE DVIJE LINIJE (Zvuk gašenja kompjutera koji prekida paljenje + Flicker):
+            if (loadingAudio != null) loadingAudio.PlayComputerShutdown();
+            if (loadingAudio != null) loadingAudio.PlayFlicker();
 
-            float fadeDuration = 0.3f; // Koliko dugo traje gašenje
+            CanvasGroup cg = UI_Tranzicija.GetComponent<CanvasGroup>();
+            float fadeDuration = 0.3f;
             float elapsedFade = 0f;
 
             while (elapsedFade < fadeDuration)
             {
                 elapsedFade += Time.deltaTime;
-                float baseAlpha = 1f - (elapsedFade / fadeDuration); // Ide od 1 do 0
-
-                // Dodajemo drhtanje
+                float baseAlpha = 1f - (elapsedFade / fadeDuration);
                 float jitter = Random.Range(-0.25f, 0.25f);
-
                 cg.alpha = Mathf.Clamp01(baseAlpha + jitter);
                 yield return null;
             }
 
-            cg.alpha = 0f; // Skroz nevidljivo
-            UI_Tranzicija.SetActive(false); // TEK SADA GASIMO OBJEKT!
-            cg.alpha = 1f; // Resetiramo prozirnost za idući put
+            cg.alpha = 0f;
+            UI_Tranzicija.SetActive(false);
+            cg.alpha = 1f;
         }
 
 
@@ -394,7 +415,7 @@ public class GameManager : MonoBehaviour
         isLoading = true;
 
         // 3. PRAZNINA (0.5 sekundi crnog ekrana prije nego se išta dogodi)
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(1f);
 
 
         // --- OVO JE KLJUČNA PROMJENA ---
@@ -405,14 +426,16 @@ public class GameManager : MonoBehaviour
             tranzicijskiSlider.value = targetValue; // Odmah ga stavlja na metu u mraku
         }
 
-        // 5. JITTERY FADE-IN (Drhtavo paljenje Slidera)
         if (UI_Tranzicija != null)
         {
-            UI_Tranzicija.SetActive(true); // Tek SADA palimo ekran
+            if (loadingAudio != null) loadingAudio.PlayComputerStartup();
+            if (loadingAudio != null) loadingAudio.PlayFlicker();
+
+            UI_Tranzicija.SetActive(true);
             CanvasGroup cg = UI_Tranzicija.GetComponent<CanvasGroup>();
             if (cg == null) cg = UI_Tranzicija.AddComponent<CanvasGroup>();
 
-            float fadeDuration = 0.4f;
+            float fadeDuration = 0.75f;
             float elapsedFade = 0f;
             while (elapsedFade < fadeDuration)
             {
@@ -423,6 +446,8 @@ public class GameManager : MonoBehaviour
                 yield return null;
             }
             cg.alpha = 1f;
+
+            if (loadingAudio != null) loadingAudio.PlayPlayerSelectedChord();
         }
 
         // 6. ZADRŽAVANJE NA EKRANU (Čeka da igrač vidi tko je odabran)
@@ -432,6 +457,10 @@ public class GameManager : MonoBehaviour
         // 7. JITTERY FADE-OUT (Drhtavo gašenje Slidera)
         if (UI_Tranzicija != null)
         {
+            // DODAJ OVE DVIJE LINIJE (Gašenje kompjutera + Flicker):
+            if (loadingAudio != null) loadingAudio.PlayComputerShutdown();
+            if (loadingAudio != null) loadingAudio.PlayFlicker();
+
             CanvasGroup cg = UI_Tranzicija.GetComponent<CanvasGroup>();
             float fadeDuration = 0.3f;
             float elapsedFade = 0f;

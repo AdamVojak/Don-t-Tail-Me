@@ -167,7 +167,7 @@ public class MirandaController : MonoBehaviour
     public void SetLock(bool locked)
     {
         isControlled = !locked;
-        if (locked && controller != null)
+        if (controller != null && controller.enabled && gameObject.activeInHierarchy)
         {
             controller.Move(Vector3.zero);
         }

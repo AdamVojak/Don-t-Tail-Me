@@ -13,7 +13,14 @@ public class SashaController : MonoBehaviour
     public float stetaCooldown = 1.0f;
     private float zadnjeVrijemeStete = -1f;
 
+    [Header("Postavke Roja Crva")]
+    public float wormBiteDelay = 1.0f;       // Koliko dugo crvi moraju biti na igraču za ugriz (1 sekunda)
+    public int minWormsForDamage = 2;        // Minimalan broj crva potreban za nanošenje štete (2 crva)
+    private List<Collider> touchingWorms = new List<Collider>(); // Lista svih crva koji trenutno dodiruju Sashu
+    private Coroutine wormBiteCoroutine = null; // Referenca na timer ugriza
+
     [Header("Zajedničko Guranje (Entity Lock)")]
+    private bool isActivelyMovingBox = false; // Prati kreće li se kutija fizički
     public float pushSpeed = 2.5f;          // Brzina guranja/povlačenja
     public float pushRotationSpeed = 120f;  // Brzina rotiranja entiteta (stupnjevi u sekundi)
     public float attachDistance = 1.15f;    // Točna distanca između Sashe i centra kutije pri guranju
@@ -23,8 +30,7 @@ public class SashaController : MonoBehaviour
     public SashaState currentState = SashaState.Active;
     public GameObject mrtavSpritePrefab;
 
-    private Vector3 prePushPosition;       // Pamti poziciju igrača prije početka guranja
-    private Quaternion prePushRotation;   // Pamti rotaciju igrača prije početka guranja
+    private float originalZ; // Pamti samo Z-koordinatu igrača prije početka guranja
 
     public float moveSpeed = 5f;
     private float activeMoveSpeed;
@@ -46,8 +52,6 @@ public class SashaController : MonoBehaviour
 
     public GameObject svijetlo;
 
-    public GameObject svijetloMaze;
-
     [Header("TIJELO")]
     public GameObject tijelo;
     public GameObject glava;
@@ -65,9 +69,11 @@ public class SashaController : MonoBehaviour
     private Vector3 lockedPushDir = Vector3.zero;
     private Rigidbody lockedBox = null;
     private GameObject currentObstacleInRange = null;
+    [SerializeField] private SashaAudio sashaAudio;
 
     void Start()
     {
+        if (sashaAudio == null) sashaAudio = GetComponent<SashaAudio>();
         tijeloSprite.material.color = Color.white;
         glavaSprite.material.color = Color.white;
         zivot = 3;
@@ -85,7 +91,6 @@ public class SashaController : MonoBehaviour
         }
         hints.SetActive(false);
         svijetlo.SetActive(true);
-        svijetloMaze.SetActive(false);
     }
 
     void Update()
@@ -127,6 +132,7 @@ public class SashaController : MonoBehaviour
                 {
                     if (sashaInventory.TrySendSelectedItem())
                     {
+                        sashaAudio.ExitInteractiveState();
                         sashaInventory.CloseUI();
 
                         if (animacijaTijela != null)
@@ -154,6 +160,23 @@ public class SashaController : MonoBehaviour
         // 4. GRANANJE KRETANJA: Guranje VS Normalno kretanje
         if (currentState == SashaState.Pushing && lockedBox != null)
         {
+            // --- NOVO: AUDIO LOGIKA ZA FIZIČKO GURANJE ---
+            // Kutija se kreće ako igrač stišće W/S (vertical) ili A/D (horizontal za rotaciju)
+            bool isMovingNow = (vertical != 0 || horizontal != 0);
+
+            if (isMovingNow && !isActivelyMovingBox)
+            {
+                // Tek je počeo gurati
+                isActivelyMovingBox = true;
+                if (sashaAudio != null) sashaAudio.StartPushing();
+            }
+            else if (!isMovingNow && isActivelyMovingBox)
+            {
+                // Stao je u mjestu
+                isActivelyMovingBox = false;
+                if (sashaAudio != null) sashaAudio.StopPushing();
+            }
+
             // A/D (Lijevo/Desno) kontroliraju zajedničku rotaciju oko centra kutije
             if (horizontal != 0)
             {
@@ -254,24 +277,22 @@ public class SashaController : MonoBehaviour
     {
         if (other.CompareTag("Worm"))
         {
-            int i = Random.Range(1, 3);
-            if (i == 1)
+            if (!touchingWorms.Contains(other))
             {
-                TakeDamage(1, 0);
+                touchingWorms.Add(other);
+            }
+
+            // Ako imamo dovoljno crva na sebi, a timer još ne odbrojava, pokreni ga
+            if (touchingWorms.Count >= minWormsForDamage && wormBiteCoroutine == null)
+            {
+                wormBiteCoroutine = StartCoroutine(WormBiteRoutine());
             }
         }
 
         if (other.CompareTag("Fist"))
         {
-            zvukUdarca = Random.Range(1, 3);
-            if (zvukUdarca == 1)
-            {
-                SFX.zvucniEfekti.ZvukUdarca1.Play();
-            }
-            else
-            {
-                SFX.zvucniEfekti.ZvukUdarca2.Play();
-            }
+            if (sashaAudio != null) sashaAudio.PlayFistHit();
+
             TakeDamage(1, 1);
         }
 
@@ -299,11 +320,26 @@ public class SashaController : MonoBehaviour
 
     public void OnTriggerExit(Collider other)
     {
+        // --- NOVO: Micanje crva s liste kada igrač pobjegne ---
+        if (other.CompareTag("Worm"))
+        {
+            if (touchingWorms.Contains(other))
+            {
+                touchingWorms.Remove(other);
+            }
+
+            // Ako je broj crva pao ispod granice, zaustavi timer ugriza
+            if (touchingWorms.Count < minWormsForDamage && wormBiteCoroutine != null)
+            {
+                StopCoroutine(wormBiteCoroutine);
+                wormBiteCoroutine = null;
+                Debug.Log("Sasha: Roj se smanjio. Timer ugriza zaustavljen.");
+            }
+        }
+
         if (other.CompareTag("Obstacle"))
         {
             currentObstacleInRange = null;
-
-            // Pozivamo metodu koja vraća Sashu na njezinu početnu poziciju
             StopPushing();
         }
     }
@@ -324,8 +360,9 @@ public class SashaController : MonoBehaviour
         }
 
         zadnjeVrijemeStete = Time.time;
-
         zivot -= damageAmount;
+
+        if (sashaAudio != null) sashaAudio.PlayHurtDelayed();
 
         StartCoroutine(ChangeColorTemporary(Color.red, 0.2f));
 
@@ -386,19 +423,25 @@ public class SashaController : MonoBehaviour
         {
             currentState = SashaState.Interactive;
 
+            if (sashaAudio != null) sashaAudio.EnterInteractiveState();
+
             controller.enabled = false;
 
-            transform.position = trenutnaVentilacija.interactionAreaCenter.position;
+            // 1. TELEPORTACIJA: Zadržavamo Sashinu originalnu Z poziciju da ne propadne u pozadinu
+            Vector3 ciljnaPozicija = trenutnaVentilacija.interactionAreaCenter.position;
+            ciljnaPozicija.z = transform.position.z;
+            transform.position = ciljnaPozicija;
 
             controller.enabled = true;
 
-            tijelo.transform.rotation = Quaternion.Euler(0, 0, -90f);
+            // 2. DINAMIČKA ROTACIJA: Sasha sada preuzima rotaciju ventilacije umjesto fiksnog broja!
+            // (Ako je tvoj sprite crtan tako da mu treba offset od -90, množimo s rotacijom ventilacije)
+            tijelo.transform.rotation = trenutnaVentilacija.transform.rotation * Quaternion.Euler(0, 0, -90f);
 
             if (noge != null) noge.SetActive(false);
             if (animacijaTijela != null) animacijaTijela.SetBool("odabir", true);
 
             if (sashaInventory != null) sashaInventory.OpenUI();
-
         }
         else if (currentState == SashaState.Interactive)
         {
@@ -408,8 +451,10 @@ public class SashaController : MonoBehaviour
             {
                 animacijaTijela.SetBool("odabir", false);
                 animacijaTijela.Play("Idle");
-                if (sashaInventory != null) sashaInventory.CloseUI();
             }
+
+            if (sashaAudio != null) sashaAudio.ExitInteractiveState();
+            if (sashaInventory != null) sashaInventory.CloseUI();
         }
     }
 
@@ -417,6 +462,7 @@ public class SashaController : MonoBehaviour
     {
         if (currentState == SashaState.Interactive)
         {
+            if (sashaAudio != null) sashaAudio.ExitInteractiveState();
             currentState = SashaState.Active;
 
             if (animacijaTijela != null)
@@ -442,12 +488,8 @@ public class SashaController : MonoBehaviour
                 Rigidbody rb = currentObstacleInRange.GetComponent<Rigidbody>();
                 if (rb != null && !rb.isKinematic)
                 {
-                    // --- NOVO: Spremi točnu poziciju i rotaciju Sashe prije početka guranja ---
-                    prePushPosition = transform.position;
-                    if (tijelo != null)
-                    {
-                        prePushRotation = tijelo.transform.rotation;
-                    }
+                    // --- NOVO: Spremi originalnu Z-koordinatu prije nego što započne guranje ---
+                    originalZ = transform.position.z;
 
                     lockedBox = rb;
                     currentState = SashaState.Pushing;
@@ -517,9 +559,29 @@ public class SashaController : MonoBehaviour
         if (currentState == SashaState.Pushing)
         {
             currentState = SashaState.Active;
+
+            if (isActivelyMovingBox)
+            {
+                isActivelyMovingBox = false;
+                if (sashaAudio != null) sashaAudio.StopPushing();
+            }
+
             if (animacijaTijela != null) animacijaTijela.SetBool("guranje", false);
 
-            // --- TELEPORTACIJA JE UKLONJENA: Sasha sada ostaje točno tamo gdje je zadnje bila ---
+            // --- NOVO: Vrati Sashu na njezinu originalnu Z-koordinatu kako nikada ne bi potonula ---
+            if (controller != null)
+            {
+                controller.enabled = false; // Isključujemo CharacterController radi sigurnog snap-anja Z osi
+            }
+
+            Vector3 currentPos = transform.position;
+            currentPos.z = originalZ; // Vraćamo samo Z os na njezinu originalnu, sigurnu vrijednost!
+            transform.position = currentPos;
+
+            if (controller != null)
+            {
+                controller.enabled = true; // Ponovno uključujemo kontroler
+            }
 
             if (lockedBox != null)
             {
@@ -543,7 +605,7 @@ public class SashaController : MonoBehaviour
             }
             relativeOffset = Vector3.zero;
             lockedPushDir = Vector3.zero;
-            Debug.Log("Sasha: Otključan entitet guranja (ostaje na trenutnoj poziciji).");
+            Debug.Log("Sasha: Otključan entitet guranja (Z-os osigurana).");
         }
     }
 
@@ -561,5 +623,40 @@ public class SashaController : MonoBehaviour
         }
 
         currentState = SashaState.Active;
+    }
+
+    private IEnumerator WormBiteRoutine()
+    {
+        Debug.Log("Sasha: Barem 2 crva su na igraču! Započinjem odbrojavanje za ugriz...");
+
+        while (touchingWorms.Count >= minWormsForDamage)
+        {
+            // Čistimo listu od uništenih (ubijenih) crva u slučaju da ih je igrač ubio dok su na njemu
+            touchingWorms.RemoveAll(item => item == null || !item.enabled || !item.gameObject.activeInHierarchy);
+
+            // Provjera ako je nakon čišćenja broj crva pao ispod granice
+            if (touchingWorms.Count < minWormsForDamage)
+            {
+                break;
+            }
+
+            // Čekamo 1 sekundu (vrijeme potrebno za ugriz)
+            yield return new WaitForSeconds(wormBiteDelay);
+
+            // Još jedna provjera nakon čekanja (u slučaju da je igrač ubio crva u zadnjoj milisekundi)
+            touchingWorms.RemoveAll(item => item == null || !item.enabled || !item.gameObject.activeInHierarchy);
+
+            if (touchingWorms.Count >= minWormsForDamage)
+            {
+                if (sashaAudio != null) sashaAudio.PlayWormBite();
+                TakeDamage(1, 0); // Nanosi točno 1 štetu (uzrok 0, npr. crv)
+
+                // Cooldown između dva ugriza roja (da ne nanose štetu svaki frame)
+                yield return new WaitForSeconds(1.5f);
+            }
+        }
+
+        wormBiteCoroutine = null;
+        Debug.Log("Sasha: Timer ugriza završen.");
     }
 }

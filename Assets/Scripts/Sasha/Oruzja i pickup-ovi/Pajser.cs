@@ -9,8 +9,11 @@ public class Pajser : MonoBehaviour
     [Header("Poveži u Inspectoru")]
     public Collider meleeCollider;
 
+    private SashaAudio sashaAudio;
+
     void Awake()
     {
+        sashaAudio = GetComponentInParent<SashaAudio>();
         animacijaMelee = GetComponent<Animator>();
 
         if (meleeCollider != null) meleeCollider.enabled = false;
@@ -37,6 +40,7 @@ public class Pajser : MonoBehaviour
         {
             // OVDJE JE BILA GREŠKA: Collider se mora UPALITI kad klikneš, a ne ugasiti!
             if (meleeCollider != null) meleeCollider.enabled = true;
+            if (sashaAudio != null) sashaAudio.PlaySwing();
 
             if (animacijaMelee != null)
             {

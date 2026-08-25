@@ -9,6 +9,8 @@ public class SrceUI : MonoBehaviour
 
     private int trenutniZivot; // Trenutni broj života
 
+    private KucanjeSrca zvukovi;
+
     void Start()
     {
         // Provjeri jesu li reference postavljene
@@ -61,6 +63,7 @@ public class SrceUI : MonoBehaviour
         if (lives <= 0)
         {
             srceAnimator.speed = 0; // Pauziraj Animator
+            zvukovi.PlayFlatline();
         }
         else
         {

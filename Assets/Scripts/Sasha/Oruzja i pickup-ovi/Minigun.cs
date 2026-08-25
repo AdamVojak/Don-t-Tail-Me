@@ -31,8 +31,21 @@ public class Minigun : MonoBehaviour
     public Animator animacijaGun;
     public GameObject Clip;
 
+    [Header("Audio (2D)")]
+    [SerializeField] private AudioSource minigunAudioSource;
+    [SerializeField] private AudioClip shootClip;
+    [SerializeField] private AudioClip emptyClickClip;
+    [SerializeField] private AudioClip pickupClip;
+
+    public float zvukPucanja = 0.5f;
+
+    public float masterZvukova = 0.6f;
+
     void Start()
     {
+        if (minigunAudioSource == null) minigunAudioSource = gameObject.AddComponent<AudioSource>();
+        minigunAudioSource.spatialBlend = 0f; // 2D zvuk
+
         fullAmmo = ammo;
         barrel = 0;
 
@@ -85,12 +98,19 @@ public class Minigun : MonoBehaviour
     {
         if (ammo <= 0)
         {
-            SFX.zvucniEfekti.ZvukPraznogKlika.Play();
+            if (minigunAudioSource != null && emptyClickClip != null)
+                minigunAudioSource.PlayOneShot(emptyClickClip);
             return;
         }
 
         ammo--;
-        SFX.zvucniEfekti.ZvukPucanjaMinigun.Play();
+
+
+        if (minigunAudioSource != null && shootClip != null)
+        {
+            minigunAudioSource.pitch = Random.Range(0.95f, 1.05f);
+            minigunAudioSource.PlayOneShot(shootClip, zvukPucanja);
+        }
 
         Transform currentShotPlace = null;
 
@@ -127,6 +147,8 @@ public class Minigun : MonoBehaviour
     {
         ammo += pickup;
         if (ammo > maxAmmo) ammo = maxAmmo;
-        SFX.zvucniEfekti.ZvukPickup.Play();
+
+        if (minigunAudioSource != null && pickupClip != null)
+            minigunAudioSource.PlayOneShot(pickupClip);
     }
 }

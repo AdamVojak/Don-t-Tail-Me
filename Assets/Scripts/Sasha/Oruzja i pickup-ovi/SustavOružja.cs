@@ -22,6 +22,7 @@ public class SustavOruzja : MonoBehaviour
     [SerializeField] private GameManager gameManager;
 
     [Header("Sasha")]
+    [SerializeField] private SashaAudio sashaAudio;
     [SerializeField] GameObject JacinaUdarcaUI;
     [SerializeField] GameObject AmmoUI;
     [SerializeField] GameObject MinigunUI;
@@ -50,6 +51,8 @@ public class SustavOruzja : MonoBehaviour
             enabled = false;
             return;
         }
+
+        if (sashaAudio == null) sashaAudio = GetComponentInParent<SashaAudio>();
 
         lastActiveWeaponForSasha = ActiveWp.Melee;
 
@@ -96,7 +99,7 @@ public class SustavOruzja : MonoBehaviour
                     if (meleeOruzjeScript != null) meleeOruzjeScript.PrisilnoPrekiniNapad();
                     if (pajserOruzjeScript != null) pajserOruzjeScript.PrisilnoPrekiniNapad();
                     Switch(ActiveWp.Gun);
-                    SFX.zvucniEfekti.ZvukIzmjeneOruzja2.Play();
+                    if (sashaAudio != null) sashaAudio.PlayWeaponSwitch(1);
                 }
             }
             else
@@ -111,7 +114,7 @@ public class SustavOruzja : MonoBehaviour
                     if (meleeOruzjeScript != null) meleeOruzjeScript.PrisilnoPrekiniNapad();
                     if (pajserOruzjeScript != null) pajserOruzjeScript.PrisilnoPrekiniNapad();
                     Switch(ActiveWp.Minigun);
-                    SFX.zvucniEfekti.ZvukIzmjeneOruzja3.Play();
+                    if (sashaAudio != null) sashaAudio.PlayWeaponSwitch(2);
                 }
             }
             else
@@ -126,7 +129,7 @@ public class SustavOruzja : MonoBehaviour
                     if (meleeOruzjeScript != null) meleeOruzjeScript.PrisilnoPrekiniNapad();
                     if (pajserOruzjeScript != null) pajserOruzjeScript.PrisilnoPrekiniNapad();
                     Switch(ActiveWp.Pajser);
-                    //SFX.zvucniEfekti.ZvukIzmjeneOruzja4.Play();
+                    if (sashaAudio != null) sashaAudio.PlayWeaponSwitch(3);
                 }
             }
             else
@@ -180,7 +183,7 @@ public class SustavOruzja : MonoBehaviour
             return;
         }
 
-        if (gameManager.currChar != GameManager.ActiveCharacter.Sasha)
+        if (gameManager.currChar != GameManager.ActiveCharacter.Sasha && gameManager.isLoading)
         {
             if (melee.activeSelf) lastActiveWeaponForSasha = ActiveWp.Melee;
             else if (gun.activeSelf) lastActiveWeaponForSasha = ActiveWp.Gun;
@@ -193,6 +196,9 @@ public class SustavOruzja : MonoBehaviour
                 gun.SetActive(false);
                 minigun.SetActive(false);
                 pajser.SetActive(false);
+                MinigunUI.SetActive(false);
+                AmmoUI.SetActive(false);
+                JacinaUdarcaUI.SetActive(false);
             }
             return;
         }
@@ -227,14 +233,14 @@ public class SustavOruzja : MonoBehaviour
 
         if (Input.GetKeyDown("1"))
         {
-            if (current != ActiveWp.Melee) SFX.zvucniEfekti.ZvukIzmjeneOruzja1.Play();
+            if (current != ActiveWp.Melee && sashaAudio != null) sashaAudio.PlayWeaponSwitch(0);
             Switch(ActiveWp.Melee);
         }
         else if (Input.GetKeyDown("2"))
         {
             if (sashaInventory != null && sashaInventory.imaGun)
             {
-                if (current != ActiveWp.Gun) SFX.zvucniEfekti.ZvukIzmjeneOruzja2.Play();
+                if (current != ActiveWp.Gun && sashaAudio != null) sashaAudio.PlayWeaponSwitch(1);
                 meleeOruzjeScript.PrisilnoPrekiniNapad();
                 Switch(ActiveWp.Gun);
             }
@@ -247,7 +253,7 @@ public class SustavOruzja : MonoBehaviour
         {
             if (sashaInventory != null && sashaInventory.imaMinigun)
             {
-                if (current != ActiveWp.Minigun) SFX.zvucniEfekti.ZvukIzmjeneOruzja3.Play();
+                if (current != ActiveWp.Minigun && sashaAudio != null) sashaAudio.PlayWeaponSwitch(2);
                 meleeOruzjeScript.PrisilnoPrekiniNapad();
                 Switch(ActiveWp.Minigun);
             }
@@ -261,7 +267,7 @@ public class SustavOruzja : MonoBehaviour
         {
             if (sashaInventory != null && sashaInventory.imaPajser)
             {
-                //if (current != ActiveWp.Pajser) SFX.zvucniEfekti.ZvukIzmjeneOruzja4.Play();
+                if (current != ActiveWp.Pajser && sashaAudio != null) sashaAudio.PlayWeaponSwitch(3);
                 meleeOruzjeScript.PrisilnoPrekiniNapad();
                 Switch(ActiveWp.Pajser);
             }

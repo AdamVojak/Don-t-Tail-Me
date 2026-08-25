@@ -58,6 +58,9 @@ public class Zombi : MonoBehaviour, IDamageable {
     private Animator animator;
     private float zadnjeVrijemeStete = -1f;
 
+    [Header("Audio")]
+    [SerializeField] private ZombieAudio zombieAudio;
+
     void Awake()
     {
         DohvatiIgraca();
@@ -65,6 +68,7 @@ public class Zombi : MonoBehaviour, IDamageable {
         animator = GetComponent<Animator>();
         if (fist == null) fist = GetComponent<GameObject>();
         if (gameManagerRef == null) gameManagerRef = FindFirstObjectByType<GameManager>();
+        if (zombieAudio == null) zombieAudio = GetComponent<ZombieAudio>();
 
         OkreniSePremaIgracu();
     }
@@ -188,7 +192,20 @@ public class Zombi : MonoBehaviour, IDamageable {
 
     public void TakeDamage(int amount, DamageType damageType = DamageType.Physical)
     {
-        SFX.zvucniEfekti.ZvukUdarca.Play();
+        if (zombieAudio != null)
+        {
+            if (damageType == DamageType.Physical)
+            {
+                zombieAudio.PlayPajserHit();
+            }
+            else if (damageType == DamageType.Electric)
+            {
+                zombieAudio.PlayElectricMeleeHit();
+            }
+
+            zombieAudio.PlayHurtSound();
+        }
+
         Debug.Log("Udarac sa " + amount + " štete. Tip štete: " + damageType);
 
         if (damageType == DamageType.Electric)
@@ -216,6 +233,7 @@ public class Zombi : MonoBehaviour, IDamageable {
 
                 if (Time.time >= zadnjeVrijemeStete + stetaCooldown)
                 {
+                    zombieAudio.PlayHurtSound();
                     PrimiUdarac(projectile.damage);
                 }
             }
@@ -230,6 +248,7 @@ public class Zombi : MonoBehaviour, IDamageable {
 
                 if (Time.time >= zadnjeVrijemeStete + stetaCooldown)
                 {
+                    zombieAudio.PlayHurtSound();
                     PrimiUdarac(bullet.damage);
                 }
             }
@@ -371,7 +390,7 @@ public class Zombi : MonoBehaviour, IDamageable {
 
         if (tijelo != null) tijelo.material.color = Color.white;
 
-        SFX.zvucniEfekti.ZvukElektrosoka.Play();
+        if (zombieAudio != null) zombieAudio.PlayShockSound();
 
         currentState = ZombieState.Shocked;
 

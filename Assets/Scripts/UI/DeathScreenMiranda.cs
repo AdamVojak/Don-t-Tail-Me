@@ -23,8 +23,12 @@ public class DeathScreenMiranda : MonoBehaviour
     [Range(0f, 1f)]
     public float maxAlphaCause = 0.8f;
 
-    public void ShowDeathScreen()
+    [SerializeField] private DeathScreenAudio deathAudio;
+
+public void ShowDeathScreen()
     {
+        if (deathAudio != null) deathAudio.StartStatic(0, false);
+
         // 1. STATIC ODMAH PALIMO (Alpha = 1, Image i Animator = true)
         if (tvStaticBackground != null)
         {
@@ -58,9 +62,16 @@ public class DeathScreenMiranda : MonoBehaviour
         // 2. KORAK: Čekamo pola sekunde, palimo kursor i gumbe
         yield return new WaitForSeconds(0.5f);
 
+        if (deathAudio != null)
+        {
+            deathAudio.PlayHandSaw();
+            yield return new WaitForSeconds(1.0f);
+        }
+
         CursorManager cursorManager = FindFirstObjectByType<CursorManager>();
         if (cursorManager != null)
         {
+               deathAudio.PlayBoneCrack();
             cursorManager.ActivateDeathCursor();
         }
 

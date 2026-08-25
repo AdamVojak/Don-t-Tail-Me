@@ -20,10 +20,14 @@ public class Melee : MonoBehaviour
     public Collider meleeCollider;
     public SashaController sashaControllerRef;
 
+    private SashaAudio sashaAudio;
+
     [HideInInspector] public bool isAttacking = false;
 
     void Awake()
     {
+
+        sashaAudio = GetComponentInParent<SashaAudio>();
         animacijaMelee = transform.parent.GetComponent<Animator>();
         if (meleeCollider == null)
         {
@@ -104,7 +108,7 @@ public class Melee : MonoBehaviour
     public void UkljuciHitbox()
     {
         isAttacking = true;
-        SFX.zvucniEfekti.ZvukZamaha.Play();
+        if (sashaAudio != null) sashaAudio.PlaySwing();
         if (meleeCollider != null) meleeCollider.enabled = true;
     }
 

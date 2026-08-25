@@ -26,6 +26,8 @@ public class DeathScreenSasha : MonoBehaviour
     [Range(0f, 1f)]
     public float maxAlphaCause = 0.8f;
 
+    [SerializeField] private DeathScreenAudio deathAudio;
+
     public void ShowDeathScreen(int cause)
     {
         // 1. TVOJA IDEJA: Gasimo Image i Animator komponente PRIJE paljenja Canvasa!
@@ -46,12 +48,15 @@ public class DeathScreenSasha : MonoBehaviour
         // 1. Čekamo u mraku
         yield return new WaitForSeconds(delayBeforeScreen);
 
-        // 2. Palimo TV Static i radimo fade-in
+        // 2. Palimo TV Static i radimo fade-in zvuka i slike
         if (tvStaticBackground != null)
         {
             SetAlpha(tvStaticBackground, 0f);
             tvStaticBackground.enabled = true;
             if (tvStaticAnimator != null) tvStaticAnimator.enabled = true;
+
+            // DODAJ OVO (Pali Fade-In statike u trajanju backgroundFadeDuration):
+            if (deathAudio != null) deathAudio.StartStatic(0, true, backgroundFadeDuration);
 
             yield return StartCoroutine(FadeIn(tvStaticBackground, backgroundFadeDuration, 1f));
         }
@@ -67,12 +72,19 @@ public class DeathScreenSasha : MonoBehaviour
             yield return StartCoroutine(FadeIn(causeImage, causeFadeDuration, maxAlphaCause));
         }
 
-        // --- OVAJ DIO JE FALIO NA KRAJU METODE: ---
+        // --- ZVUČNI EFEKT PILJENJA I LOMLJENJA KOSTI PRIJE POJAVE RUKE ---
         yield return new WaitForSeconds(0.5f);
+
+        if (deathAudio != null)
+        {
+            deathAudio.PlayHandSaw();
+            yield return new WaitForSeconds(1.0f);
+        }
 
         CursorManager cursorManager = FindFirstObjectByType<CursorManager>();
         if (cursorManager != null)
         {
+            deathAudio.PlayBoneCrack();
             cursorManager.ActivateDeathCursor();
         }
 
@@ -80,7 +92,6 @@ public class DeathScreenSasha : MonoBehaviour
         {
             buttonsContainer.SetActive(true);
         }
-        // ------------------------------------------
     }
 
     private IEnumerator FadeIn(Image target, float duration, float targetAlpha)
