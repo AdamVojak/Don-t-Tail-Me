@@ -2,18 +2,17 @@ using UnityEngine;
 
 public class HintBreakVent : MonoBehaviour
 {
-    public GameObject hintsObject;
-    private SpriteRenderer hintImg;
-    public Sprite hintClick;
-    public Sprite hintF;
+    [Header("UI Elementi Hinta")]
+    public SpriteRenderer hintRenderer; // Ovdje povuci SpriteRenderer hinta iznad glave
+    public Sprite hintClick;             // Sličica lijevog klika
+    public Sprite hintF;                 // Sličica tipke F
     public Ventilacija_In_Sasha ventInRef;
 
     void Start()
     {
-        if (hintsObject != null)
+        if (hintRenderer != null)
         {
-            hintImg = hintsObject.GetComponent<SpriteRenderer>();
-            hintsObject.SetActive(false);
+            hintRenderer.enabled = false; // Samo gasimo crtanje, objekt ostaje aktivan!
         }
 
         if (ventInRef == null)
@@ -24,39 +23,33 @@ public class HintBreakVent : MonoBehaviour
 
     private void OnTriggerStay(Collider other)
     {
-        if (other.CompareTag("Sasha"))
+        SashaController sasha = other.GetComponentInParent<SashaController>();
+
+        // Radi samo ako je Sasha pod kontrolom igrača i nije mrtav
+        if (sasha != null && sasha.isControlled && sasha.currentState != SashaController.SashaState.Dead)
         {
-            // Uzimamo Sashu direktno iz objekta koji stoji u triggeru
-            SashaController sasha = other.GetComponentInParent<SashaController>();
-
-            // Ako je Sasha tu i aktivna je
-            if (sasha != null && sasha.currentState == SashaController.SashaState.Active)
+            if (hintRenderer != null)
             {
-                if (hintsObject != null)
-                {
-                    hintsObject.SetActive(true);
-
-                    // Provjeravamo je li ventilacija otvorena
-                    bool otvoren = (ventInRef != null) && ventInRef.jeOtvorena;
-
-                    if (hintImg != null)
-                    {
-                        hintImg.sprite = otvoren ? hintF : hintClick;
-                    }
-                }
+                bool otvoren = (ventInRef != null) && ventInRef.jeOtvorena;
+                hintRenderer.sprite = otvoren ? hintF : hintClick;
+                hintRenderer.enabled = true; // Pali samo sliku
             }
-            else // Ako si prebacio na drugog lika -> ugasi hint
+        }
+        else
+        {
+            if (hintRenderer != null && hintRenderer.enabled)
             {
-                if (hintsObject != null) hintsObject.SetActive(false);
+                hintRenderer.enabled = false;
             }
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Sasha"))
+        SashaController sasha = other.GetComponentInParent<SashaController>();
+        if (sasha != null && hintRenderer != null)
         {
-            if (hintsObject != null) hintsObject.SetActive(false);
+            hintRenderer.enabled = false; // Gasi samo sliku
         }
     }
 }

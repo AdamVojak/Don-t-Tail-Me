@@ -89,7 +89,7 @@ public class SashaController : MonoBehaviour
             Debug.LogError("GameObject 'tijelo' nije dodijeljen! Dodijeli glavni dio tijela koji se rotira.");
             enabled = false;
         }
-        hints.SetActive(false);
+        //hints.SetActive(false);
         svijetlo.SetActive(true);
     }
 

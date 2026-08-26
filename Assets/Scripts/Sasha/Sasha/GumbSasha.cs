@@ -68,7 +68,6 @@ public class GumbSasha : MonoBehaviour
         if (!isPressed)
         {
             isPressed = true;
-            aktiviran = true;
             spriteRenderer.sprite = pritisnut;
 
             // ZVUK PRITISKA (Preko unutra):
@@ -95,7 +94,7 @@ public class GumbSasha : MonoBehaviour
 
         // Vraćanje gumba u normalno stanje
         isPressed = false;
-        aktiviran = false;
+        aktiviran = !aktiviran;
         spriteRenderer.sprite = normalan;
 
         // ZVUK VRAĆANJA (Prema van):

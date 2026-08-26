@@ -2,47 +2,45 @@ using UnityEngine;
 
 public class ClickHint : MonoBehaviour
 {
-    public GameObject hintsObject;
-    private SpriteRenderer hintImg;
-    public Sprite hintClick;
+    [Header("UI Elementi Hinta")]
+    public SpriteRenderer hintRenderer; // Ovdje povuci SpriteRenderer hinta iznad glave
+    public Sprite hintClick;             // Sličica tipke
 
     void Start()
     {
-        if (hintsObject != null)
+        if (hintRenderer != null)
         {
-            hintImg = hintsObject.GetComponent<SpriteRenderer>();
-            hintsObject.SetActive(false);
+            hintRenderer.enabled = false;
         }
     }
 
     private void OnTriggerStay(Collider other)
     {
-        if (other.CompareTag("Sasha"))
-        {
-            // Uzimamo skriptu direktno s lika koji je dotaknuo trigger
-            SashaController sasha = other.GetComponentInParent<SashaController>();
+        SashaController sasha = other.GetComponentInParent<SashaController>();
 
-            // Ako je kontroler tu I ako trenutno igraš sa Sashom -> UPALI
-            if (sasha != null && sasha.currentState == SashaController.SashaState.Active)
+        if (sasha != null && sasha.isControlled && sasha.currentState != SashaController.SashaState.Dead)
+        {
+            if (hintRenderer != null)
             {
-                if (hintsObject != null)
-                {
-                    hintsObject.SetActive(true);
-                    if (hintImg != null) hintImg.sprite = hintClick;
-                }
+                if (hintClick != null) hintRenderer.sprite = hintClick;
+                hintRenderer.enabled = true;
             }
-            else // Ako si u triggeru, ali si prebacio na Mirandu -> UGASI
+        }
+        else
+        {
+            if (hintRenderer != null && hintRenderer.enabled)
             {
-                if (hintsObject != null) hintsObject.SetActive(false);
+                hintRenderer.enabled = false;
             }
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Sasha"))
+        SashaController sasha = other.GetComponentInParent<SashaController>();
+        if (sasha != null && hintRenderer != null)
         {
-            if (hintsObject != null) hintsObject.SetActive(false);
+            hintRenderer.enabled = false;
         }
     }
 }

@@ -35,6 +35,8 @@ public class MirandaController : MonoBehaviour
     private bool deathScreenTriggered = false;
     public GameObject HintUI;
 
+    public SpriteRenderer clickHint;
+
     public float rotationMultiplier = 60f;
     private float currentRotation = 0f;
 
@@ -53,6 +55,11 @@ public class MirandaController : MonoBehaviour
         if (mirandaAudio == null) mirandaAudio = GetComponent<MirandaAudio>();
         controller = GetComponent<CharacterController>();
         inventar = GetComponent<MirandaInventory>();
+
+        if (clickHint != null)
+        {
+            clickHint.enabled = false;
+        }
 
         if (HintUI != null) HintUI.SetActive(false);
 

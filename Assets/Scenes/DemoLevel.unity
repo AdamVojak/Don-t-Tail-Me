@@ -7717,7 +7717,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SashaHint
   UI: {fileID: 11764448}
-  HintSasha: {fileID: 1482705302}
+  hintSashaRenderer: {fileID: 0}
   clickF: {fileID: -568685073, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
 --- !u!65 &47694361
 BoxCollider:
@@ -31840,7 +31840,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb384fc66e9a5264e802386883aedbe0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClickHintMiranda
-  hintsObject: {fileID: 490907885}
+  hintRenderer: {fileID: 490907887}
   hintClick: {fileID: -568685073, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
 --- !u!1001 &217492072
 PrefabInstance:
@@ -44671,7 +44671,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SashaHint
   UI: {fileID: 11764448}
-  HintSasha: {fileID: 1482705302}
+  hintSashaRenderer: {fileID: 1482705303}
   clickF: {fileID: -568685073, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
 --- !u!65 &308848531
 BoxCollider:
@@ -70080,7 +70080,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &490907886
 Transform:
   m_ObjectHideFlags: 0
@@ -102956,7 +102956,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SashaHint
   UI: {fileID: 11764448}
-  HintSasha: {fileID: 1482705302}
+  hintSashaRenderer: {fileID: 1482705303}
   clickF: {fileID: -568685073, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
 --- !u!65 &696337314
 BoxCollider:
@@ -103483,7 +103483,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &698250696
 Transform:
   m_ObjectHideFlags: 0
@@ -116901,7 +116901,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d24d523386768a34c9deb5a7a21bbebc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClickHint
-  hintsObject: {fileID: 1482705302}
+  hintRenderer: {fileID: 0}
   hintClick: {fileID: -1928878404, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
 --- !u!65 &798892029
 BoxCollider:
@@ -118634,7 +118634,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a747cc5b1d0597c41a7cdaa80e426e93, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintBreakVent
-  hintsObject: {fileID: 1482705302}
+  hintRenderer: {fileID: 1482705303}
   hintClick: {fileID: -1928878404, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
   hintF: {fileID: -568685073, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
   ventInRef: {fileID: 2086044194}
@@ -120970,7 +120970,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &825055365
 Transform:
   m_ObjectHideFlags: 0
@@ -152627,7 +152627,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SashaHint
   UI: {fileID: 11764448}
-  HintSasha: {fileID: 1482705302}
+  hintSashaRenderer: {fileID: 1482705303}
   clickF: {fileID: -568685073, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
 --- !u!1001 &1048031878
 PrefabInstance:
@@ -191628,7 +191628,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cb384fc66e9a5264e802386883aedbe0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClickHintMiranda
-  hintsObject: {fileID: 490907885}
+  hintRenderer: {fileID: 0}
   hintClick: {fileID: 21300000, guid: cefc6cec3a371c64da580c09c36f8122, type: 3}
 --- !u!1001 &1265025635
 PrefabInstance:
@@ -207627,7 +207627,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SashaHint
   UI: {fileID: 11764448}
-  HintSasha: {fileID: 1482705302}
+  hintSashaRenderer: {fileID: 1482705303}
   clickF: {fileID: -568685073, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
 --- !u!65 &1377751602
 BoxCollider:
@@ -221906,7 +221906,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!212 &1482705303
 SpriteRenderer:
   serializedVersion: 2
@@ -222663,7 +222663,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SashaHint
   UI: {fileID: 11764448}
-  HintSasha: {fileID: 1482705302}
+  hintSashaRenderer: {fileID: 0}
   clickF: {fileID: -568685073, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
 --- !u!65 &1486520593
 BoxCollider:
@@ -230863,7 +230863,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d24d523386768a34c9deb5a7a21bbebc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClickHint
-  hintsObject: {fileID: 1482705302}
+  hintRenderer: {fileID: 0}
   hintClick: {fileID: -1928878404, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
 --- !u!65 &1546138246
 BoxCollider:
@@ -246126,7 +246126,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a747cc5b1d0597c41a7cdaa80e426e93, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintBreakVent
-  hintsObject: {fileID: 1482705302}
+  hintRenderer: {fileID: 0}
   hintClick: {fileID: -1928878404, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
   hintF: {fileID: -568685073, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
   ventInRef: {fileID: 1155915641}
@@ -253264,6 +253264,7 @@ MonoBehaviour:
   isInteracting: 0
   deathScreenManager: {fileID: 649874947}
   HintUI: {fileID: 953693668}
+  clickHint: {fileID: 0}
   rotationMultiplier: 60
   gravity: -9.81
   mirandaAudio: {fileID: 1693932849}
@@ -268427,7 +268428,7 @@ MonoBehaviour:
   pritisnut: {fileID: 1453359179, guid: 07ad4da0411b71146b64de59aec75d41, type: 3}
   trajanjePritiska: 0.5
   aktiviran: 0
-  buttonAudio: {fileID: 0}
+  buttonAudio: {fileID: 1797212669}
 --- !u!65 &1797212667
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -280320,7 +280321,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MirandaHint
   UI: {fileID: 953693668}
-  HintMiranda: {fileID: 490907885}
+  hintMirandaRenderer: {fileID: 490907887}
   clickF: {fileID: -568685073, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
 --- !u!65 &1890325025
 BoxCollider:
@@ -317854,7 +317855,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d24d523386768a34c9deb5a7a21bbebc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ClickHint
-  hintsObject: {fileID: 1482705302}
+  hintRenderer: {fileID: 1482705303}
   hintClick: {fileID: -1928878404, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
 --- !u!212 &3932398148269718764
 SpriteRenderer:
