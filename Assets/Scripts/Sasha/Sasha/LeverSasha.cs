@@ -6,16 +6,18 @@ public class LeverSasha : MonoBehaviour
     public Sprite on;
     public Sprite off;
 
-    public bool aktiviran;
+    public bool aktiviran = false;
 
-    void Start()
+    [Header("Audio")]
+    [SerializeField] private LeverAudio leverAudio;
+
+    void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-        spriteRenderer.sprite = off;
-        aktiviran = false;
+        if (leverAudio == null) leverAudio = GetComponent<LeverAudio>();
     }
 
-    private void Update()
+    void Start()
     {
         spriteRenderer.sprite = aktiviran ? on : off;
     }
@@ -26,7 +28,10 @@ public class LeverSasha : MonoBehaviour
         {
             aktiviran = !aktiviran;
             spriteRenderer.sprite = aktiviran ? on : off;
-            Debug.Log("Lever activated!");
+
+            if (leverAudio != null) leverAudio.PlaySwitch(aktiviran);
+
+            Debug.Log("Lever promijenjen: " + aktiviran);
         }
     }
 }

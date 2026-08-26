@@ -6,9 +6,9 @@ public class Ventilacija_In_Miranda : MonoBehaviour
     [Header("Reference")]
     [SerializeField] private MirandaInventory inventory;
     [SerializeField] private MirandaController playerController;
+    [SerializeField] private MirandaAudio mirandaAudio; // NOVO: Audio referenca
 
     [Header("Primatelji (Ventilacije)")]
-    // Ovdje ćeš povući skripte ventilacija koje izbacuju iteme kod Sashe i Giovannija
     [SerializeField] private Ventilacija_Out_Sasha sashaVentilacija;
     [SerializeField] private Ventilacija_Out_Giovanni giovanniVentilacija;
 
@@ -19,8 +19,8 @@ public class Ventilacija_In_Miranda : MonoBehaviour
     [SerializeField] private GameObject[] itemSelectionFrames;
 
     [Header("UI Primatelji (Radio Gumbi)")]
-    [SerializeField] private GameObject sashaSelectionFrame; // Okvir koji označava da je odabran Sasha
-    [SerializeField] private GameObject giovanniSelectionFrame; // Okvir koji označava da je odabran Giovanni
+    [SerializeField] private GameObject sashaSelectionFrame;
+    [SerializeField] private GameObject giovanniSelectionFrame;
 
     private bool isPlayerNear = false;
     private bool isUIOpen = false;
@@ -32,9 +32,19 @@ public class Ventilacija_In_Miranda : MonoBehaviour
     void Start()
     {
         if (uiPanel != null) uiPanel.SetActive(false);
-        for(int i = 0; i < itemImages.Length; i++)
+
+        if (mirandaAudio == null && playerController != null)
         {
-            itemImages[i].sprite = itemSprites[i];
+            mirandaAudio = playerController.GetComponent<MirandaAudio>();
+        }
+
+        // Postavljamo sve sličice na početku
+        for (int i = 0; i < itemImages.Length; i++)
+        {
+            if (itemImages[i] != null && itemSprites.Length > i)
+            {
+                itemImages[i].sprite = itemSprites[i];
+            }
         }
     }
 
@@ -43,13 +53,8 @@ public class Ventilacija_In_Miranda : MonoBehaviour
         if (other.CompareTag("Miranda"))
         {
             isPlayerNear = true;
-
-            // NOVO: Tražimo i na roditeljskom objektu i provjeravamo postoji li
             MirandaController mc = other.GetComponentInParent<MirandaController>();
-            if (mc != null)
-            {
-                mc.isInteracting = true;
-            }
+            if (mc != null) mc.isInteracting = true;
         }
     }
 
@@ -58,19 +63,13 @@ public class Ventilacija_In_Miranda : MonoBehaviour
         if (other.CompareTag("Miranda"))
         {
             isPlayerNear = false;
-
-            // NOVO: Sigurno gašenje bez grešaka
             MirandaController mc = other.GetComponentInParent<MirandaController>();
-            if (mc != null)
-            {
-                mc.isInteracting = false;
-            }
+            if (mc != null) mc.isInteracting = false;
         }
     }
 
     void Update()
     {
-        // Otvaranje / Zatvaranje na tipku F
         if (isPlayerNear && Input.GetKeyDown(KeyCode.F))
         {
             if (isUIOpen) CloseUI();
@@ -81,27 +80,27 @@ public class Ventilacija_In_Miranda : MonoBehaviour
 
         HandleNavigation();
 
-        // Slanje na Enter
-        if (Input.GetKeyDown(KeyCode.Return))
+        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
         {
             TrySendItem();
         }
     }
 
-    private void OpenUI()
+    public void OpenUI()
     {
-        // 1. Zaustavi eventualno crveno bljeskanje od prošlog puta
         StopAllCoroutines();
         isFlashing = false;
 
         isUIOpen = true;
         uiPanel.SetActive(true);
-        playerController.SetLock(true);
+        if (playerController != null) playerController.SetLock(true);
+
+        // PALI MUZAK GLAZBU:
+        if (mirandaAudio != null) mirandaAudio.EnterInteractiveState();
 
         selectedItemIndex = 0;
-        selectedRecipientIndex = 0; // Defaultno je odabran Sasha (W)
+        selectedRecipientIndex = 0;
 
-        // 2. Resetiraj boje okvira u slučaju da su ostale crvene od greške
         if (itemSelectionFrames != null)
         {
             for (int i = 0; i < itemSelectionFrames.Length; i++)
@@ -114,15 +113,17 @@ public class Ventilacija_In_Miranda : MonoBehaviour
             }
         }
 
-        // 3. Osvježi stanje predmeta i primatelja
         UpdateUI();
     }
 
-    private void CloseUI()
+    public void CloseUI()
     {
         isUIOpen = false;
         uiPanel.SetActive(false);
-        playerController.SetLock(false);
+        if (playerController != null) playerController.SetLock(false);
+
+        // GASI MUZAK GLAZBU:
+        if (mirandaAudio != null) mirandaAudio.ExitInteractiveState();
     }
 
     private void HandleNavigation()
@@ -130,47 +131,62 @@ public class Ventilacija_In_Miranda : MonoBehaviour
         int prevItemIndex = selectedItemIndex;
         int prevRecipientIndex = selectedRecipientIndex;
 
-        // Navigacija za PRIMATELJA (W / S) - Sada UVIJEK dopušta prebacivanje
-        if (Input.GetKeyDown(KeyCode.W)) selectedRecipientIndex = 0; // Sasha
-        else if (Input.GetKeyDown(KeyCode.S)) selectedRecipientIndex = 1; // Giovanni
+        // Navigacija primatelja (W / S)
+        if (Input.GetKeyDown(KeyCode.W)) selectedRecipientIndex = 0;
+        else if (Input.GetKeyDown(KeyCode.S)) selectedRecipientIndex = 1;
 
-        // Navigacija za PREDMET (A / D / Q / E / Scroll)
+        // Navigacija predmeta (A / D / Q / E / Scroll)
         float scroll = Input.GetAxis("Mouse ScrollWheel");
-        if (scroll < 0f || Input.GetKeyDown(KeyCode.E)) selectedItemIndex++;
-        else if (scroll > 0f || Input.GetKeyDown(KeyCode.Q)) selectedItemIndex--;
+        if (scroll < 0f || Input.GetKeyDown(KeyCode.E) || Input.GetKeyDown(KeyCode.D)) selectedItemIndex++;
+        else if (scroll > 0f || Input.GetKeyDown(KeyCode.Q) || Input.GetKeyDown(KeyCode.A)) selectedItemIndex--;
 
-        // Cikličko prebacivanje predmeta (0 do 2)
         if (selectedItemIndex > 2) selectedItemIndex = 0;
         if (selectedItemIndex < 0) selectedItemIndex = 2;
 
+        // ZVUK KLIKA KADA SE PROMIJENI BILO KOJI ODABIR:
         if (prevItemIndex != selectedItemIndex || prevRecipientIndex != selectedRecipientIndex)
         {
+            if (mirandaAudio != null) mirandaAudio.PlayNavClick();
             UpdateUI();
         }
     }
 
     private void UpdateUI()
     {
-        // 1. Prikaz itema u boji ili zatamnjeno
+        // 1. SVI PROZORČIĆI SU UVIJEK VIDLJIVI, SAMO ZATAMNJENI AKO NEMA PREDMETA:
         for (int i = 0; i < 3; i++)
         {
-            int checkID = (i == 0) ? 5 : (i == 1 ? 1 : 2);
+            int checkID = (i == 0) ? 5 : (i == 1 ? 1 : 2); // 0=Pajser (5), 1=Gun (1), 2=Minigun (2)
 
-            if (inventory != null)
+            if (itemImages[i] != null)
             {
-                itemImages[i].color = inventory.HasItem(checkID) ? Color.white : new Color(0.2f, 0.2f, 0.2f, 1f);
+                itemImages[i].gameObject.SetActive(true); // Uvijek upaljen prozorčić!
+
+                // Ako ima predmet -> Bijela (Normalna) boja, ako nema -> Zatamnjeno/Crno kao kod Sashe
+                if (inventory != null && inventory.HasItem(checkID))
+                {
+                    itemImages[i].color = Color.white;
+                }
+                else
+                {
+                    itemImages[i].color = Color.black;
+                }
             }
-            itemSelectionFrames[i].SetActive(i == selectedItemIndex);
+
+            // Samo se okvir odabira pali/gasi ovisno o tome koji je selektiran
+            if (itemSelectionFrames[i] != null)
+            {
+                itemSelectionFrames[i].SetActive(i == selectedItemIndex);
+            }
         }
 
-        // 2. Provjera jesu li likovi u igri i jesu li im cijevi slobodne
+        // 2. Provjera slobodnih cijevi
         bool sashaU_Igri = GameManager.Instance != null && GameManager.Instance.sashaOdabran;
         bool giovanniU_Igri = GameManager.Instance != null && GameManager.Instance.giovanniOdabran;
 
         bool sashaSlobodan = sashaU_Igri && sashaVentilacija != null && sashaVentilacija.MozePrimiti();
         bool giovanniSlobodan = giovanniU_Igri && giovanniVentilacija != null && giovanniVentilacija.MozePrimiti;
 
-        // 3. Okvir/Strelica za Sashu (BIJELO = slobodan, CRVENO = nije u igri ili je cijev puna)
         if (sashaSelectionFrame != null)
         {
             sashaSelectionFrame.SetActive(selectedRecipientIndex == 0);
@@ -178,7 +194,6 @@ public class Ventilacija_In_Miranda : MonoBehaviour
             if (img != null) img.color = sashaSlobodan ? Color.white : Color.red;
         }
 
-        // 4. Okvir/Strelica za Giovannija (BIJELO = slobodan, CRVENO = nije u igri ili je cijev puna)
         if (giovanniSelectionFrame != null)
         {
             giovanniSelectionFrame.SetActive(selectedRecipientIndex == 1);
@@ -191,53 +206,45 @@ public class Ventilacija_In_Miranda : MonoBehaviour
     {
         int itemIDToSend = (selectedItemIndex == 0) ? 5 : (selectedItemIndex == 1 ? 1 : 2);
 
-        // Provjeri ima li Miranda taj item
         if (!inventory.HasItem(itemIDToSend))
         {
             Debug.Log("Miranda nema odabrani predmet za slanje!");
+            StartCoroutine(FlashUIRoutine());
             return;
         }
 
         bool sashaU_Igri = GameManager.Instance != null && GameManager.Instance.sashaOdabran;
         bool giovanniU_Igri = GameManager.Instance != null && GameManager.Instance.giovanniOdabran;
 
-        // --- 1. POKUŠAJ SLANJA SASHI ---
-        if (selectedRecipientIndex == 0)
+        bool uspjesno = false;
+
+        if (selectedRecipientIndex == 0 && sashaU_Igri && sashaVentilacija != null && sashaVentilacija.MozePrimiti())
         {
-            // Mora biti odabran u igri, referenca mora postojati i cijev mora biti prazna
-            if (sashaU_Igri && sashaVentilacija != null && sashaVentilacija.MozePrimiti())
-            {
-                sashaVentilacija.SpremiItemZaSashu(itemIDToSend);
-                Debug.Log("Miranda je poslala predmet ID: " + itemIDToSend + " Sashi.");
-            }
-            else
-            {
-                // Ako Sasha nije u igri ILI mu je cijev puna -> Zabljeskaj crveno i odbij
-                StartCoroutine(FlashUIRoutine());
-                Debug.LogWarning("Slanje Sashi nije uspjelo (nije u igri ili mu je cijev puna)!");
-                return;
-            }
+            sashaVentilacija.SpremiItemZaSashu(itemIDToSend);
+            uspjesno = true;
         }
-        // --- 2. POKUŠAJ SLANJA GIOVANNIJU ---
-        else if (selectedRecipientIndex == 1)
+        else if (selectedRecipientIndex == 1 && giovanniU_Igri && giovanniVentilacija != null && giovanniVentilacija.MozePrimiti)
         {
-            if (giovanniU_Igri && giovanniVentilacija != null && giovanniVentilacija.MozePrimiti)
-            {
-                giovanniVentilacija.SpremiItemZaGiovannia(itemIDToSend);
-                Debug.Log("Miranda je poslala predmet ID: " + itemIDToSend + " Giovanniju.");
-            }
-            else
-            {
-                // Ako Giovanni nije u igri ILI mu je cijev puna -> Zabljeskaj crveno i odbij
-                StartCoroutine(FlashUIRoutine());
-                Debug.LogWarning("Slanje Giovanniju nije uspjelo (nije u igri ili mu je cijev puna)!");
-                return;
-            }
+            giovanniVentilacija.SpremiItemZaGiovannia(itemIDToSend);
+            uspjesno = true;
         }
 
-        // Ako je slanje uspjelo: oduzmi item i zatvori UI
-        inventory.RemoveItem(itemIDToSend);
-        CloseUI();
+        if (uspjesno)
+        {
+            // ZVUK POTVRDE I PADANJA PREDMETA U VENTILACIJU:
+            if (mirandaAudio != null)
+            {
+                mirandaAudio.PlayConfirmClick();
+                mirandaAudio.PlayItemDrop();
+            }
+
+            inventory.RemoveItem(itemIDToSend);
+            CloseUI();
+        }
+        else
+        {
+            StartCoroutine(FlashUIRoutine());
+        }
     }
 
     private System.Collections.IEnumerator FlashUIRoutine()
@@ -245,32 +252,16 @@ public class Ventilacija_In_Miranda : MonoBehaviour
         if (isFlashing) yield break;
         isFlashing = true;
 
-        for (int f = 0; f < 4; f++)
+        for (int f = 0; f < 3; f++)
         {
             for (int i = 0; i < itemImages.Length; i++)
             {
-                itemImages[i].color = Color.black;
-                if (itemSelectionFrames.Length > i && itemSelectionFrames[i] != null)
-                {
-                    Image frameImg = itemSelectionFrames[i].GetComponent<Image>();
-                    if (frameImg != null) frameImg.color = Color.red;
-                    itemSelectionFrames[i].SetActive(true);
-                }
+                if (itemImages[i] != null) itemImages[i].color = Color.red;
             }
-            yield return new WaitForSeconds(0.25f);
+            yield return new WaitForSeconds(0.2f);
 
-            for (int i = 0; i < itemImages.Length; i++)
-            {
-                int checkID = (i == 0) ? 5 : (i == 1 ? 1 : 2);
-                itemImages[i].color = inventory.HasItem(checkID) ? Color.white : Color.red;
-
-                if (itemSelectionFrames.Length > i && itemSelectionFrames[i] != null)
-                {
-                    Image frameImg = itemSelectionFrames[i].GetComponent<Image>();
-                    if (frameImg != null) frameImg.color = Color.white;
-                }
-            }
-            yield return new WaitForSeconds(0.25f);
+            UpdateUI();
+            yield return new WaitForSeconds(0.2f);
         }
 
         isFlashing = false;

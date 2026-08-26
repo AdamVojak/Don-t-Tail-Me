@@ -28,7 +28,7 @@ public class MirandaPickup : MonoBehaviour
         if (!dodirTijelom && !dodirShakom) return;
 
         // 2. LOGIKA ZA POSEBNE PREDMETE (ID 2 i ID 5)
-        bool zahtijevaShaku = (itemTip == 2 || itemTip == 5);
+        bool zahtijevaShaku = (itemTip == 2 /*|| itemTip == 5*/);
 
         // Ako predmet traži šaku, a dotaknut je samo tijelom -> nemoj ga pokupiti!
         if (zahtijevaShaku && !dodirShakom)

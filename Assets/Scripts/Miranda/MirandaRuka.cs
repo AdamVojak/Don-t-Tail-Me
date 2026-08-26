@@ -35,6 +35,8 @@ public class MirandaRuka : MonoBehaviour
     [Header("Collider Šake")]
     public Collider shakaCollider;
 
+    private MirandaAudio mirandaAudio;
+
     public Transform GetTockaHvatanja()
     {
         return (tockaHvatanja != null) ? tockaHvatanja : shakaObjekt;
@@ -43,6 +45,7 @@ public class MirandaRuka : MonoBehaviour
     void Start()
     {
         glavnaKamera = Camera.main;
+        mirandaAudio = GetComponentInParent<MirandaAudio>();
     }
 
     void Update()
@@ -94,12 +97,25 @@ public class MirandaRuka : MonoBehaviour
             glatkocaIzvlacenja
         );
 
-        // 4. LOGIKA ZA PROMJENU SPRITE-A ŠAKE (Lijevi klik za stisak)
+        // 4. LOGIKA ZA PROMJENU SPRITE-A ŠAKE
         if (shakaSpriteRenderer != null)
         {
+            bool previousStisnuta = isStisnuta;
             isStisnuta = Input.GetMouseButton(0);
 
-            // Promjena spritea
+            // ZVUKOVI ŠAKE:
+            if (isStisnuta && !previousStisnuta)
+            {
+                // Upravo je stisnuo šaku (Klik)
+                if (mirandaAudio != null) mirandaAudio.PlayFistClose();
+            }
+            else if (!isStisnuta && previousStisnuta)
+            {
+                // Upravo je pustio šaku (Otpust)
+                if (mirandaAudio != null) mirandaAudio.PlayFistOpen();
+            }
+
+            // Promjena spritea...
             if (isStisnuta && spriteStisnutaShaka != null)
             {
                 shakaSpriteRenderer.sprite = spriteStisnutaShaka;
@@ -109,7 +125,6 @@ public class MirandaRuka : MonoBehaviour
                 shakaSpriteRenderer.sprite = spriteOtvorenaShaka;
             }
 
-            // NOVO: Collider je upaljen SAMO dok je šaka stisnuta!
             if (shakaCollider != null)
             {
                 shakaCollider.enabled = isStisnuta;

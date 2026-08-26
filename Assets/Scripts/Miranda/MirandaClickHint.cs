@@ -1,64 +1,50 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 public class ClickHintMiranda : MonoBehaviour
 {
     [Header("UI Elementi Hinta")]
-    public GameObject hintsObject; // GameObject hinta iznad glave
-    public Sprite hintClick;       // Sličica tipke (npr. tipka 'F')
-
-    private SpriteRenderer hintImg;
-    private Image hintUIImg;
+    public SpriteRenderer hintRenderer; // Povuci SpriteRenderer direktno umjesto GameObjecta!
+    public Sprite hintClick;            // Sličica tipke (npr. 'F')
 
     void Start()
     {
-        if (hintsObject != null)
+        if (hintRenderer != null)
         {
-            hintImg = hintsObject.GetComponent<SpriteRenderer>();
-            hintUIImg = hintsObject.GetComponent<Image>();
-            hintsObject.SetActive(false); // Ugašen na početku
+            // GameObject OSTJE UPALJEN, samo gasimo vidljivost slike!
+            hintRenderer.enabled = false;
         }
     }
 
     private void OnTriggerStay(Collider other)
     {
-        // 1. Sigurno pronalazimo Mirandu bez obzira na kojem je djetetu collider
         MirandaController miranda = other.GetComponentInParent<MirandaController>();
 
-        // 2. Ako je Miranda u triggeru, pod kontrolom igrača i živa -> UPALI HINT
+        // Ako je Miranda tu, kontrolirana i živa
         if (miranda != null && miranda.isControlled && miranda.currentState != MirandaController.MirandaState.Dead)
         {
-            if (hintsObject != null)
+            if (hintRenderer != null)
             {
-                if (!hintsObject.activeSelf) hintsObject.SetActive(true);
-
-                // Postavi sličicu hinta (podržava i SpriteRenderer i UI Image)
-                if (hintClick != null)
-                {
-                    if (hintImg != null) hintImg.sprite = hintClick;
-                    if (hintUIImg != null) hintUIImg.sprite = hintClick;
-                }
+                if (hintClick != null) hintRenderer.sprite = hintClick;
+                hintRenderer.enabled = true; // PALI SAMO SLIKU
             }
         }
         else
         {
-            // Ako prebaciš na drugog lika dok stojiš u triggeru -> UGASI HINT
-            if (hintsObject != null && hintsObject.activeSelf)
+            if (hintRenderer != null && hintRenderer.enabled)
             {
-                hintsObject.SetActive(false);
+                hintRenderer.enabled = false; // GASI SAMO SLIKU
             }
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        // Kada Miranda izađe iz zone ventilacije -> UGASI HINT
         MirandaController miranda = other.GetComponentInParent<MirandaController>();
         if (miranda != null)
         {
-            if (hintsObject != null)
+            if (hintRenderer != null)
             {
-                hintsObject.SetActive(false);
+                hintRenderer.enabled = false; // GASI SAMO SLIKU
             }
         }
     }

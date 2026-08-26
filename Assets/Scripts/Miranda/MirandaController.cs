@@ -12,6 +12,8 @@ public class MirandaController : MonoBehaviour
     public float acceleration = 15f;
     public float deceleration = 20f;
     public float jumpForce = 5f;
+
+    public float kutZvuka = 110f;
     private CharacterController controller;
     public bool isControlled = false;
 
@@ -40,8 +42,15 @@ public class MirandaController : MonoBehaviour
     public float gravity = -15f;
     private float verticalVelocity;
 
+    [Header("Audio")]
+    [SerializeField] private MirandaAudio mirandaAudio; // DODAJ OVO
+
+    private float accumulatedRotation = 0f; // Prati rotaciju od 90 stupnjeva
+    private bool wasGroundedLastFrame = true; // Prati slijetanje
+
     void Start()
     {
+        if (mirandaAudio == null) mirandaAudio = GetComponent<MirandaAudio>();
         controller = GetComponent<CharacterController>();
         inventar = GetComponent<MirandaInventory>();
 
@@ -66,31 +75,36 @@ public class MirandaController : MonoBehaviour
 
     void PokusajAktiviratiRuku()
     {
-        // 1. STRIKTNA PROVJERA INVENTARA:
-        // Ako Miranda NEMA ruku, ignoriraj tipku F i osiguraj da je ruka ugašena!
         if (inventar == null || !inventar.ImaRuku)
         {
+            if (mirandaAudio != null) mirandaAudio.PlayArmError();
+
             if (mirandaRukaObjekt != null && mirandaRukaObjekt.activeSelf)
             {
                 mirandaRukaObjekt.SetActive(false);
                 rukaAktivna = false;
             }
-            // Potpuno ignoriraj pritisak tipke F
             return;
         }
 
-        // 2. Provjeri je li otvoren HintUI (papir na zidu)
         bool hintOtvoren = (HintUI != null && HintUI.activeSelf);
         if (hintOtvoren) return;
 
-        // 3. Provjeri je li u tijeku druga interakcija (ventilacija itd.)
         if (isInteracting) return;
 
-        // 4. AKO IMA RUKU I SVE JE SLOBODNO -> Pali / gasi ruku!
+        // 4. AKO IMA RUKU -> Pali / Gasi uz zvuk:
         if (mirandaRukaObjekt != null)
         {
             rukaAktivna = !rukaAktivna;
             mirandaRukaObjekt.SetActive(rukaAktivna);
+
+            // DODAJ OVO (Zvuk aktiviranja ili skrivanja ruke):
+            if (mirandaAudio != null)
+            {
+                if (rukaAktivna) mirandaAudio.PlayArmActivate();
+                else mirandaAudio.PlayArmDeactivate();
+            }
+
             Debug.Log($"Robotska ruka: {(rukaAktivna ? "UPALJENA" : "UGAŠENA")}");
         }
     }
@@ -130,12 +144,25 @@ public class MirandaController : MonoBehaviour
             currentZSpeed = Mathf.MoveTowards(currentZSpeed, 0f, deceleration * Time.deltaTime);
         }
 
+        // --- FIZIKA I SKOK (100% ČISTI REDOSLIJED) ---
         if (controller.isGrounded)
         {
-            verticalVelocity = -2f;
+            // ZVUK SLIJETANJA: Čuje se samo kada dotakne pod iz zraka
+            if (!wasGroundedLastFrame && verticalVelocity < -3f)
+            {
+                if (mirandaAudio != null) mirandaAudio.PlayLand();
+            }
+
             if (jumpPressed)
             {
-                verticalVelocity = jumpForce;
+                verticalVelocity = jumpForce; // Instantna primjena sile skoka!
+
+                // ZVUK SKOKA:
+                if (mirandaAudio != null) mirandaAudio.PlayJump();
+            }
+            else
+            {
+                verticalVelocity = -2f; // Drži je stabilno priljubljenom uz pod
             }
         }
         else
@@ -143,24 +170,42 @@ public class MirandaController : MonoBehaviour
             verticalVelocity += gravity * Time.deltaTime;
         }
 
+        // Pokretanje kontrolera
         Vector3 move = new Vector3(0, verticalVelocity, currentZSpeed);
         CollisionFlags flags = controller.Move(move * Time.deltaTime);
 
-        // 2. Rotacija tijela i glave
-        if (mirandaTijelo != null)
-        {
-            currentRotation -= currentZSpeed * currentRotMultiplier * Time.deltaTime;
-            mirandaTijelo.localRotation = Quaternion.Euler(0, -90, currentRotation);
-        }
+        // KLJUČNO: Bilježimo je li na podu TEK NAKON što se Move izvršio!
+        wasGroundedLastFrame = controller.isGrounded;
 
-        if (mirandaGlava != null)
-        {
-            mirandaGlava.localRotation = Quaternion.Euler(0, -90, 0);
-        }
-
+        // Resetiranje vertikalne brzine ako udari glavom u strop
         if ((flags & CollisionFlags.Above) != 0 && verticalVelocity > 0)
         {
             verticalVelocity = 0f;
+        }
+
+        // --- 2. ROTACIJA TIJELA (WHOOSH NA 90 STUPNJEVA) ---
+        if (mirandaTijelo != null)
+        {
+            float rotDelta = currentZSpeed * currentRotMultiplier * Time.deltaTime;
+            currentRotation -= rotDelta;
+            mirandaTijelo.localRotation = Quaternion.Euler(0, -90, currentRotation);
+
+            // LOGIKA ZA WHOOSH:
+            if (Mathf.Abs(currentZSpeed) > 0.2f)
+            {
+                accumulatedRotation += Mathf.Abs(rotDelta);
+
+                if (accumulatedRotation >= kutZvuka)
+                {
+                    accumulatedRotation = 0f; // Resetiraj brojač
+                    if (mirandaAudio != null) mirandaAudio.PlayWheelWhoosh(); // Pusti Whoosh
+                }
+            }
+            else
+            {
+                // Čim stane u mjestu, resetiraj brojač da idući pokret krene ispočetka!
+                accumulatedRotation = 0f;
+            }
         }
     }
 

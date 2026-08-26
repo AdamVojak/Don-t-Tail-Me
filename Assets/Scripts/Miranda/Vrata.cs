@@ -16,6 +16,8 @@ public class Vrata : MonoBehaviour
     private Vector3 pocetnaPozicija;
     private Vector3 ciljnaPozicija;
 
+    public GameObject kljuceviUI;
+
     [Header("Audio")]
     [SerializeField] private DoorAudio doorAudio;
 
@@ -55,6 +57,7 @@ public class Vrata : MonoBehaviour
             if (kljucanica1.otkljucana && kljucanica2.otkljucana)
             {
                 suOtkljucana = true;
+                Destroy(kljuceviUI.gameObject);
                 Debug.Log("Obje ključanice su otključane. Vrata se mogu otvoriti.");
             }
         }

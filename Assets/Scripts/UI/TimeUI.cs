@@ -18,13 +18,30 @@ public class TimerUI : MonoBehaviour
     [Header("Debug / Development Postavke")]
     [SerializeField] private bool vrijemeTece = true; // <-- TVOJ NOVI BOOLEAN (početno uvijek true)
 
+    [Header("Audio (2D)")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip clockTickingClip;
+    [Range(0f, 1f)][SerializeField] private float clockVolume = 0.15f;
+
     private float currentTime;
     private bool timerRunning = false;
 
     private float timeMultiplier = 1f;
 
+    [SerializeField] private AudioClip alarmClip;
+    [Range(0f, 1f)][SerializeField] private float alarmVolume = 1f;
+
     void Awake()
     {
+        if (audioSource == null) audioSource = GetComponent<AudioSource>();
+        if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
+
+        audioSource.spatialBlend = 0f;
+        audioSource.playOnAwake = false;
+        audioSource.loop = true;
+        audioSource.clip = clockTickingClip;
+        audioSource.volume = clockVolume;
+
         if (handRectTransform == null)
         {
             Debug.LogError("RectTransform kazaljke nije postavljen! Molimo povucite RectTransform kazaljke u 'Hand Rect Transform' polje.");
@@ -53,6 +70,8 @@ public class TimerUI : MonoBehaviour
             return;
         }
 
+
+
         if (gameManager.currChar == GameManager.ActiveCharacter.Miranda && !gameManager.isLoading)
         {
             if (!timerRunning)
@@ -77,6 +96,11 @@ public class TimerUI : MonoBehaviour
                     StopTimerInternal();
                     Debug.Log("Game Over: Vrijeme je isteklo");
 
+                    if (audioSource != null && alarmClip != null)
+                    {
+                        audioSource.PlayOneShot(alarmClip, alarmVolume);
+                    }
+
                     if (ventWorm != null)
                     {
                         ventWorm.SetActive(true);
@@ -98,6 +122,12 @@ public class TimerUI : MonoBehaviour
         if (!timerRunning)
         {
             timerRunning = true;
+
+            if (audioSource != null && clockTickingClip != null)
+            {
+                audioSource.Play();
+            }
+
             Debug.Log("Timer je pokrenut!");
         }
     }
@@ -107,6 +137,12 @@ public class TimerUI : MonoBehaviour
         if (timerRunning)
         {
             timerRunning = false;
+
+            if (audioSource != null)
+            {
+                audioSource.Stop();
+            }
+
             Debug.Log("Timer je zaustavljen!");
         }
     }
@@ -159,5 +195,13 @@ public class TimerUI : MonoBehaviour
     public void SetTimeMultiplier(float multiplier)
     {
         timeMultiplier = multiplier;
+    }
+
+    private void OnDisable()
+    {
+        if (audioSource != null)
+        {
+            audioSource.Stop();
+        }
     }
 }

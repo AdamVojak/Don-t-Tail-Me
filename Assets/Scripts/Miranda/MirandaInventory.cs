@@ -18,6 +18,13 @@ public class MirandaInventory : MonoBehaviour
     public bool ImaLjubicastiKljuc => imaLjubicastiKljuc;
     public bool ImaPajser => imaPajser;
 
+    private MirandaAudio mirandaAudio;
+
+    void Awake()
+    {
+        if (mirandaAudio == null) mirandaAudio = GetComponent<MirandaAudio>();
+    }
+
     // Univerzalna provjera posjeda bilo kojeg predmeta preko ID-a
     public bool HasItem(int itemType)
     {
@@ -36,6 +43,23 @@ public class MirandaInventory : MonoBehaviour
     // Univerzalno dodavanje predmeta u inventar preko ID-a
     public void CollectItem(int itemType)
     {
+        switch (itemType)
+        {
+            case 0:
+                imaZutiKljuc = true;
+                if (mirandaAudio != null) mirandaAudio.PlayYellowKeyPickup();
+                Debug.Log("Miranda inventar: Pokupljen Žuti ključ (ID 0)");
+                break;
+            case 4:
+                imaLjubicastiKljuc = true;
+                if (mirandaAudio != null) mirandaAudio.PlayPurpleKeyPickup();
+                Debug.Log("Miranda inventar: Pokupljen Ljubičasti ključ (ID 4)");
+                break;
+            default:
+                if (mirandaAudio != null) mirandaAudio.PlayGenericPickup();
+                break;
+        }
+
         switch (itemType)
         {
             case 0:
@@ -76,6 +100,7 @@ public class MirandaInventory : MonoBehaviour
             case 0:
                 imaZutiKljuc = false;
                 Debug.Log("Miranda inventar: Iskorišten Žuti ključ (ID 0)");
+                if (mirandaAudio != null) mirandaAudio.PlayYellowKeyUse();
                 break;
             case 1:
                 imaGun = false;
@@ -89,6 +114,7 @@ public class MirandaInventory : MonoBehaviour
             case 4:
                 imaLjubicastiKljuc = false;
                 Debug.Log("Miranda inventar: Iskorišten Ljubičasti ključ (ID 4)");
+                if (mirandaAudio != null) mirandaAudio.PlayPurpleKeyUse();
                 break;
             case 5:
                 imaPajser = false;
