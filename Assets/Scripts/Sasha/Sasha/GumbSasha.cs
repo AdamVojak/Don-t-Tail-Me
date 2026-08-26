@@ -7,54 +7,101 @@ public class GumbSasha : MonoBehaviour
     public Sprite normalan;
     public Sprite pritisnut;
 
-    public float cekanjeSek = 0.25f;
+    [Header("Postavke")]
+    public float trajanjePritiska = 0.5f; // Minimalno vrijeme koliko gumb ostaje stisnut
+    public bool aktiviran = false;
 
+    [Header("Audio")]
+    [SerializeField] private ButtonAudio buttonAudio;
 
-    public bool aktiviran;
+    private int tijelaNaGumbu = 0; // Broji stoji li Sasha fizički na gumbu
+    private bool isPressed = false;
+    private Coroutine releaseCoroutine;
+
+    void Awake()
+    {
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        if (buttonAudio == null) buttonAudio = GetComponent<ButtonAudio>();
+    }
 
     void Start()
     {
-        spriteRenderer = GetComponent<SpriteRenderer>();
         spriteRenderer.sprite = normalan;
         aktiviran = false;
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Sasha") || other.CompareTag("Melee") || other.CompareTag("Gun") || other.CompareTag("Minigun") || other.CompareTag("Projectile") || other.CompareTag("Bullet") || other.CompareTag("Pajser"))
+        // 1. MELE OROŽJA I METCI (Trenutni impuls)
+        if (other.CompareTag("Melee") || other.CompareTag("Pajser") || other.CompareTag("Projectile") || other.CompareTag("Bullet"))
         {
-            spriteRenderer.sprite = pritisnut;
-            Debug.Log("Gumb pritisnut!");
-            Čekanje();
-        }
-    }
-
-    private void OnTriggerStay(Collider other)
-    {
-        if (other.CompareTag("Sasha") || other.CompareTag("Gun") || other.CompareTag("Minigun") || other.CompareTag("Projectile") || other.CompareTag("Bullet"))
-        {
-            spriteRenderer.sprite = pritisnut;
-            Debug.Log("Gumb pritisnut!");
-            if (CompareTag("Projectile") || CompareTag("Bullet"))
+            if (other.CompareTag("Projectile") || other.CompareTag("Bullet"))
             {
                 Destroy(other.gameObject);
             }
+
+            PritisniGumb();
+        }
+        // 2. SASHA ILI FIZIČKI PREDMETI (Ostaju na gumbu)
+        else if (other.CompareTag("Sasha"))
+        {
+            tijelaNaGumbu++;
+            PritisniGumb();
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Sasha") || other.CompareTag("Gun") || other.CompareTag("Minigun") || other.CompareTag("Projectile") || other.CompareTag("Bullet"))
+        if (other.CompareTag("Sasha"))
         {
-            Čekanje();
-            spriteRenderer.sprite = normalan;
-            aktiviran = !aktiviran;
-            Debug.Log("Gumb otpušten!");
+            tijelaNaGumbu = Mathf.Max(0, tijelaNaGumbu - 1);
+            // Ako je Sasha sišao, pokreni proceduru vraćanja ako već nije u tijeku
+            if (isPressed && releaseCoroutine == null)
+            {
+                releaseCoroutine = StartCoroutine(VratiGumbRoutine());
+            }
         }
     }
 
-    private IEnumerator Čekanje()
+    private void PritisniGumb()
     {
-        yield return new WaitForSeconds(cekanjeSek);
+        if (!isPressed)
+        {
+            isPressed = true;
+            aktiviran = true;
+            spriteRenderer.sprite = pritisnut;
+
+            // ZVUK PRITISKA (Preko unutra):
+            if (buttonAudio != null) buttonAudio.PlayPressIn();
+
+            Debug.Log("Gumb je pritisnut!");
+        }
+
+        // Pokreni ili restartaj odbrojavanje za vraćanje
+        if (releaseCoroutine != null) StopCoroutine(releaseCoroutine);
+        releaseCoroutine = StartCoroutine(VratiGumbRoutine());
+    }
+
+    private IEnumerator VratiGumbRoutine()
+    {
+        // Čekaj minimalno definirano vrijeme
+        yield return new WaitForSeconds(trajanjePritiska);
+
+        // Čekaj sve dok igrač fizički stoji na gumbu
+        while (tijelaNaGumbu > 0)
+        {
+            yield return null;
+        }
+
+        // Vraćanje gumba u normalno stanje
+        isPressed = false;
+        aktiviran = false;
+        spriteRenderer.sprite = normalan;
+
+        // ZVUK VRAĆANJA (Prema van):
+        if (buttonAudio != null) buttonAudio.PlayPopOut();
+
+        Debug.Log("Gumb se vratio!");
+        releaseCoroutine = null;
     }
 }

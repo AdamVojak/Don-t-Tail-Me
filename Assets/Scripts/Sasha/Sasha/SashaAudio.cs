@@ -181,4 +181,15 @@ public class SashaAudio : MonoBehaviour
     {
         PlaySingleSFX(confirmClickClip, interactiveVolume, 1f);
     }
+
+    public void StopAllLoops()
+    {
+        if (pushSource != null && pushSource.isPlaying) pushSource.Stop();
+        if (muzakSource != null && muzakSource.isPlaying) muzakSource.Stop();
+    }
+
+    private void OnDisable()
+    {
+        StopAllLoops();
+    }
 }

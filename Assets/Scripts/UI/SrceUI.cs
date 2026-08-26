@@ -65,9 +65,5 @@ public class SrceUI : MonoBehaviour
             srceAnimator.speed = 0; // Pauziraj Animator
             zvukovi.PlayFlatline();
         }
-        else
-        {
-            srceAnimator.speed = 1; // Nastavi Animator
-        }
     }
 }

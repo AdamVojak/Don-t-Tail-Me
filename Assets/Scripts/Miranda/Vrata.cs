@@ -16,8 +16,13 @@ public class Vrata : MonoBehaviour
     private Vector3 pocetnaPozicija;
     private Vector3 ciljnaPozicija;
 
+    [Header("Audio")]
+    [SerializeField] private DoorAudio doorAudio;
+
     void Start()
     {
+        if (doorAudio == null) doorAudio = GetComponent<DoorAudio>();
+
         pocetnaPozicija = this.transform.position;
 
         float visinaVrata = IzracunajVisinu();
@@ -35,6 +40,9 @@ public class Vrata : MonoBehaviour
             {
                 this.transform.position = ciljnaPozicija;
                 vrataSeOtvaraju = false;
+
+                if (doorAudio != null) doorAudio.StopMoving();
+
                 Debug.Log("Vrata su se potpuno otvorila.");
             }
         }
@@ -57,6 +65,9 @@ public class Vrata : MonoBehaviour
         if (suOtkljucana && !vrataSeOtvaraju && other.CompareTag("Miranda"))
         {
             vrataSeOtvaraju = true;
+
+            if (doorAudio != null) doorAudio.StartMoving();
+
             Debug.Log("Miranda je zakoračila u trigger. Pokreće se podizanje cijelog objekta.");
         }
     }

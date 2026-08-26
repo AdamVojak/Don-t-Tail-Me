@@ -12,7 +12,9 @@ public class Door : MonoBehaviour
 
     private Coroutine trenutnoKretanje;
 
-    // Ova funkcija se poziva automatski čim gumb stavi: skripta.enabled = true;
+    [Header("Audio")]
+    [SerializeField] private DoorAudio doorAudio;
+
     private void OnEnable()
     {
         OdrediSmjerIPokreni();
@@ -20,7 +22,8 @@ public class Door : MonoBehaviour
 
     public void OdrediSmjerIPokreni()
     {
-        // 1. Mjerimo udaljenost vrata do obje točke
+        if (doorAudio == null) doorAudio = GetComponent<DoorAudio>();
+
         float udaljenostDoZatvoreno = Vector3.Distance(transform.position, tockaZatvoreno.position);
         float udaljenostDoOtvoreno = Vector3.Distance(transform.position, tockaOtvoreno.position);
 
@@ -40,6 +43,7 @@ public class Door : MonoBehaviour
 
         // 3. Pokrećemo kretanje
         if (trenutnoKretanje != null) StopCoroutine(trenutnoKretanje);
+        if (doorAudio != null) doorAudio.StartMoving();
         trenutnoKretanje = StartCoroutine(PomakniPremaCilju(cilj));
     }
 
@@ -53,13 +57,13 @@ public class Door : MonoBehaviour
                 brzina * Time.deltaTime
             );
 
-            yield return null; // Čeka sljedeći frame
+            yield return null;
         }
 
-        // Fiksiramo poziciju točno na cilj
         transform.position = ciljnaPozicija;
 
-        // Skripta se sama gasi na kraju puta, spremna za novo paljenje preko gumba!
+        if (doorAudio != null) doorAudio.StopMoving();
+
         this.enabled = false;
     }
 }

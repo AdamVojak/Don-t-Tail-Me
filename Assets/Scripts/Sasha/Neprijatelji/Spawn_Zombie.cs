@@ -15,6 +15,16 @@ public class Spawner : MonoBehaviour
     private int sashaCount = 0;
     private bool needsInstantSpawn = false; // Oznaka za instantno stvaranje pri paljenju
 
+    private SashaController sashaRef;
+
+
+    private bool IsSashaActiveAndAlive()
+    {
+        if (sashaRef == null) sashaRef = FindFirstObjectByType<SashaController>();
+
+        return sashaRef != null && sashaRef.isControlled && sashaRef.currentState != SashaController.SashaState.Dead;
+    }
+
     // Metoda za paljenje/gašenje spawnera
     public void SetActiveState(bool state)
     {
@@ -30,6 +40,8 @@ public class Spawner : MonoBehaviour
 
     void Update()
     {
+        if (!IsSashaActiveAndAlive()) return;
+
         if (isActive && current == null && !isRespawning)
         {
             if (numberOfSpawns > 0)
@@ -72,13 +84,13 @@ public class Spawner : MonoBehaviour
 
         yield return new WaitForSeconds(respawnDelay);
 
-        // Čeka sve dok je Sasha unutar triggera
-        while (sashaCount > 0)
+        // Čeka sve dok je Sasha unutar triggera ILI dok Sasha uopće nije aktivan
+        while (sashaCount > 0 || !IsSashaActiveAndAlive())
         {
             yield return null;
         }
 
-        if (isActive && current == null)
+        if (isActive && current == null && IsSashaActiveAndAlive())
         {
             Spawn();
         }
@@ -100,5 +112,11 @@ public class Spawner : MonoBehaviour
         {
             sashaCount = Mathf.Max(0, sashaCount - 1);
         }
+    }
+
+    private void OnDisable()
+    {
+        StopAllCoroutines();
+        isRespawning = false;
     }
 }

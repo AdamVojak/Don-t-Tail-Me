@@ -88,6 +88,7 @@ public class Enemy_Worm : MonoBehaviour, IDamageable
     {
         if (currentState == WormState.Active && aktivan)
         {
+            wormAudio.PlayMoveSound();
             mozeSeKretati = true;
         }
     }
@@ -175,6 +176,7 @@ public class Enemy_Worm : MonoBehaviour, IDamageable
             Projektil projectile = other.GetComponent<Projektil>();
             if (projectile != null)
             {
+                wormAudio.PlayElectricMeleeHit();
                 PrimiUdarac(projectile.damage);
             }
         }
@@ -277,6 +279,8 @@ public class Enemy_Worm : MonoBehaviour, IDamageable
         {
             originalniSprite = tijelo.sprite;
         }
+
+        if (tijelo != null) tijelo.color = Color.white;
 
         if (wormAudio != null) wormAudio.PlayShockSound();
 

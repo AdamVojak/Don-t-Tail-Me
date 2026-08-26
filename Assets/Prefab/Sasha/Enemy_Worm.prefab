@@ -131,7 +131,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8e60a53c11071942a75ba4bad57c043, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Enemy_Worm
-  brzina: 3.2
+  brzina: 2.65
   sashaControllerRef: {fileID: 0}
   aktivan: 0
   health: 20
@@ -140,7 +140,7 @@ MonoBehaviour:
   vrijemeStrujnogUdara: 0.2
   sokiraniSprite: {fileID: -1580890624, guid: b3dd5da291170404c9919f85d48f6ddf, type: 3}
   brojTreptajaBoje: 8
-  wormAudio: {fileID: 0}
+  wormAudio: {fileID: 6757616707698798138}
 --- !u!65 &3786980428769820940
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -206,11 +206,13 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 04339114526be824898bc08ed0564f02, type: 3}
   - {fileID: 8300000, guid: dec0261d511ddaf4f97d4ccdc079cd27, type: 3}
   - {fileID: 8300000, guid: ba88a67a18e03a74781dfa443a6ee418, type: 3}
-  moveVolume: 0.55
-  pajserHitClips: []
-  electricMeleeHitClips: []
+  moveVolume: 0.6
+  pajserHitClips:
+  - {fileID: 8300000, guid: f13e0a4ff0e717d46b018c5989764dbc, type: 3}
+  electricMeleeHitClips:
+  - {fileID: 8300000, guid: 22bcc7349770a6e4d95b14b52c9d6e51, type: 3}
   shockClip: {fileID: 8300000, guid: 02a15f02182ab1748886c419e7f59959, type: 3}
-  hitVolume: 0.3
+  hitVolume: 0.35
 --- !u!82 &5572912825781109308
 AudioSource:
   m_ObjectHideFlags: 0
@@ -223,7 +225,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0

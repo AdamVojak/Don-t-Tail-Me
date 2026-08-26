@@ -16,8 +16,13 @@ public class ZombieSobaZamka : MonoBehaviour
     private bool trapActivated = false;
     private bool allTurnedOff = false;
 
+    [Header("Audio")]
+    [SerializeField] private TrapRoomAudio trapAudio;
+
     private void Awake()
     {
+        if (trapAudio == null) trapAudio = GetComponent<TrapRoomAudio>();
+
         glavnoSvijetlo.SetActive(true);
         crvenaSvijetla.SetActive(false);
         allTurnedOff = false;
@@ -72,6 +77,8 @@ public class ZombieSobaZamka : MonoBehaviour
     {
         trapActivated = true;
 
+        if (trapAudio != null) trapAudio.StartSiren();
+
         glavnoSvijetlo.SetActive(false);
         crvenaSvijetla.SetActive(true);
 
@@ -88,17 +95,14 @@ public class ZombieSobaZamka : MonoBehaviour
         }
     }
 
-    // Ova funkcija se poziva točno JEDNOM čim se obje sklopke ugase
     void DeaktivirajCrvenaSvjetla()
     {
-        glavnoSvijetlo.SetActive(true);
         allTurnedOff = true;
         crvenaSvijetla.SetActive(false);
 
-        // Vraćamo glavno svjetlo kako bi ga sustav za struju mogao prepoznati i kontrolirati
-        glavnoSvijetlo.SetActive(true);
+        if (trapAudio != null) trapAudio.StopSirenAndPlayOutage();
 
-        // ODMAH gasimo sve spawnere
+
         foreach (Spawner s in spawneri)
         {
             s.SetActiveState(false);
@@ -110,10 +114,6 @@ public class ZombieSobaZamka : MonoBehaviour
         // ODMAH PREBACUJEMO IGRU NA MIRANDIN SUSTAV STRUJE
         if (SashaSvjetlaKontroler.Instance != null)
         {
-            // Opcionalno: Ako želiš biti 100% siguran da će igra pasti u mrak iste sekunde 
-            // (da natjeraš igrača da prebaci na Mirandu), možeš nasilno srušiti struju na 0 ovdje:
-            // if (EnergyManager.Instance != null) EnergyManager.Instance.struja = 0f;
-
             SashaSvjetlaKontroler.Instance.AktivirajUpravljanje();
         }
     }

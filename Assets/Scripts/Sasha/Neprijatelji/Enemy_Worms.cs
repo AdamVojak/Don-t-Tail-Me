@@ -25,7 +25,7 @@ public class Worms : MonoBehaviour, IDamageable
 
     [Header("Worms - Spawning")]
     [SerializeField] GameObject maliCrvPrefab;
-    [SerializeField] float intervalSpawna = 4f;
+    [SerializeField] float intervalSpawna = 5f;
     [SerializeField] float udaljenostSpawna = 1.3f;
     [SerializeField] int maksimalnoCrvi = 10;
 
@@ -58,8 +58,13 @@ public class Worms : MonoBehaviour, IDamageable
     private List<GameObject> ziviCrvi = new List<GameObject>();
     private Bullet bullet;
 
+    [Header("Audio")]
+    [SerializeField] private WormsAudio wormsAudio;
+
     void Awake()
     {
+        if (wormsAudio == null) wormsAudio = GetComponent<WormsAudio>();
+
         DohvatiIgraca();
 
         if (sashaControllerRef == null)
@@ -122,6 +127,8 @@ public class Worms : MonoBehaviour, IDamageable
         while (true)
         {
             mozeSeKretati = true;
+            if (wormsAudio != null && !uDometu) wormsAudio.PlayMoveSound();
+
             yield return new WaitForSeconds(vrijemeKoraka);
 
             mozeSeKretati = false;
@@ -137,7 +144,12 @@ public class Worms : MonoBehaviour, IDamageable
 
     public void TakeDamage(int amount, DamageType damageType = DamageType.Physical)
     {
-        SFX.zvucniEfekti.ZvukUdarca.Play();
+        if (wormsAudio != null)
+        {
+            if (damageType == DamageType.Physical) wormsAudio.PlayPajserHit();
+            else if (damageType == DamageType.Electric) wormsAudio.PlayElectricMeleeHit();
+        }
+
         Debug.Log("Udarac sa " + amount + " štete. Tip štete: " + damageType);
 
         if (damageType == DamageType.Electric)
@@ -216,6 +228,8 @@ public class Worms : MonoBehaviour, IDamageable
 
         if (ziviCrvi.Count + 4 <= maksimalnoCrvi)
         {
+            if (wormsAudio != null) wormsAudio.PlaySpawnSound();
+
             float[] kutovi = { 0f, 90f, 180f, 270f };
 
             foreach (float kut in kutovi)
@@ -241,6 +255,7 @@ public class Worms : MonoBehaviour, IDamageable
             Projektil projectile = other.GetComponent<Projektil>();
             if (projectile != null)
             {
+                wormsAudio.PlayElectricMeleeHit();
                 PrimiUdarac(projectile.damage);
                 Destroy(other.gameObject);
             }

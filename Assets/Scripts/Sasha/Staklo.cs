@@ -8,7 +8,6 @@ public class Staklo : MonoBehaviour
     [SerializeField] private float scatterDuration = 0.6f; // Koliko dugo traje let
     [SerializeField] private float fadeDuration = 0.4f;    // Koliko dugo nestaju (fade out)
     [SerializeField] private float maxSpinSpeed = 360f;    // Brzina rotacije krhotina u zraku
-
     private SFX sfx;
 
     private void Start()

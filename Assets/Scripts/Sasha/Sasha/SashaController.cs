@@ -95,14 +95,15 @@ public class SashaController : MonoBehaviour
 
     void Update()
     {
-        if (!isControlled)
+        if (!isControlled || currentState == SashaState.Dead)
         {
             animacijaNogu.StopPlayback();
             noge.SetActive(false);
+
+            if (sashaAudio != null) sashaAudio.StopAllLoops();
+
             return;
         }
-
-        if (currentState == SashaState.Dead) return;
 
         // 1. INPUT ZA INTERAKCIJU (Tipka F) - Uvijek dostupna
         if (Input.GetKeyDown(KeyCode.F))
@@ -379,6 +380,7 @@ public class SashaController : MonoBehaviour
     {
         currentState = SashaState.Dead;
         isControlled = false;
+        if (sashaAudio != null) sashaAudio.StopAllLoops();
         SFX.zvucniEfekti.ZvukSmrti.Play();
 
         if (mrtavSpritePrefab != null)
@@ -658,5 +660,13 @@ public class SashaController : MonoBehaviour
 
         wormBiteCoroutine = null;
         Debug.Log("Sasha: Timer ugriza završen.");
+    }
+
+    void OnDisable()
+    {
+        StopAllCoroutines();
+
+        // DODAJ OVO:
+        if (sashaAudio != null) sashaAudio.StopAllLoops();
     }
 }
