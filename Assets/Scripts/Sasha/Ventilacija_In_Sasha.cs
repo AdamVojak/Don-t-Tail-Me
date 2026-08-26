@@ -69,7 +69,7 @@ public class Ventilacija_In_Sasha : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!jeOtvorena && (other.CompareTag("Melee") || other.CompareTag("Pajser")) && melee.currentMultiplier == 3f)
+        if (!jeOtvorena && ((other.CompareTag("Melee")) && melee.currentMultiplier == 3f) || !jeOtvorena && other.CompareTag("Pajser"))
         {
             jeOtvorena = true;
             zatvorenSprite.SetActive(false);

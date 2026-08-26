@@ -17,6 +17,7 @@ public class Vrata : MonoBehaviour
     private Vector3 ciljnaPozicija;
 
     public GameObject kljuceviUI;
+    public GameObject rukaUI;
 
     [Header("Audio")]
     [SerializeField] private DoorAudio doorAudio;
@@ -70,7 +71,7 @@ public class Vrata : MonoBehaviour
             vrataSeOtvaraju = true;
 
             if (doorAudio != null) doorAudio.StartMoving();
-
+            rukaUI.SetActive(true);
             Debug.Log("Miranda je zakoračila u trigger. Pokreće se podizanje cijelog objekta.");
         }
     }

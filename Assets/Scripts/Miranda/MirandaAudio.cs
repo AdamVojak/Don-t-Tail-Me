@@ -24,8 +24,8 @@ public class MirandaAudio : MonoBehaviour
     [Header("3. Skok i Slijetanje")]
     [SerializeField] private AudioClip jumpClip;
     [SerializeField] private AudioClip landClip;
-
-    public float jumpVolume = 0.8f;
+    public float landVolume = 0.8f;
+    public float jumpVolume = 0.5f;
 
     [Header("4. Robotska Ruka i Šaka")]
     [SerializeField] private AudioClip armActivateClip;
@@ -99,7 +99,7 @@ public class MirandaAudio : MonoBehaviour
     // 3. FIZIKA (Skok i Slijetanje)
     // ==========================================
     public void PlayJump() => PlaySFX(jumpClip, jumpVolume);
-    public void PlayLand() => PlaySFX(landClip, jumpVolume);
+    public void PlayLand() => PlaySFX(landClip, landVolume);
 
     // ==========================================
     // 4. ROBOTSKA RUKA

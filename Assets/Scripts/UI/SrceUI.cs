@@ -9,7 +9,7 @@ public class SrceUI : MonoBehaviour
 
     private int trenutniZivot; // Trenutni broj života
 
-    private KucanjeSrca zvukovi;
+    public KucanjeSrca zvukovi;
 
     void Start()
     {

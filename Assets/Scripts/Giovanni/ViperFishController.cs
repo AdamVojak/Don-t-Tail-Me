@@ -61,8 +61,22 @@ public class ViperFishController : MonoBehaviour
 
     private Vector3 targetRoamDirection; // NOVO: Smjer u kojem riba želi lutati
 
+    [Header("Audio")]
+    [SerializeField] private GiovanniAudio giovanniAudio;
+    [SerializeField] private ViperFishAudio viperAudio;
+
     void Start()
     {
+        if (giovanniAudio == null && giovanni != null)
+        {
+            giovanniAudio = giovanni.GetComponent<GiovanniAudio>();
+        }
+
+        if (viperAudio == null)
+        {
+            viperAudio = FindAnyObjectByType<ViperFishAudio>();
+        }
+
         if (headCollider != null) yOffset = headCollider.bounds.center.y - transform.position.y;
         fixedYPosition = transform.position.y;
 
@@ -115,6 +129,8 @@ public class ViperFishController : MonoBehaviour
                 giovanniStats.ReduceThreat(threatDamageAmount);
                 currentCooldownTimer = damageCooldown;
                 currentIlluminationTimer = 0f;
+
+                if (giovanniAudio != null) giovanniAudio.PlayViperLightReaction();
             }
         }
         else
@@ -320,6 +336,8 @@ public class ViperFishController : MonoBehaviour
 
     private IEnumerator ZoomBetweenPoints(Transform startT, Transform endT, int phaseCompleted)
     {
+        if (giovanniAudio != null) giovanniAudio.PlayViperFlyby();
+
         float distance = Vector3.Distance(startT.position, endT.position);
         float duration = distance / zoomSpeed;
         float elapsed = 0;
@@ -352,6 +370,8 @@ public class ViperFishController : MonoBehaviour
 
     private IEnumerator AttackPlayer()
     {
+        if (viperAudio != null) viperAudio.PlayDeathScream();
+
         float distance = Vector3.Distance(jumpscareStart.position, cameraRoot.position);
         float duration = distance / attackSpeed;
         float elapsed = 0;

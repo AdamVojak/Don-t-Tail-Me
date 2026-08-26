@@ -8,7 +8,7 @@ public class GumbSasha : MonoBehaviour
     public Sprite pritisnut;
 
     [Header("Postavke")]
-    public float trajanjePritiska = 0.5f; // Minimalno vrijeme koliko gumb ostaje stisnut
+    public float trajanjePritiska = 0.25f; // Minimalno vrijeme koliko gumb ostaje stisnut
     public bool aktiviran = false;
 
     [Header("Audio")]

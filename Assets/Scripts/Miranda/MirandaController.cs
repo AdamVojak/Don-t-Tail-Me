@@ -13,7 +13,7 @@ public class MirandaController : MonoBehaviour
     public float deceleration = 20f;
     public float jumpForce = 5f;
 
-    public float kutZvuka = 110f;
+    public float kutZvuka = 180f;
     private CharacterController controller;
     public bool isControlled = false;
 
@@ -27,7 +27,7 @@ public class MirandaController : MonoBehaviour
     [Header("Ruka i Interakcije")]
     [Tooltip("Uključi ovo iz drugih skripti (npr. Ventilacija) kada Miranda stoji u njihovom triggeru")]
     public bool isInteracting = false;
-    private bool rukaAktivna = false;
+    public bool rukaAktivna = false;
     private MirandaInventory inventar;
 
     [Header("UI Reference")]
@@ -43,12 +43,12 @@ public class MirandaController : MonoBehaviour
     [Header("Fizika")]
     public float gravity = -15f;
     private float verticalVelocity;
+    private bool isFalling = false; // Prati je li Miranda u fazi pada
 
     [Header("Audio")]
     [SerializeField] private MirandaAudio mirandaAudio; // DODAJ OVO
 
     private float accumulatedRotation = 0f; // Prati rotaciju od 90 stupnjeva
-    private bool wasGroundedLastFrame = true; // Prati slijetanje
 
     void Start()
     {
@@ -151,40 +151,43 @@ public class MirandaController : MonoBehaviour
             currentZSpeed = Mathf.MoveTowards(currentZSpeed, 0f, deceleration * Time.deltaTime);
         }
 
-        // --- FIZIKA I SKOK (100% ČISTI REDOSLIJED) ---
+        // --- NOVI SUSTAV ZA SKOK I OPĆI UDARAC O POD ---
         if (controller.isGrounded)
         {
-            // ZVUK SLIJETANJA: Čuje se samo kada dotakne pod iz zraka
-            if (!wasGroundedLastFrame && verticalVelocity < -3f)
+            // 1. UDARAC O POD: Ako je padala i upravo dotaknula tlo (bilo sa skoka ili s ruba)
+            if (isFalling)
             {
+                isFalling = false;
                 if (mirandaAudio != null) mirandaAudio.PlayLand();
             }
 
+            // 2. SKOK
             if (jumpPressed)
             {
-                verticalVelocity = jumpForce; // Instantna primjena sile skoka!
+                verticalVelocity = jumpForce;
+                isFalling = false; // 100% sigurnost da se zvuk slijetanja ne može okinuti pri skoku!
 
-                // ZVUK SKOKA:
                 if (mirandaAudio != null) mirandaAudio.PlayJump();
             }
             else
             {
-                verticalVelocity = -2f; // Drži je stabilno priljubljenom uz pod
+                verticalVelocity = -2f; // Drži je priljubljenom uz tlo
             }
         }
         else
         {
             verticalVelocity += gravity * Time.deltaTime;
+
+            // Čim krene padati prema dolje određenom brzinom, aktivira se priprema za slijetanje
+            if (verticalVelocity < -2.5f)
+            {
+                isFalling = true;
+            }
         }
 
-        // Pokretanje kontrolera
         Vector3 move = new Vector3(0, verticalVelocity, currentZSpeed);
         CollisionFlags flags = controller.Move(move * Time.deltaTime);
 
-        // KLJUČNO: Bilježimo je li na podu TEK NAKON što se Move izvršio!
-        wasGroundedLastFrame = controller.isGrounded;
-
-        // Resetiranje vertikalne brzine ako udari glavom u strop
         if ((flags & CollisionFlags.Above) != 0 && verticalVelocity > 0)
         {
             verticalVelocity = 0f;

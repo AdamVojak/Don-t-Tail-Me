@@ -42,10 +42,20 @@ public class GiovanniController : MonoBehaviour
     [SerializeField] private Transform cameraPoint;
     [SerializeField] private CinemachineCamera virtualCamera;
 
+    [Header("Audio")]
+    [SerializeField] private GiovanniAudio giovanniAudio;
+
+    [Header("Postavke Koraka")]
+    [SerializeField] private float walkStepInterval = 0.55f;
+    [SerializeField] private float sprintStepInterval = 0.35f;
+    private float stepTimer = 0f;
+    private int currentFoot = 0;
+
     private Camera mainCamera;
 
     void Awake()
     {
+        if (giovanniAudio == null) giovanniAudio = GetComponent<GiovanniAudio>();
         controller = GetComponent<CharacterController>();
         stats = GetComponent<GiovanniStats>();
         mainCamera = Camera.main;
@@ -66,12 +76,19 @@ public class GiovanniController : MonoBehaviour
             tijeloGiovanniRef = FindFirstObjectByType<TijeloGiovanni>();
         }
 
+        if (isControlled && currentState != GiovanniState.Dead)
+        {
+            if (giovanniAudio != null) giovanniAudio.StartBrownNoise();
+        }
+
         flashlightLight.enabled = false;
         flashlightBeamObject.SetActive(flashlightLight.enabled);
     }
 
     void Update()
     {
+
+
         uhvacen = tijeloGiovanniRef.uhvacen;
 
         if (currentState != GiovanniState.Dead)
@@ -94,6 +111,8 @@ public class GiovanniController : MonoBehaviour
             if (flashlightLight != null)
             {
                 flashlightLight.enabled = !flashlightLight.enabled;
+
+                if (giovanniAudio != null) giovanniAudio.PlayFlashlightClick();
 
                 if (flashlightBeamObject != null)
                     flashlightBeamObject.SetActive(flashlightLight.enabled);
@@ -148,6 +167,32 @@ public class GiovanniController : MonoBehaviour
         moveDirection.y = verticalVelocity;
 
         controller.Move(moveDirection * Time.deltaTime);
+
+        // --- PROCEDURALNI KORACI (LIJEVA / DESNA NOGA) ---
+        if (isMoving && controller.isGrounded)
+        {
+            float currentInterval = isSprinting ? sprintStepInterval : walkStepInterval;
+            stepTimer += Time.deltaTime;
+
+            if (stepTimer >= currentInterval)
+            {
+                stepTimer = 0f;
+
+                if (giovanniAudio != null)
+                {
+                    giovanniAudio.PlayFootstep(currentFoot);
+                }
+
+                // Izmjena noge: ako je bila 0 prebaci na 1, ako je bila 1 prebaci na 0
+                currentFoot = (currentFoot == 0) ? 1 : 0;
+            }
+        }
+        else
+        {
+            // Čim stane, resetiraj tajmer i kreni opet od prve noge
+            stepTimer = 0f;
+            currentFoot = 0;
+        }
     }
 
     void HandleFlashlightRotation()
@@ -212,7 +257,10 @@ public class GiovanniController : MonoBehaviour
 
         currentState = GiovanniState.Dead;
         flashlightLight.enabled = false;
-        if (!deathScreenTriggered && deathScreen!= null)
+
+        if (giovanniAudio != null) giovanniAudio.StopBrownNoise();
+
+        if (!deathScreenTriggered && deathScreen != null)
         {
             deathUI.SetActive(true);
             deathScreenTriggered = true;
@@ -220,8 +268,25 @@ public class GiovanniController : MonoBehaviour
         }
     }
 
+    private void OnDisable()
+    {
+        if (giovanniAudio != null) giovanniAudio.StopBrownNoise();
+    }
+
     public void SetControlled(bool controlled)
     {
         isControlled = controlled;
+
+        if (giovanniAudio != null)
+        {
+            if (isControlled && currentState != GiovanniState.Dead)
+            {
+                giovanniAudio.StartBrownNoise(); // Pali ambijent kad preuzmeš kontrolu
+            }
+            else
+            {
+                giovanniAudio.StopBrownNoise(); // Gasi ambijent kad prebaciš na drugog lika
+            }
+        }
     }
 }
