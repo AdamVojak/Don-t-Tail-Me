@@ -25,7 +25,6 @@ public class MirandaController : MonoBehaviour
     public GameObject mirandaRukaObjekt; // NOVO: Povuci objekt 'Miranda_Ruka' ovdje
 
     [Header("Ruka i Interakcije")]
-    [Tooltip("Uključi ovo iz drugih skripti (npr. Ventilacija) kada Miranda stoji u njihovom triggeru")]
     public bool isInteracting = false;
     public bool rukaAktivna = false;
     private MirandaInventory inventar;
@@ -46,9 +45,8 @@ public class MirandaController : MonoBehaviour
     private bool isFalling = false; // Prati je li Miranda u fazi pada
 
     [Header("Audio")]
-    [SerializeField] private MirandaAudio mirandaAudio; // DODAJ OVO
-
-    private float accumulatedRotation = 0f; // Prati rotaciju od 90 stupnjeva
+    [SerializeField] private MirandaAudio mirandaAudio;
+    private float accumulatedRotation = 0f;
 
     void Start()
     {

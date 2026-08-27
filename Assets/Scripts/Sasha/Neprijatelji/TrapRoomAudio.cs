@@ -58,6 +58,14 @@ public class TrapRoomAudio : MonoBehaviour
         }
     }
 
+    public void StopSiren()
+    {
+        if (sirenSource != null && sirenSource.isPlaying)
+        {
+            sirenSource.Stop();
+        }
+    }
+
     private void OnDisable()
     {
         if (sirenSource != null && sirenSource.isPlaying)

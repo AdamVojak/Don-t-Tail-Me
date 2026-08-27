@@ -2,45 +2,36 @@ using UnityEngine;
 
 public class ClickHint : MonoBehaviour
 {
-    [Header("UI Elementi Hinta")]
-    public SpriteRenderer hintRenderer; // Ovdje povuci SpriteRenderer hinta iznad glave
-    public Sprite hintClick;             // Sličica tipke
-
-    void Start()
-    {
-        if (hintRenderer != null)
-        {
-            hintRenderer.enabled = false;
-        }
-    }
+    public Sprite hintClick;
+    private SashaController zapamceniSasha; // Varijabla koja pamti Sashu
 
     private void OnTriggerStay(Collider other)
     {
         SashaController sasha = other.GetComponentInParent<SashaController>();
-
-        if (sasha != null && sasha.isControlled && sasha.currentState != SashaController.SashaState.Dead)
+        if (sasha != null && sasha.isControlled)
         {
-            if (hintRenderer != null)
-            {
-                if (hintClick != null) hintRenderer.sprite = hintClick;
-                hintRenderer.enabled = true;
-            }
-        }
-        else
-        {
-            if (hintRenderer != null && hintRenderer.enabled)
-            {
-                hintRenderer.enabled = false;
-            }
+            zapamceniSasha = sasha; // Spremamo referencu!
+            sasha.PrikaziHint(this, hintClick);
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
         SashaController sasha = other.GetComponentInParent<SashaController>();
-        if (sasha != null && hintRenderer != null)
+        if (sasha != null)
         {
-            hintRenderer.enabled = false;
+            sasha.SakrijHint(this);
+            zapamceniSasha = null;
+        }
+    }
+
+    private void OnDisable()
+    {
+        // Ako se objekt ugasi/uništi dok Sasha stoji u njemu, prisilno gasi hint!
+        if (zapamceniSasha != null)
+        {
+            zapamceniSasha.PrisilnoUgasiSveHintove();
+            zapamceniSasha = null;
         }
     }
 }

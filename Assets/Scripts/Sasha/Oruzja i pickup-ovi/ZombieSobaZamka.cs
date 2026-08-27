@@ -14,7 +14,7 @@ public class ZombieSobaZamka : MonoBehaviour
     public GameObject crvenaSvijetla;
 
     private bool trapActivated = false;
-    private bool allTurnedOff = false;
+    private bool isAlertActive = false; // Prati svira li trenutno uzbuna
 
     [Header("Audio")]
     [SerializeField] private TrapRoomAudio trapAudio;
@@ -25,7 +25,8 @@ public class ZombieSobaZamka : MonoBehaviour
 
         glavnoSvijetlo.SetActive(true);
         crvenaSvijetla.SetActive(false);
-        allTurnedOff = false;
+        isAlertActive = false;
+        trapActivated = false;
     }
 
     void Start()
@@ -45,30 +46,43 @@ public class ZombieSobaZamka : MonoBehaviour
 
     void Update()
     {
-        // 1. KORAK: Provjera treba li se zamka aktivirati
+        // 1. KORAK: Provjera pokretanja zamke
         if (!trapActivated && predmetZaPokupiti == null)
         {
             AktivirajZamku();
         }
 
-        // 2. KORAK: Ako je zamka aktivna, a još nismo ugasili obje sklopke...
-        if (trapActivated && !allTurnedOff)
+        // 2. KORAK: Dinamička provjera sklopki dok je zamka aktivna
+        if (trapActivated)
         {
             bool imaUkljucenaSklopka = false;
 
             foreach (SklopkaSpawner sk in sklopke)
             {
-                if (sk.isOn)
+                if (sk != null && sk.isOn)
                 {
                     imaUkljucenaSklopka = true;
                     break;
                 }
             }
 
-            // Ako niti jedna sklopka NIJE uključena (obje su ugašene)
-            if (!imaUkljucenaSklopka)
+            // A) Barem jedna sklopka radi, a uzbuna još nije upaljena -> PALI SVE
+            if (imaUkljucenaSklopka && !isAlertActive)
             {
-                DeaktivirajCrvenaSvjetla();
+                isAlertActive = true;
+                glavnoSvijetlo.SetActive(false);
+                crvenaSvijetla.SetActive(true);
+
+                if (trapAudio != null) trapAudio.StartSiren();
+            }
+            // B) Sve sklopke su ugašene, a uzbuna je bila upaljena -> UGASI SVE I VRATI SVJETLO
+            else if (!imaUkljucenaSklopka && isAlertActive)
+            {
+                isAlertActive = false;
+                crvenaSvijetla.SetActive(false);
+                glavnoSvijetlo.SetActive(true); // Normalno svjetlo se vraća!
+
+                if (trapAudio != null) trapAudio.StopSiren();
             }
         }
     }
@@ -76,6 +90,7 @@ public class ZombieSobaZamka : MonoBehaviour
     void AktivirajZamku()
     {
         trapActivated = true;
+        isAlertActive = true;
 
         if (trapAudio != null) trapAudio.StartSiren();
 
@@ -92,29 +107,6 @@ public class ZombieSobaZamka : MonoBehaviour
         {
             sk.enabled = true;
             sk.SetState(true);
-        }
-    }
-
-    void DeaktivirajCrvenaSvjetla()
-    {
-        allTurnedOff = true;
-        crvenaSvijetla.SetActive(false);
-
-        if (trapAudio != null) trapAudio.StopSirenAndPlayOutage();
-
-
-        foreach (Spawner s in spawneri)
-        {
-            s.SetActiveState(false);
-            s.enabled = false;
-        }
-
-        Debug.Log("Sve sklopke su isključene! Spawneri ugašeni.");
-
-        // ODMAH PREBACUJEMO IGRU NA MIRANDIN SUSTAV STRUJE
-        if (SashaSvjetlaKontroler.Instance != null)
-        {
-            SashaSvjetlaKontroler.Instance.AktivirajUpravljanje();
         }
     }
 }

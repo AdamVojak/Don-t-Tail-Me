@@ -45,8 +45,10 @@ public class SashaController : MonoBehaviour
     public Animator animacijaTijela;
     public SashaInventory sashaInventory;
     public SustavOruzja SustavOruzja;
-    public GameObject hints;
-    public SpriteRenderer hintsSprite;
+
+    [Header("Hint Sustav")]
+    public SpriteRenderer hintRenderer; // Ovdje u Inspectoru povuci onaj SpriteRenderer iznad glave
+    private object trenutniVlasnikHinta = null;
 
     public Sprite clickF;
 
@@ -65,11 +67,13 @@ public class SashaController : MonoBehaviour
     [Header("GAME MANAGER")]
     public bool isControlled = false;
 
+    [Header("Audio")]
+    [SerializeField] private SashaAudio sashaAudio;
+
     private int zvukUdarca;
     private Vector3 lockedPushDir = Vector3.zero;
     private Rigidbody lockedBox = null;
     private GameObject currentObstacleInRange = null;
-    [SerializeField] private SashaAudio sashaAudio;
 
     void Start()
     {
@@ -89,7 +93,9 @@ public class SashaController : MonoBehaviour
             Debug.LogError("GameObject 'tijelo' nije dodijeljen! Dodijeli glavni dio tijela koji se rotira.");
             enabled = false;
         }
-        //hints.SetActive(false);
+
+        if (hintRenderer != null) hintRenderer.enabled = false;
+
         svijetlo.SetActive(true);
     }
 
@@ -283,7 +289,6 @@ public class SashaController : MonoBehaviour
                 touchingWorms.Add(other);
             }
 
-            // Ako imamo dovoljno crva na sebi, a timer još ne odbrojava, pokreni ga
             if (touchingWorms.Count >= minWormsForDamage && wormBiteCoroutine == null)
             {
                 wormBiteCoroutine = StartCoroutine(WormBiteRoutine());
@@ -293,20 +298,13 @@ public class SashaController : MonoBehaviour
         if (other.CompareTag("Fist"))
         {
             if (sashaAudio != null) sashaAudio.PlayFistHit();
-
             TakeDamage(1, 1);
         }
 
         if (other.CompareTag("Obstacle") && currentState == SashaState.Active)
         {
             currentObstacleInRange = other.gameObject;
-            hints.SetActive(true);
-            hintsSprite.sprite = clickF;
-        }
-
-        if (other.CompareTag("Obstacle") && currentState != SashaState.Active)
-        {
-            hints.SetActive(false);
+            PrikaziHint(this, clickF);
         }
     }
 
@@ -314,14 +312,12 @@ public class SashaController : MonoBehaviour
     {
         if (other.CompareTag("Obstacle") && currentState == SashaState.Active)
         {
-            hints.SetActive(true);
-            hintsSprite.sprite = clickF;
+            PrikaziHint(this, clickF);
         }
     }
 
     public void OnTriggerExit(Collider other)
     {
-        // --- NOVO: Micanje crva s liste kada igrač pobjegne ---
         if (other.CompareTag("Worm"))
         {
             if (touchingWorms.Contains(other))
@@ -329,7 +325,6 @@ public class SashaController : MonoBehaviour
                 touchingWorms.Remove(other);
             }
 
-            // Ako je broj crva pao ispod granice, zaustavi timer ugriza
             if (touchingWorms.Count < minWormsForDamage && wormBiteCoroutine != null)
             {
                 StopCoroutine(wormBiteCoroutine);
@@ -341,6 +336,7 @@ public class SashaController : MonoBehaviour
         if (other.CompareTag("Obstacle"))
         {
             currentObstacleInRange = null;
+            SakrijHint(this);
             StopPushing();
         }
     }
@@ -660,6 +656,37 @@ public class SashaController : MonoBehaviour
 
         wormBiteCoroutine = null;
         Debug.Log("Sasha: Timer ugriza završen.");
+    }
+
+    public void PrikaziHint(object trazitelj, Sprite slicica)
+    {
+        if (!isControlled || currentState == SashaState.Dead) return;
+
+        trenutniVlasnikHinta = trazitelj;
+        if (hintRenderer != null)
+        {
+            hintRenderer.sprite = slicica;
+            hintRenderer.enabled = true;
+        }
+    }
+    public void SakrijHint(object trazitelj)
+    {
+        if (trenutniVlasnikHinta == null || trenutniVlasnikHinta == trazitelj || trenutniVlasnikHinta.Equals(null))
+        {
+            trenutniVlasnikHinta = null;
+            if (hintRenderer != null)
+            {
+                hintRenderer.enabled = false;
+            }
+        }
+    }
+    public void PrisilnoUgasiSveHintove()
+    {
+        trenutniVlasnikHinta = null;
+        if (hintRenderer != null)
+        {
+            hintRenderer.enabled = false;
+        }
     }
 
     void OnDisable()

@@ -16,6 +16,12 @@ public class RazbijenAkvarij : MonoBehaviour
 
     void Start()
     {
+        SashaController sasha = FindFirstObjectByType<SashaController>();
+        if (sasha != null)
+        {
+            sasha.PrisilnoUgasiSveHintove();
+        }
+
         if (sfx == null)
         {
             sfx = FindFirstObjectByType<SFX>();
@@ -25,37 +31,6 @@ public class RazbijenAkvarij : MonoBehaviour
                 zvukLoma.Play();
             }
         }
-
-
-        GameObject sashaTaggedObject = GameObject.FindWithTag("Sasha");
-
-        if (sashaTaggedObject != null)
-        {
-            Transform sashaPlayerTransform = sashaTaggedObject.transform.parent;
-
-            if (sashaPlayerTransform != null)
-            {
-                Transform hintsTransform = sashaPlayerTransform.Find("Hints");
-
-                if (hintsTransform != null)
-                {
-                    hintsTransform.gameObject.SetActive(false);
-                }
-                else
-                {
-                    Debug.LogWarning("Objekt 'Hints' nije pronađen pod objektom 'Sasha_Player'.");
-                }
-            }
-            else
-            {
-                Debug.LogWarning("Objekt s tagom 'Sasha' nema roditelja.");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("Nije pronađen nijedan objekt s tagom 'Sasha'.");
-        }
-
 
         if (gun != null)
         {
