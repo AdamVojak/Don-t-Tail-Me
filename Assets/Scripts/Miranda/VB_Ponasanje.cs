@@ -5,7 +5,7 @@ public class VB_Ponasanje : MonoBehaviour
     [Header("Djeca i Komponente")]
     [SerializeField] private SpriteRenderer okoSpriteRenderer;
     [SerializeField] private Animator okoAnimator;
-    [SerializeField] private Collider vidokrugCollider; // Povuci 'Vidokrug' dijete ovdje
+    [SerializeField] private Collider vidokrugCollider;
 
     [Header("Sprites")]
     [SerializeField] private Sprite spriteIspred;
@@ -24,10 +24,12 @@ public class VB_Ponasanje : MonoBehaviour
     [SerializeField] private GameObject svijetloR;
     [SerializeField] private GameObject svijetloFwd;
 
-
     public TimerUI timerUI;
     private GameObject igrac;
     private bool isSpotted = false;
+
+    // NOVO: Zajednički brojač za SVE kamere u igri!
+    private static int brojKameraKojeVideMirandu = 0;
 
     void Start()
     {
@@ -52,7 +54,6 @@ public class VB_Ponasanje : MonoBehaviour
         if (igrac == null || vidokrugCollider == null) return;
 
         aktivna = mirandaControllerRef.isControlled;
-
         bool trenutnoUnutra = vidokrugCollider.bounds.Contains(igrac.transform.position);
 
         if (trenutnoUnutra && aktivna)
@@ -60,12 +61,19 @@ public class VB_Ponasanje : MonoBehaviour
             if (!isSpotted)
             {
                 isSpotted = true;
-                AktivirajUocavanje(true);
+                brojKameraKojeVideMirandu++; // Dodajemo ovu kameru u brojač
+
+                // LOKALNE PROMJENE (Samo za ovu kameru)
+                if (okoAnimator != null) okoAnimator.enabled = false;
+
+                // GLOBALNE PROMJENE (Vrijeme i Zvuk) - Palimo samo ako je ovo PRVA kamera koja ju je vidjela
+                if (brojKameraKojeVideMirandu == 1)
+                {
+                    if (timerUI != null) timerUI.SetTimeMultiplier(ubrzanjeVremena);
+                    if (!SFX.zvucniEfekti.zvukMiniAlert.isPlaying) SFX.zvucniEfekti.zvukMiniAlert.Play();
+                }
             }
-            if (!SFX.zvucniEfekti.zvukMiniAlert.isPlaying)
-            {
-                SFX.zvucniEfekti.zvukMiniAlert.Play();
-            }
+            
             PratiOčima();
         }
         else
@@ -73,27 +81,23 @@ public class VB_Ponasanje : MonoBehaviour
             if (isSpotted)
             {
                 isSpotted = false;
-                AktivirajUocavanje(false);
-            }
-            SFX.zvucniEfekti.zvukMiniAlert.Stop();
-        }
-    }
+                brojKameraKojeVideMirandu--; // Ova kamera ju više ne vidi
 
-    void AktivirajUocavanje(bool uocena)
-    {
-        if (uocena)
-        {
-            if (okoAnimator != null) okoAnimator.enabled = false;
-            if (timerUI != null) timerUI.SetTimeMultiplier(ubrzanjeVremena);
-        }
-        else
-        {
-            svijetloR.SetActive(false);
-            svijetloL.SetActive(false);
-            svijetloFwd.SetActive(false);
-            if (okoAnimator != null) okoAnimator.enabled = true;
-            if (timerUI != null) timerUI.SetTimeMultiplier(1f);
-            if (okoSpriteRenderer != null) okoSpriteRenderer.sprite = spriteIspred;
+                // LOKALNE PROMJENE (Samo za ovu kameru)
+                svijetloR.SetActive(false);
+                svijetloL.SetActive(false);
+                svijetloFwd.SetActive(false);
+                if (okoAnimator != null) okoAnimator.enabled = true;
+                if (okoSpriteRenderer != null) okoSpriteRenderer.sprite = spriteIspred;
+
+                // GLOBALNE PROMJENE - Vraćamo u normalu SAMO ako ju NIJEDNA kamera više ne vidi
+                if (brojKameraKojeVideMirandu <= 0)
+                {
+                    brojKameraKojeVideMirandu = 0; // Osigurač
+                    if (timerUI != null) timerUI.SetTimeMultiplier(1f);
+                    SFX.zvucniEfekti.zvukMiniAlert.Stop();
+                }
+            }
         }
     }
 
@@ -121,6 +125,22 @@ public class VB_Ponasanje : MonoBehaviour
             svijetloR.SetActive(false);
             svijetloL.SetActive(false);
             svijetloFwd.SetActive(true);
+        }
+    }
+
+    // SIGURNOSNA MREŽA: Ako se kamera uništi ili ugasi dok gleda Mirandu
+    private void OnDisable()
+    {
+        if (isSpotted)
+        {
+            isSpotted = false;
+            brojKameraKojeVideMirandu--;
+            if (brojKameraKojeVideMirandu <= 0)
+            {
+                brojKameraKojeVideMirandu = 0;
+                if (timerUI != null) timerUI.SetTimeMultiplier(1f);
+                if (SFX.zvucniEfekti != null) SFX.zvucniEfekti.zvukMiniAlert.Stop();
+            }
         }
     }
 }

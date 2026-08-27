@@ -8,6 +8,7 @@ public class Ventilacija_In_Sasha : MonoBehaviour
 
     [Header("Pozicije za interakciju")]
     public Transform interactionAreaCenter;
+    public float kutGledanjaSashe = -90f;
 
     [Header("Bitne skripte")]
     public Melee melee;

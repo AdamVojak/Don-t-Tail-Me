@@ -8,17 +8,12 @@ public class RukaUIKomponenta : MonoBehaviour
     private bool aktivan;
 
     public Image ruka;
-    private SpriteRenderer sprite;
 
     private void OnEnable()
     {
         if (miranda != null)
         {
             miranda = FindAnyObjectByType<MirandaController>();
-        }
-        if (ruka != null)
-        {
-            sprite = ruka.GetComponent<SpriteRenderer>();
         }
     }
 
@@ -28,11 +23,11 @@ public class RukaUIKomponenta : MonoBehaviour
 
         if (aktivan)
         {
-            sprite.color = Color.white;
+            ruka.color = Color.white;
         }
         else
         {
-            sprite.color = Color.black;
+            ruka.color = Color.black;
         }
     }
 }

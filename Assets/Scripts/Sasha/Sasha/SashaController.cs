@@ -250,6 +250,13 @@ public class SashaController : MonoBehaviour
             // Pomakni kontroler normalnom brzinom
             controller.Move(moveDirection * activeMoveSpeed * Time.deltaTime);
 
+            // --- NOVO: ROTACIJA NOGU PREMA SMJERU KRETANJA (W,A,S,D) ---
+            if (moveDirection != Vector3.zero && noge != null)
+            {
+                // Noge se rotiraju točno u onom smjeru u kojem igrač hoda (uključujući dijagonale)
+                noge.transform.rotation = Quaternion.LookRotation(Vector3.forward, moveDirection);
+            }
+
             // Normalna rotacija tijela prema mišu
             Vector3 lookDirection = mouseWorldPosition - tijelo.transform.position;
             lookDirection.z = 0;
@@ -421,8 +428,6 @@ public class SashaController : MonoBehaviour
         {
             currentState = SashaState.Interactive;
 
-            if (sashaAudio != null) sashaAudio.EnterInteractiveState();
-
             controller.enabled = false;
 
             // 1. TELEPORTACIJA: Zadržavamo Sashinu originalnu Z poziciju da ne propadne u pozadinu
@@ -432,9 +437,8 @@ public class SashaController : MonoBehaviour
 
             controller.enabled = true;
 
-            // 2. DINAMIČKA ROTACIJA: Sasha sada preuzima rotaciju ventilacije umjesto fiksnog broja!
-            // (Ako je tvoj sprite crtan tako da mu treba offset od -90, množimo s rotacijom ventilacije)
-            tijelo.transform.rotation = trenutnaVentilacija.transform.rotation * Quaternion.Euler(0, 0, -90f);
+            // 2. DINAMIČKA ROTACIJA: Sasha pita ventilaciju pod kojim kutem treba stati
+            tijelo.transform.rotation = Quaternion.Euler(0, 0, trenutnaVentilacija.kutGledanjaSashe);
 
             if (noge != null) noge.SetActive(false);
             if (animacijaTijela != null) animacijaTijela.SetBool("odabir", true);
@@ -451,10 +455,10 @@ public class SashaController : MonoBehaviour
                 animacijaTijela.Play("Idle");
             }
 
-            if (sashaAudio != null) sashaAudio.ExitInteractiveState();
             if (sashaInventory != null) sashaInventory.CloseUI();
         }
     }
+
 
     public void PrisilnoPrekiniInterakciju()
     {

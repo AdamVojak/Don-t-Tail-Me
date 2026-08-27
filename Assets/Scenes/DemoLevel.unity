@@ -594,7 +594,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5186154}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -603,7 +603,7 @@ Transform:
   - {fileID: 2081252023}
   - {fileID: 1635971855}
   m_Father: {fileID: 1155915640}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
 --- !u!1 &6727111
 GameObject:
   m_ObjectHideFlags: 0
@@ -1109,8 +1109,8 @@ Transform:
   m_GameObject: {fileID: 9319122}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -29.0726, y: 18.5271, z: -0.10000038}
-  m_LocalScale: {x: 0.4668514, y: 16.678637, z: 20.1}
+  m_LocalPosition: {x: -29.109, y: 18.5271, z: -0.10000038}
+  m_LocalScale: {x: 0.39406928, y: 16.678637, z: 20.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 781751314}
@@ -70257,8 +70257,8 @@ Transform:
   m_GameObject: {fileID: 490907885}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 3, y: 0.9, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 3, y: 1.28, z: 0}
+  m_LocalScale: {x: 1.25, y: 1.25, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1693932842}
@@ -153611,7 +153611,7 @@ Transform:
   m_GameObject: {fileID: 1052151465}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -24.3495, y: 34.38, z: 0.4499998}
+  m_LocalPosition: {x: -24.3495, y: 34.3745, z: 0.4499998}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -153671,7 +153671,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 2
-  m_Size: {x: 5.132856, y: 2.5540504}
+  m_Size: {x: 5.132856, y: 2.5650902}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -153981,8 +153981,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1053816941}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.625, y: 0, z: 0.425}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0, y: -0.64, z: 0.425}
   m_LocalScale: {x: 2, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -175285,7 +175285,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1155915639}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -24.99, y: 35, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -175297,7 +175297,7 @@ Transform:
   - {fileID: 1939453163}
   - {fileID: 1522944490}
   m_Father: {fileID: 1795623426}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1155915641
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -175313,6 +175313,7 @@ MonoBehaviour:
   otvorenSprite: {fileID: 5186154}
   zatvorenSprite: {fileID: 1756276631}
   interactionAreaCenter: {fileID: 1939453163}
+  kutGledanjaSashe: 0
   melee: {fileID: 162675308}
   zvucniEfekti: {fileID: 817103453}
   jeOtvorena: 0
@@ -175337,8 +175338,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.95, y: 1.1, z: 1}
-  m_Center: {x: 0.15, y: 0, z: 0}
+  m_Size: {x: 1.1, y: 0.95, z: 2}
+  m_Center: {x: 0, y: 0.15, z: -1}
 --- !u!65 &1155915643
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -175358,8 +175359,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1.85, y: 1.3, z: 1}
-  m_Center: {x: -0.35, y: 0, z: 0}
+  m_Size: {x: 1.3, y: 1.85, z: 2}
+  m_Center: {x: 0, y: -0.35, z: -1}
 --- !u!1001 &1156044215
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -181503,8 +181504,8 @@ MonoBehaviour:
   onOtvoreno:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1264811989}
-        m_TargetAssemblyTypeName: ClickHintMiranda, Assembly-CSharp
+      - m_Target: {fileID: 1264811987}
+        m_TargetAssemblyTypeName: UnityEngine.CapsuleCollider, UnityEngine
         m_MethodName: set_enabled
         m_Mode: 6
         m_Arguments:
@@ -181513,7 +181514,7 @@ MonoBehaviour:
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
-          m_BoolArgument: 0
+          m_BoolArgument: 1
         m_CallState: 2
 --- !u!120 &1191105900
 LineRenderer:
@@ -186793,7 +186794,7 @@ MonoBehaviour:
   brzinaOtvaranja: 2
   suOtkljucana: 0
   kljuceviUI: {fileID: 2061217547}
-  rukaUI: {fileID: 0}
+  rukaUI: {fileID: 1306594882}
   doorAudio: {fileID: 1226567716}
 --- !u!65 &1226567713
 BoxCollider:
@@ -243788,7 +243789,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 0
-  m_IsKinematic: 1
+  m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 126
   m_CollisionDetection: 0
@@ -247772,7 +247773,7 @@ Transform:
   m_GameObject: {fileID: 1650962100}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.8, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -247790,7 +247791,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a747cc5b1d0597c41a7cdaa80e426e93, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HintBreakVent
-  hintRenderer: {fileID: 0}
+  hintRenderer: {fileID: 1482705303}
   hintClick: {fileID: -1928878404, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
   hintF: {fileID: -568685073, guid: 122e97922d1edb2438a36af10c77aeed, type: 3}
   ventInRef: {fileID: 1155915641}
@@ -247813,8 +247814,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.85, y: 1.3, z: 1}
-  m_Center: {x: -0.05, y: 0, z: 0}
+  m_Size: {x: 1.275, y: 1, z: 1}
+  m_Center: {x: 0, y: -0.8, z: 0}
 --- !u!1001 &1650977381
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -263763,13 +263764,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1756276631}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1155915640}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
 --- !u!1001 &1756361137
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -269447,7 +269448,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 0
-  m_IsKinematic: 1
+  m_IsKinematic: 0
   m_Interpolate: 0
   m_Constraints: 126
   m_CollisionDetection: 0
@@ -289910,7 +289911,7 @@ Transform:
   m_GameObject: {fileID: 1939453162}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.875, y: 0.375, z: 0}
+  m_LocalPosition: {x: -0.375, y: -0.875, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -311089,6 +311090,7 @@ MonoBehaviour:
   otvorenSprite: {fileID: 564053147}
   zatvorenSprite: {fileID: 187353072}
   interactionAreaCenter: {fileID: 745965659}
+  kutGledanjaSashe: -90
   melee: {fileID: 162675308}
   zvucniEfekti: {fileID: 817103453}
   jeOtvorena: 0
