@@ -1,5 +1,6 @@
-using UnityEngine;
 using System.Collections;
+using UnityEngine;
+using static GiovanniController;
 
 public class GiovanniAudio : MonoBehaviour
 {
@@ -112,7 +113,7 @@ public class GiovanniAudio : MonoBehaviour
 
     public void StartBrownNoise()
     {
-        if (ambientSource == null || brownNoiseClip == null) return;
+        if (ambientSource.isPlaying) return;
 
         if (brownNoiseFadeCoroutine != null) StopCoroutine(brownNoiseFadeCoroutine);
         brownNoiseFadeCoroutine = StartCoroutine(FadeInBrownNoiseRoutine(brownNoiseFadeDuration));
@@ -122,16 +123,17 @@ public class GiovanniAudio : MonoBehaviour
     {
         ambientSource.clip = brownNoiseClip;
         ambientSource.loop = true;
-        ambientSource.volume = 0f; // Počinje od potpune tišine
-
-        if (!ambientSource.isPlaying)
-        {
-            ambientSource.Play();
-        }
+        ambientSource.volume = 0f;
+        ambientSource.Play();
 
         float elapsed = 0f;
 
-        // Polagano pojačavanje kroz 'duration' sekundi
+        if (duration <= 0f)
+        {
+            ambientSource.volume = brownNoiseVolume;
+            yield break;
+        }
+
         while (elapsed < duration)
         {
             elapsed += Time.deltaTime;
@@ -139,13 +141,10 @@ public class GiovanniAudio : MonoBehaviour
             yield return null;
         }
 
-        ambientSource.volume = brownNoiseVolume; // Fiksira na krajnju glasnoću
+        ambientSource.volume = brownNoiseVolume;
         brownNoiseFadeCoroutine = null;
     }
 
-    /// <summary>
-    /// Trenutno zaustavlja zvuk i resetira glasnoću za idući put
-    /// </summary>
     public void StopBrownNoise()
     {
         if (brownNoiseFadeCoroutine != null)
@@ -157,7 +156,7 @@ public class GiovanniAudio : MonoBehaviour
         if (ambientSource != null && ambientSource.isPlaying)
         {
             ambientSource.Stop();
-            ambientSource.volume = 0f; // Reset na nulu za idući fade-in
+            ambientSource.volume = 0f;
         }
     }
 

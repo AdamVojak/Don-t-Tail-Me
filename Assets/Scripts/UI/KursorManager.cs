@@ -130,7 +130,7 @@ public class CursorManager : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit, maxRaycastDistance))
         {
-            // NOVO: Računamo stvarnu udaljenost između Giovannija i predmeta u koji gledaš
+            // Računamo stvarnu udaljenost između Giovannija i predmeta u koji gledaš
             float distanceToPlayer = Vector3.Distance(giovanniInventory.transform.position, hit.point);
 
             // Ako je Giovanni predaleko od predmeta (npr. dalje od 4.5m), kursor ostaje normalan i nema interakcije!
@@ -143,6 +143,17 @@ public class CursorManager : MonoBehaviour
             CollectibleItem item = hit.collider.GetComponentInParent<CollectibleItem>();
             Computer computer = hit.collider.GetComponentInParent<Computer>();
             DestructibleObject destructible = hit.collider.GetComponentInParent<DestructibleObject>();
+
+            // NOVO: Provjera jesmo li pogodili točno onaj dio koji je definiran (npr. pantove)
+            if (destructible != null)
+            {
+                // Ako je u skripti definiran specifičan collider, a mi smo pogodili nešto drugo (npr. dasku vrata)
+                if (destructible.specificTargetCollider != null && hit.collider != destructible.specificTargetCollider)
+                {
+                    // Poništavamo pronalazak - pretvaramo se da nismo prešli mišem preko uništivog objekta
+                    destructible = null;
+                }
+            }
 
             // Logika za uništive objekte (Pajser)
             if (destructible != null)
@@ -164,7 +175,8 @@ public class CursorManager : MonoBehaviour
                 {
                     SetGiovanniCursorSprite(giovanniNoCrowbarSprite);
 
-                    if (Input.GetKeyDown(KeyCode.Mouse1))
+                    // Ovdje sam stavio Mouse0 kako bi zvuk greške svirao na lijevi klik
+                    if (Input.GetKeyDown(KeyCode.Mouse0))
                     {
                         if (audioSource != null && errorSound != null)
                         {

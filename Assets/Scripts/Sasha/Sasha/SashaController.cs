@@ -111,6 +111,15 @@ public class SashaController : MonoBehaviour
             return;
         }
 
+        if (currentObstacleInRange != null)
+        {
+            if (!currentObstacleInRange.activeInHierarchy || !currentObstacleInRange.CompareTag("Obstacle"))
+            {
+                currentObstacleInRange = null;
+                SakrijHint(this);
+            }
+        }
+
         // 1. INPUT ZA INTERAKCIJU (Tipka F) - Uvijek dostupna
         if (Input.GetKeyDown(KeyCode.F))
         {
@@ -156,8 +165,8 @@ public class SashaController : MonoBehaviour
         // 3. PRIKUPLJANJE INPUTA ZA KRETANJE
         activeMoveSpeed = moveSpeed;
 
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
+        float horizontal = Input.GetAxisRaw("Horizontal");
+        float vertical = Input.GetAxisRaw("Vertical");
 
         Vector3 moveDirection = new Vector3(horizontal, vertical, 0);
 

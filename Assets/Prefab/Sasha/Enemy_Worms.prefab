@@ -139,7 +139,7 @@ MonoBehaviour:
   vrijemeStajanja: 0.2
   sashaControllerRef: {fileID: 0}
   aktivan: 0
-  zaustavnaUdaljenost: 5
+  zaustavnaUdaljenost: 3
   maliCrvPrefab: {fileID: 716727949480597294, guid: 2024701a6c30e7145b4a920a798e000c, type: 3}
   intervalSpawna: 6
   udaljenostSpawna: 0.75

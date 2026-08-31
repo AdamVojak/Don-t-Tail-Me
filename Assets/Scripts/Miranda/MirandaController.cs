@@ -34,7 +34,9 @@ public class MirandaController : MonoBehaviour
     private bool deathScreenTriggered = false;
     public GameObject HintUI;
 
-    public SpriteRenderer clickHint;
+    // --- NOVI HINT SUSTAV ---
+    public SpriteRenderer hintRenderer;
+    private object trenutniVlasnikHinta = null;
 
     public float rotationMultiplier = 60f;
     private float currentRotation = 0f;
@@ -54,9 +56,9 @@ public class MirandaController : MonoBehaviour
         controller = GetComponent<CharacterController>();
         inventar = GetComponent<MirandaInventory>();
 
-        if (clickHint != null)
+        if (hintRenderer != null)
         {
-            clickHint.enabled = false;
+            hintRenderer.enabled = false;
         }
 
         if (HintUI != null) HintUI.SetActive(false);
@@ -252,5 +254,42 @@ public class MirandaController : MonoBehaviour
         }
 
         Debug.Log("Miranda je eliminirana!");
+    }
+
+    // NOVO: Sigurno paljenje hinta iz bilo koje skripte
+    public void PrikaziHint(object trazitelj, Sprite slicica)
+    {
+        if (!isControlled || currentState == MirandaState.Dead) return;
+
+        trenutniVlasnikHinta = trazitelj;
+        if (hintRenderer != null)
+        {
+            hintRenderer.sprite = slicica;
+            hintRenderer.enabled = true;
+        }
+    }
+
+    // NOVO: Sigurno gašenje hinta iz bilo koje skripte
+    public void SakrijHint(object trazitelj)
+    {
+        // Gasimo hint SAMO ako ga gasi onaj isti objekt koji ga je i upalio (ili ako je objekt uništen)
+        if (trenutniVlasnikHinta == null || trenutniVlasnikHinta == trazitelj || trenutniVlasnikHinta.Equals(null))
+        {
+            trenutniVlasnikHinta = null;
+            if (hintRenderer != null)
+            {
+                hintRenderer.enabled = false;
+            }
+        }
+    }
+
+    // NOVO: Prisilno gasi hint bez obzira tko ga je upalio (koristi se kad se objekt uništi)
+    public void PrisilnoUgasiSveHintove()
+    {
+        trenutniVlasnikHinta = null;
+        if (hintRenderer != null)
+        {
+            hintRenderer.enabled = false;
+        }
     }
 }

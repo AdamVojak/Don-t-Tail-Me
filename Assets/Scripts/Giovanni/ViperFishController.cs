@@ -50,6 +50,7 @@ public class ViperFishController : MonoBehaviour
     [SerializeField] private float wavyAmplitude = 45f;
 
     private bool isIlluminated = false;
+    private bool isTouchingConeTrigger = false; // NOVO: Prati dodir s triggerom
     private float currentIlluminationTimer = 0f; // Prati koliko dugo je pod svjetlom
     private float currentCooldownTimer = 0f;     // Prati cooldown
 
@@ -99,20 +100,40 @@ public class ViperFishController : MonoBehaviour
 
     private void HandleRoaming()
     {
-        // OSIGURAČ ZA UGAŠENO SVJETLO
-        if (giovanni.flashlightLight == null || !giovanni.flashlightLight.enabled)
-        {
-            isIlluminated = false;
-            currentIlluminationTimer = 0f;
-        }
-
-        // NOVO: Računamo poziciju GLAVE ribe, a ne repa (pivota)
         Vector3 fishHeadPos = headCollider != null ? headCollider.bounds.center : transform.position;
-
-        // NOVO: Udaljenost računamo isključivo po tlu (XZ ravnina) kako visina ne bi kvarila radijus
         Vector2 flatFish = new Vector2(fishHeadPos.x, fishHeadPos.z);
         Vector2 flatPlayer = new Vector2(giovanni.transform.position.x, giovanni.transform.position.z);
         float distanceToPlayer = Vector2.Distance(flatFish, flatPlayer);
+
+        // --- NOVO: NAPREDNA DETEKCIJA SVJETLA (Rješava zidove i blizinu) ---
+        isIlluminated = false;
+
+        if (giovanni.flashlightLight != null && giovanni.flashlightLight.enabled)
+        {
+            Vector3 lightPos = giovanni.flashlightHolder.position;
+            Vector3 dirToFish = (fishHeadPos - lightPos).normalized;
+            float distToFish = Vector3.Distance(lightPos, fishHeadPos);
+
+            // 1. Provjera blizine: Ako je riba blizu (do 18m) i gledaš u njenom smjeru
+            float angleToLight = Vector3.Angle(giovanni.flashlightHolder.forward, dirToFish);
+            bool isUpCloseAndAiming = (distToFish <= innerAvoidRadius + 3f) && (angleToLight <= 65f);
+
+            // Ako je u triggeru ILI je jako blizu ispred lampe
+            if (isTouchingConeTrigger || isUpCloseAndAiming)
+            {
+                // 2. PROVJERA ZIDOVA (Line of Sight):
+                // Pucamo zraku od lampe do ribe. Ako NE udari u teren, znači da zid ne blokira svjetlo!
+                if (!Physics.Raycast(lightPos, dirToFish, distToFish - 0.3f, terrainLayer))
+                {
+                    isIlluminated = true;
+                }
+            }
+        }
+
+        if (!isIlluminated)
+        {
+            currentIlluminationTimer = 0f;
+        }
 
         // 1. LOGIKA SKIDANJA THREAT-a
         if (currentCooldownTimer > 0)
@@ -357,6 +378,7 @@ public class ViperFishController : MonoBehaviour
             yield return null;
         }
 
+        // KADA ZAVRŠI PRELET:
         currentPhase = phaseCompleted + 1;
 
         Vector3 awayFromPlayer = (transform.position - giovanni.transform.position).normalized;
@@ -366,7 +388,13 @@ public class ViperFishController : MonoBehaviour
 
         fixedYPosition = transform.position.y;
         currentState = FishState.Roaming;
-    }
+
+        // NOVO: Otključavamo threat tek sada kada je Viper odradio prelet i vratio se u lutanje!
+        if (giovanniStats != null)
+        {
+            giovanniStats.UnlockThreat();
+        }
+}
 
     private IEnumerator AttackPlayer()
     {
@@ -396,7 +424,7 @@ public class ViperFishController : MonoBehaviour
     {
         if (other.CompareTag("BeamCone"))
         {
-            isIlluminated = true;
+            isTouchingConeTrigger = true;
         }
     }
 
@@ -414,8 +442,7 @@ public class ViperFishController : MonoBehaviour
     {
         if (other.CompareTag("BeamCone"))
         {
-            isIlluminated = false;
-            currentIlluminationTimer = 0f;
+            isTouchingConeTrigger = false;
         }
     }
 

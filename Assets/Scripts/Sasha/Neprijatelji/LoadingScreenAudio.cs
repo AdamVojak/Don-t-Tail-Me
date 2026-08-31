@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class LoadingScreenAudio : MonoBehaviour
 {
@@ -12,7 +13,9 @@ public class LoadingScreenAudio : MonoBehaviour
     [Header("1. Zvukovi Kompjutera")]
     [SerializeField] private AudioClip computerStartupClip;
     [SerializeField] private AudioClip computerShutdownClip;
+    [SerializeField] private AudioClip computerRunningLoopClip;
     [Range(0f, 1f)][SerializeField] private float computerVolume = 1f;
+    private Coroutine computerSequenceCoroutine;
 
     [Header("2. Zvukovi Odabira Igrača")]
     [Tooltip("Brzi 'klik' zvuk pri prelasku s jednog lika na drugog")]
@@ -30,6 +33,16 @@ public class LoadingScreenAudio : MonoBehaviour
     [Header("4. Flicker / Treperenje Ekrana")]
     [SerializeField] private AudioClip flickerClip;
     [Range(0f, 1f)][SerializeField] private float flickerVolume = 0.8f;
+
+    [Header("5. Zvukovi Gumbiju (Pritisak i Vraćanje)")]
+    [Tooltip("Zvuk kada gumb ide unutra (Press)")]
+    [SerializeField] private AudioClip buttonClickClip;
+
+    [Tooltip("Zvuk kada gumb iskoči natrag van (Release)")]
+    [SerializeField] private AudioClip buttonReleaseClip;
+
+    [Range(0f, 1f)][SerializeField] private float buttonClickVolume = 0.85f;
+    [Range(0f, 1f)][SerializeField] private float buttonDeClickVolume = 0.85f;
 
     private void Awake()
     {
@@ -66,33 +79,79 @@ public class LoadingScreenAudio : MonoBehaviour
     }
 
     // =========================================================================
-    // 1. FUNKCIJE ZA KOMPJUTER (Međusobno se prekidaju)
+    // 1. FUNKCIJE ZA KOMPJUTER (Startup -> Loop rada -> Shutdown prekid)
     // =========================================================================
 
     /// <summary>
-    /// Pali zvuk paljenja kompjutera i PREKIDA zvuk gašenja ako još traje
+    /// Pokreće zvuk paljenja i čim on završi, automatski pokreće loop rada računala
     /// </summary>
     public void PlayComputerStartup()
     {
         if (computerSource == null || computerStartupClip == null) return;
 
-        computerSource.Stop(); // Zaustavlja gašenje ako je u tijeku
+        // Ako se nešto već vrtjelo, prekidamo i krećemo ispočetka
+        if (computerSequenceCoroutine != null) StopCoroutine(computerSequenceCoroutine);
+        computerSequenceCoroutine = StartCoroutine(ComputerStartupSequenceRoutine());
+    }
+
+    private IEnumerator ComputerStartupSequenceRoutine()
+    {
+        // 1. KORAK: Puštamo zvuk paljenja (One-shot)
+        computerSource.Stop();
+        computerSource.loop = false;
         computerSource.clip = computerStartupClip;
         computerSource.volume = computerVolume;
         computerSource.Play();
+
+        // Čekamo točno onoliko sekundi koliko traje tvoj startup audio zapis
+        yield return new WaitForSeconds(computerStartupClip.length);
+
+        // 2. KORAK: Čim paljenje završi, prebacujemo se na stalni loop rada računala
+        if (computerRunningLoopClip != null)
+        {
+            computerSource.clip = computerRunningLoopClip;
+            computerSource.loop = true;
+            computerSource.Play();
+        }
+
+        computerSequenceCoroutine = null;
     }
 
     /// <summary>
-    /// Pali zvuk gašenja kompjutera i PREKIDA zvuk paljenja ako još traje
+    /// Trenutno prekida bilo startup bilo loop rada i pušta zvuk gašenja
     /// </summary>
     public void PlayComputerShutdown()
     {
         if (computerSource == null || computerShutdownClip == null) return;
 
-        computerSource.Stop(); // Zaustavlja paljenje ako je u tijeku
+        // Ako je sekvenca paljenja ili loop još u tijeku, trenutno ga zaustavi
+        if (computerSequenceCoroutine != null)
+        {
+            StopCoroutine(computerSequenceCoroutine);
+            computerSequenceCoroutine = null;
+        }
+
+        // 3. KORAK: Puštamo zvuk gašenja (prekida sve prethodno)
+        computerSource.Stop();
+        computerSource.loop = false;
         computerSource.clip = computerShutdownClip;
         computerSource.volume = computerVolume;
         computerSource.Play();
+    }
+
+    private void OnDisable()
+    {
+        // Sigurnosno gašenje ako se cijeli ekran ugasi
+        if (computerSequenceCoroutine != null)
+        {
+            StopCoroutine(computerSequenceCoroutine);
+            computerSequenceCoroutine = null;
+        }
+
+        if (computerSource != null && computerSource.isPlaying)
+        {
+            computerSource.Stop();
+        }
     }
 
     // =========================================================================
@@ -140,6 +199,24 @@ public class LoadingScreenAudio : MonoBehaviour
         {
             sfxSource.pitch = 1f;
             sfxSource.PlayOneShot(selectedBubbles, bubblesVolume);
+        }
+    }
+
+    public void PlayButtonClick()
+    {
+        if (sfxSource != null && buttonClickClip != null)
+        {
+            sfxSource.pitch = Random.Range(0.97f, 1.03f); // Mala varijacija da zvuči prirodno
+            sfxSource.PlayOneShot(buttonClickClip, buttonClickVolume);
+        }
+    }
+
+    public void PlayButtonRelease()
+    {
+        if (sfxSource != null && buttonReleaseClip != null)
+        {
+            sfxSource.pitch = Random.Range(0.97f, 1.03f);
+            sfxSource.PlayOneShot(buttonReleaseClip, buttonDeClickVolume);
         }
     }
 }

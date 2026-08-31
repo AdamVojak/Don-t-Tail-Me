@@ -273,6 +273,16 @@ public class GiovanniController : MonoBehaviour
         if (giovanniAudio != null) giovanniAudio.StopBrownNoise();
     }
 
+    void OnEnable()
+    {
+        if (giovanniAudio == null) giovanniAudio = GetComponent<GiovanniAudio>();
+
+        if (currentState != GiovanniState.Dead && isControlled)
+        {
+            if (giovanniAudio != null) giovanniAudio.StartBrownNoise();
+        }
+    }
+
     public void SetControlled(bool controlled)
     {
         isControlled = controlled;

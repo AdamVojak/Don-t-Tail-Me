@@ -89,7 +89,6 @@ public class LoadingManager : MonoBehaviour
         if (emitterRect != null) emitterRect.anchoredPosition = endPos - new Vector2(0, razlikaVisine);
 
         if (bubbleEmitter != null) bubbleEmitter.Stop();
-        if (loadingSpinner != null) loadingSpinner.SetActive(true);
     }
 
     public IEnumerator RaiseWallRoutine(float duration)
@@ -140,5 +139,10 @@ public class LoadingManager : MonoBehaviour
             if (emitterRect == null) emitterRect = bubbleEmitter.GetComponent<RectTransform>();
             if (emitterRect != null) emitterRect.anchoredPosition = offscreenPos;
         }
+    }
+
+    public void ShowSpinner()
+    {
+        if (loadingSpinner != null) loadingSpinner.SetActive(true);
     }
 }

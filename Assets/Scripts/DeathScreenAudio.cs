@@ -15,6 +15,7 @@ public class DeathScreenAudio : MonoBehaviour
     [SerializeField] private AudioClip[] staticVariations;
     [Range(0f, 1f)][SerializeField] private float defaultStaticVolume = 0.5f;
     [SerializeField] private float volumeChangeSpeed = 10f; // Koliko glatko prelazi glasnoća na hover
+    [SerializeField] private float dodatakZaHover = 0.05f;
 
     [Header("2. Zvukovi Gumba")]
     [SerializeField] private AudioClip buttonClickClip;
@@ -130,7 +131,7 @@ public class DeathScreenAudio : MonoBehaviour
     /// </summary>
     public void OnHoverExitButton()
     {
-        targetStaticVolume = Mathf.Clamp01(defaultStaticVolume + 0.01f);
+        targetStaticVolume = Mathf.Clamp01(defaultStaticVolume - dodatakZaHover);
     }
 
     /// <summary>
@@ -138,7 +139,7 @@ public class DeathScreenAudio : MonoBehaviour
     /// </summary>
     public void OnHoverRestartButton()
     {
-        targetStaticVolume = Mathf.Clamp01(defaultStaticVolume - 0.01f);
+        targetStaticVolume = Mathf.Clamp01(defaultStaticVolume + dodatakZaHover);
     }
 
     /// <summary>

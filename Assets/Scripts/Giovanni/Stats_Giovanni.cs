@@ -38,6 +38,8 @@ public class GiovanniStats : MonoBehaviour
     [Header("Viper Fish Reference")]
     [SerializeField] private ViperFishController viperFish;
 
+    public bool isThreatLocked = false;
+
     void Start()
     {
         currentStamina = maxStamina;
@@ -71,6 +73,9 @@ public class GiovanniStats : MonoBehaviour
             currentStamina += staminaRegenIdle * Time.deltaTime;
         }
 
+        // NOVO: Threat se mijenja SAMO ako nije zaključan na nuli
+        if (!isThreatLocked)
+        {
             if (isMoving)
             {
                 float currentDrain = isSprinting ? threatDrainSprinting : threatDrainWalking;
@@ -85,19 +90,22 @@ public class GiovanniStats : MonoBehaviour
             {
                 currentThreat -= threatDrainFlashlight * Time.deltaTime;
             }
+        }
 
         currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
         currentThreat = Mathf.Clamp(currentThreat, 0, maxThreat);
 
         UpdateUI();
 
-        if (currentThreat <= 0)
+        if (currentThreat <= 0 && !isThreatLocked)
         {
+            isThreatLocked = true;
+            currentThreat = 0f;
+
             if (viperFish != null)
             {
                 viperFish.TriggerThreatEvent();
             }
-            currentThreat = maxThreat;
         }
     }
 
@@ -138,18 +146,27 @@ public class GiovanniStats : MonoBehaviour
 
     public void ReduceThreat(float amount)
     {
+        if (isThreatLocked) return;
+
         currentThreat -= amount;
         currentThreat = Mathf.Clamp(currentThreat, 0, maxThreat);
         UpdateUI();
 
-        // DODANO: Provjera za napad ako svjetlo skine threat na 0
-        if (currentThreat <= 0)
+        if (currentThreat <= 0 && !isThreatLocked)
         {
+            isThreatLocked = true;
+            currentThreat = 0f;
+
             if (viperFish != null)
             {
                 viperFish.TriggerThreatEvent();
             }
-            currentThreat = maxThreat;
         }
+    }
+
+    // NOVO: Ovu metodu poziva Viper kada završi prelet/upozorenje
+    public void UnlockThreat()
+    {
+        isThreatLocked = false;
     }
 }

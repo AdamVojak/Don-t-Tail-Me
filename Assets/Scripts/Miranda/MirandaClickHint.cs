@@ -2,38 +2,17 @@ using UnityEngine;
 
 public class ClickHintMiranda : MonoBehaviour
 {
-    [Header("UI Elementi Hinta")]
-    public SpriteRenderer hintRenderer; // Povuci SpriteRenderer direktno umjesto GameObjecta!
-    public Sprite hintClick;            // Sličica tipke (npr. 'F')
-
-    void Start()
-    {
-        if (hintRenderer != null)
-        {
-            // GameObject OSTJE UPALJEN, samo gasimo vidljivost slike!
-            hintRenderer.enabled = false;
-        }
-    }
+    public Sprite hintClick; // Sličica tipke (npr. 'F')
 
     private void OnTriggerStay(Collider other)
     {
         MirandaController miranda = other.GetComponentInParent<MirandaController>();
 
-        // Ako je Miranda tu, kontrolirana i živa
-        if (miranda != null && miranda.isControlled && miranda.currentState != MirandaController.MirandaState.Dead)
+        // Ako je Miranda tu i pod kontrolom igrača
+        if (miranda != null && miranda.isControlled)
         {
-            if (hintRenderer != null)
-            {
-                if (hintClick != null) hintRenderer.sprite = hintClick;
-                hintRenderer.enabled = true; // PALI SAMO SLIKU
-            }
-        }
-        else
-        {
-            if (hintRenderer != null && hintRenderer.enabled)
-            {
-                hintRenderer.enabled = false; // GASI SAMO SLIKU
-            }
+            // Predajemo 'this' kao vlasnika i sličicu koju želimo prikazati
+            miranda.PrikaziHint(this, hintClick);
         }
     }
 
@@ -42,10 +21,8 @@ public class ClickHintMiranda : MonoBehaviour
         MirandaController miranda = other.GetComponentInParent<MirandaController>();
         if (miranda != null)
         {
-            if (hintRenderer != null)
-            {
-                hintRenderer.enabled = false; // GASI SAMO SLIKU
-            }
+            // Gasimo hint (Miranda će ga ugasiti samo ako smo mi vlasnici)
+            miranda.SakrijHint(this);
         }
     }
 }

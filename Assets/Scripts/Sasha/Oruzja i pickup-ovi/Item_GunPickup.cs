@@ -20,33 +20,34 @@ public class GunItemPickup : MonoBehaviour
     private AudioSource doskok;
     private AudioSource pickup;
 
-
-    void Start()
+    void Awake()
     {
-
         if (sfx == null)
         {
             sfx = FindFirstObjectByType<SFX>();
-        }
-        else
-        {
-            Debug.LogWarning(gameObject.name + " ne može pronaći SashaController u sceni!");
+            if (sfx != null)
+            {
+                skok = sfx.ZvukGunSkok;
+                doskok = sfx.ZvukGunDoskok;
+                pickup = sfx.ZvukGunPickup;
+            }
         }
 
         if (sasha == null)
         {
             sasha = FindFirstObjectByType<SashaController>();
+            if (sasha == null)
+            {
+                Debug.LogWarning(gameObject.name + " ne može pronaći SashaController u sceni!");
+            }
         }
-        else
+    }
+    void OnEnable()
+    {
+        if (!isPickedUp)
         {
-            Debug.LogWarning(gameObject.name + " ne može pronaći SashaController u sceni!");
+            StartCoroutine(MigoljenjeRoutine());
         }
-
-        StartCoroutine(MigoljenjeRoutine());
-
-        skok = sfx.ZvukGunSkok;
-        doskok = sfx.ZvukGunDoskok;
-        pickup = sfx.ZvukGunPickup;
     }
 
     private IEnumerator MigoljenjeRoutine()
@@ -75,8 +76,8 @@ public class GunItemPickup : MonoBehaviour
             }
             transform.rotation = ciljnaRotacija;
 
+            if (skok != null) skok.Play();
 
-            skok.Play();
             Vector3 pocetnaPozicija = transform.position;
             Vector3 ciljnaPozicija = pocetnaPozicija + (transform.up * randomUdaljenost);
 
@@ -84,14 +85,17 @@ public class GunItemPickup : MonoBehaviour
 
             while (protekloVrijeme < trajanjeSkoka)
             {
-                if (sasha != null && sasha.isControlled) {
+                if (sasha != null && sasha.isControlled)
+                {
                     transform.position = Vector3.Lerp(pocetnaPozicija, ciljnaPozicija, protekloVrijeme / trajanjeSkoka);
-                doskok.Play();
-                protekloVrijeme += Time.deltaTime;
+                    protekloVrijeme += Time.deltaTime;
                 }
                 yield return null;
             }
+
             transform.position = ciljnaPozicija;
+
+            if (doskok != null) doskok.Play();
 
             yield return new WaitForSeconds(vrijemeCekanja);
         }
@@ -106,7 +110,7 @@ public class GunItemPickup : MonoBehaviour
             if (inventar != null)
             {
                 kreceSe = false;
-                pickup.Play();
+                if (pickup != null) pickup.Play();
                 inventar.CollectItem(1);
                 isPickedUp = true;
                 Destroy(gameObject);

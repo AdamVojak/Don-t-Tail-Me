@@ -55,11 +55,25 @@ public class GameManager : MonoBehaviour
     [Header("Transition Settings")]
     [SerializeField] private GameObject UI_Tranzicija;
     [SerializeField] private Slider tranzicijskiSlider;
+    [SerializeField] private GameObject UI_EnterTipka; // NOVO: Slika tipke Enter
     [SerializeField] private float transitionDuration = 2f; // Vrijeme putovanja slidera
     [SerializeField] private float loadingDuration = 1.0f;    // NOVO: Koliko dugo traje crni ekran s kotačićem
 
+    [Header("Elevator Buttons UI")]
+    public Image slikaPanelaGumbiju; // UI Image komponenta na kojoj se mijenjaju spriteovi
+    public Sprite defaultGumbiSprite; // Slika kada NIJEDAN gumb nije stisnut
+    public Sprite gumb1StisnutSprite; // Slika kada je stisnut gumb 1 (Sasha)
+    public Sprite gumb2StisnutSprite; // Slika kada je stisnut gumb 2 (Miranda)
+    public Sprite gumb3StisnutSprite; // Slika kada je stisnut gumb 3 (Giovanni)
+    public float vrijemeStisnutogGumba = 0.2f; // Koliko dugo gumb ostaje "udubljen"
+
+    private Coroutine buttonVisualCoroutine; // Da možemo prekinuti animaciju ako igrač brzo stišće
+
+    private bool isMenuOpen = false;
+    private ActiveCharacter selectedCharInMenu;
+    private Coroutine sliderCoroutine;
+
     private bool isTransitioning = false;
-    private bool goingForward = true;
 
     private void Awake()
     {
@@ -124,15 +138,43 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.C) && !isTransitioning)
+        // 1. OTVARANJE IZBORNIKA (Tipka C)
+        if (Input.GetKeyDown(KeyCode.C) && !isTransitioning && !isMenuOpen)
         {
             if (GetAvailableCharacterCount() > 1)
             {
-                SwitchToNextAvailableCharacter();
+                StartCoroutine(OpenTransitionMenu());
             }
             else
             {
                 Debug.Log("Samo je jedan lik dostupan! Tranzicija otkazana.");
+            }
+        }
+
+        // 2. LOGIKA UNUTAR IZBORNIKA
+        if (isMenuOpen)
+        {
+            // Biranje likova tipkama 1, 2, 3
+            if (Input.GetKeyDown(KeyCode.Alpha1) && IsCharacterAvailable(ActiveCharacter.Sasha) && selectedCharInMenu != ActiveCharacter.Sasha)
+            {
+                MoveSliderTo(ActiveCharacter.Sasha);
+                PrikaziKlikGumba(gumb1StisnutSprite); // NOVO: Vizualni klik za 1
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha2) && IsCharacterAvailable(ActiveCharacter.Miranda) && selectedCharInMenu != ActiveCharacter.Miranda)
+            {
+                MoveSliderTo(ActiveCharacter.Miranda);
+                PrikaziKlikGumba(gumb2StisnutSprite); // NOVO: Vizualni klik za 2
+            }
+            else if (Input.GetKeyDown(KeyCode.Alpha3) && IsCharacterAvailable(ActiveCharacter.Giovanni) && selectedCharInMenu != ActiveCharacter.Giovanni)
+            {
+                MoveSliderTo(ActiveCharacter.Giovanni);
+                PrikaziKlikGumba(gumb3StisnutSprite); // NOVO: Vizualni klik za 3
+            }
+
+            // Potvrda odabira tipkom Enter
+            if (Input.GetKeyDown(KeyCode.Return) && UI_EnterTipka != null && UI_EnterTipka.activeSelf)
+            {
+                StartCoroutine(CloseTransitionMenuAndLoad(selectedCharInMenu));
             }
         }
 
@@ -167,40 +209,6 @@ public class GameManager : MonoBehaviour
         else if (IsCharacterAvailable(ActiveCharacter.Miranda)) SwitchCharacter(ActiveCharacter.Miranda);
         else if (IsCharacterAvailable(ActiveCharacter.Giovanni)) SwitchCharacter(ActiveCharacter.Giovanni);
         else Debug.LogError("Nijedan lik nije dostupan u sceni! Provjerite reference u GameManageru.");
-    }
-
-
-    void SwitchToNextAvailableCharacter()
-    {
-        ActiveCharacter nextChar = currChar;
-
-        bool tempDirection = goingForward;
-
-        for (int i = 0; i < 3; i++)
-        {
-            if (nextChar == ActiveCharacter.Sasha) tempDirection = true;
-            else if (nextChar == ActiveCharacter.Giovanni) tempDirection = false;
-
-            if (nextChar == ActiveCharacter.Sasha)
-            {
-                nextChar = ActiveCharacter.Miranda;
-            }
-            else if (nextChar == ActiveCharacter.Giovanni)
-            {
-                nextChar = ActiveCharacter.Miranda;
-            }
-            else if (nextChar == ActiveCharacter.Miranda)
-            {
-                nextChar = tempDirection ? ActiveCharacter.Giovanni : ActiveCharacter.Sasha;
-            }
-
-            if (nextChar != currChar && IsCharacterAvailable(nextChar))
-            {
-                goingForward = tempDirection;
-                StartCoroutine(TransitionToCharacter(nextChar));
-                return;
-            }
-        }
     }
 
     int GetAvailableCharacterCount()
@@ -264,42 +272,36 @@ public class GameManager : MonoBehaviour
     }
 
 
-    IEnumerator TransitionToCharacter(ActiveCharacter targetCharacter)
+    // --- FAZA 1: OTVARANJE IZBORNIKA ---
+    IEnumerator OpenTransitionMenu()
     {
         isLoading = true;
         isTransitioning = true;
+        isMenuOpen = true;
 
-        float startValue = GetCharacterSliderValue(currChar);
-        float endValue = GetCharacterSliderValue(targetCharacter);
+        selectedCharInMenu = currChar; // Počinjemo od lika kojeg trenutno igramo
+        if (UI_EnterTipka != null) UI_EnterTipka.SetActive(false);
 
-        currChar = ActiveCharacter.Odabir;
-
-        // --- 1. ZID PADA ---
+        // 1. ZID PADA
         if (loadingManager != null)
-        {
             yield return StartCoroutine(loadingManager.DropWallRoutine(loadingManager.vrijemeZid));
-        }
 
-        // --- 2. ODUZIMAMO KONTROLE I UI ---
+        // 2. ODUZIMAMO KONTROLE I UI
         DisableAllControls();
         HideAllCharacterUIs();
 
-
-        // --- 3. JITTERY FADE-IN (Drhtavo paljenje) ---
+        // 3. JITTERY FADE-IN (Paljenje TV-a)
         if (UI_Tranzicija != null)
         {
-            // DODAJ OVE DVIJE LINIJE (Zvuk paljenja kompjutera + Flicker):
             if (loadingAudio != null) loadingAudio.PlayComputerStartup();
             if (loadingAudio != null) loadingAudio.PlayFlicker();
 
             UI_Tranzicija.SetActive(true);
-
             CanvasGroup cg = UI_Tranzicija.GetComponent<CanvasGroup>();
             if (cg == null) cg = UI_Tranzicija.AddComponent<CanvasGroup>();
 
             float fadeDuration = 0.4f;
             float elapsedFade = 0f;
-
             while (elapsedFade < fadeDuration)
             {
                 elapsedFade += Time.deltaTime;
@@ -311,10 +313,30 @@ public class GameManager : MonoBehaviour
             cg.alpha = 1f;
         }
 
+        // Postavljamo slider na trenutnog lika i palimo Enter tipku
+        if (tranzicijskiSlider != null) tranzicijskiSlider.value = GetCharacterSliderValue(currChar);
+        if (UI_EnterTipka != null) UI_EnterTipka.SetActive(true);
+    }
 
-        // --- 4. SLIDER ANIMACIJA ---
+
+    // --- FAZA 2: POMICANJE SLIDERA (Poziva se tipkama 1, 2, 3) ---
+    void MoveSliderTo(ActiveCharacter targetCharacter)
+    {
+        selectedCharInMenu = targetCharacter;
+
+        // Ako se slider već miče, prekidamo staro micanje i krećemo prema novom liku
+        if (sliderCoroutine != null) StopCoroutine(sliderCoroutine);
+        sliderCoroutine = StartCoroutine(SliderMovementRoutine(targetCharacter));
+    }
+
+    IEnumerator SliderMovementRoutine(ActiveCharacter targetCharacter)
+    {
+        if (UI_EnterTipka != null) UI_EnterTipka.SetActive(false); // Gasimo Enter dok putuje
+
+        float startValue = tranzicijskiSlider.value;
+        float endValue = GetCharacterSliderValue(targetCharacter);
         float elapsed = 0f;
-        int lastClickTick = Mathf.RoundToInt(startValue); // DODAJ OVO (Pamti zadnji klik)
+        int lastClickTick = Mathf.RoundToInt(startValue);
 
         while (elapsed < transitionDuration)
         {
@@ -325,7 +347,6 @@ public class GameManager : MonoBehaviour
             {
                 tranzicijskiSlider.value = Mathf.Lerp(startValue, endValue, t);
 
-                // DODAJ OVO (Brzi klik zvuk dok slider prelazi preko cijelih brojeva):
                 int currentTick = Mathf.RoundToInt(tranzicijskiSlider.value);
                 if (currentTick != lastClickTick)
                 {
@@ -333,22 +354,29 @@ public class GameManager : MonoBehaviour
                     if (loadingAudio != null) loadingAudio.PlayPlayerSwitchClick();
                 }
             }
-
             yield return null;
         }
 
         if (tranzicijskiSlider != null) tranzicijskiSlider.value = endValue;
 
-        // DODAJ OVU LINIJU (Goofy akord kada slider stigne na metu!):
-        if (loadingAudio != null) loadingAudio.PlayPlayerSelectedChord();
+        // Stigli smo na metu! Palimo Enter tipku.
+        if (UI_EnterTipka != null) UI_EnterTipka.SetActive(true);
+    }
 
+
+    // --- FAZA 3: ZATVARANJE IZBORNIKA I UČITAVANJE (Tipka Enter) ---
+    IEnumerator CloseTransitionMenuAndLoad(ActiveCharacter targetCharacter)
+    {
+        isMenuOpen = false;
+        if (UI_EnterTipka != null) UI_EnterTipka.SetActive(false);
+
+        // Zvuk uspješnog odabira!
+        if (loadingAudio != null) loadingAudio.PlayPlayerSelectedChord();
         yield return new WaitForSeconds(0.3f);
 
-
-        // --- 5. JITTERY FADE-OUT (Drhtavo gašenje) ---
+        // 1. JITTERY FADE-OUT (Gašenje TV-a)
         if (UI_Tranzicija != null)
         {
-            // DODAJ OVE DVIJE LINIJE (Zvuk gašenja kompjutera koji prekida paljenje + Flicker):
             if (loadingAudio != null) loadingAudio.PlayComputerShutdown();
             if (loadingAudio != null) loadingAudio.PlayFlicker();
 
@@ -364,27 +392,25 @@ public class GameManager : MonoBehaviour
                 cg.alpha = Mathf.Clamp01(baseAlpha + jitter);
                 yield return null;
             }
-
             cg.alpha = 0f;
             UI_Tranzicija.SetActive(false);
             cg.alpha = 1f;
         }
 
+        if (loadingManager != null) loadingManager.ShowSpinner();
 
-        // --- 6. UČITAVANJE SVEGA IZA ZIDA ---
+        // 2. UČITAVANJE SVEGA IZA ZIDA
+        currChar = ActiveCharacter.Odabir;
         ToggleLevels(targetCharacter);
         SetCameraPriorities(targetCharacter);
         FinalizeCharacterSwitch(targetCharacter);
 
         yield return null;
-        yield return new WaitForSeconds(loadingDuration); // Tvoj buffer
+        yield return new WaitForSeconds(loadingDuration);
 
-
-        // --- 7. DIŽEMO ZID ---
+        // 3. DIŽEMO ZID
         if (loadingManager != null)
-        {
             yield return StartCoroutine(loadingManager.RaiseWallRoutine(loadingManager.vrijemeZid));
-        }
 
         isTransitioning = false;
         isLoading = false;
@@ -425,6 +451,8 @@ public class GameManager : MonoBehaviour
         {
             tranzicijskiSlider.value = targetValue; // Odmah ga stavlja na metu u mraku
         }
+
+        if (UI_EnterTipka != null) UI_EnterTipka.SetActive(false);
 
         if (UI_Tranzicija != null)
         {
@@ -493,6 +521,30 @@ public class GameManager : MonoBehaviour
         }
 
         isTransitioning = false;
+    }
+
+    // Metoda koja pokreće vizualni klik
+    void PrikaziKlikGumba(Sprite stisnutiSprite)
+    {
+        if (slikaPanelaGumbiju == null || stisnutiSprite == null) return;
+
+        // Ako se neki gumb već animira, prekidamo ga da možemo stisnuti novi
+        if (buttonVisualCoroutine != null) StopCoroutine(buttonVisualCoroutine);
+
+        buttonVisualCoroutine = StartCoroutine(ButtonVisualRoutine(stisnutiSprite));
+    }
+
+    IEnumerator ButtonVisualRoutine(Sprite stisnutiSprite)
+    {
+        if (loadingAudio != null) loadingAudio.PlayButtonClick();
+
+        slikaPanelaGumbiju.sprite = stisnutiSprite;
+
+        yield return new WaitForSeconds(vrijemeStisnutogGumba);
+
+        if (loadingAudio != null) loadingAudio.PlayButtonRelease();
+
+        slikaPanelaGumbiju.sprite = defaultGumbiSprite;
     }
 
     void DeactivateAllCharacters()

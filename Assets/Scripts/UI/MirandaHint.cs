@@ -8,7 +8,6 @@ public class MirandaHint : MonoBehaviour
     private Image hintUI;
 
     [Header("Hint")]
-    public SpriteRenderer hintMirandaRenderer;
     public Sprite clickF;
 
     private SpriteRenderer ovajRenderer;
@@ -32,8 +31,10 @@ public class MirandaHint : MonoBehaviour
 
     void Update()
     {
+        // Radi samo ako je Miranda u krugu i pod kontrolom igrača
         if (isPlayerInside && mirandaRef != null && mirandaRef.isControlled)
         {
+            // Pritisak tipke F za čitanje papira
             if (Input.GetKeyDown(KeyCode.F))
             {
                 UIOpen = !UIOpen;
@@ -41,7 +42,15 @@ public class MirandaHint : MonoBehaviour
 
                 if (UIOpen && hintUI != null) hintUI.sprite = ovajSprite;
 
-                if (hintMirandaRenderer != null) hintMirandaRenderer.enabled = !UIOpen;
+                // Dok čita papir, ugasi hint iznad glave. Kad zatvori, upali ga opet.
+                if (UIOpen)
+                {
+                    mirandaRef.SakrijHint(this);
+                }
+                else
+                {
+                    mirandaRef.PrikaziHint(this, clickF);
+                }
             }
         }
     }
@@ -53,12 +62,12 @@ public class MirandaHint : MonoBehaviour
         {
             isPlayerInside = true;
             mirandaRef = miranda;
-            miranda.isInteracting = true;
+            miranda.isInteracting = true; // Zaključava druge akcije dok je kod papira
 
-            if (hintMirandaRenderer != null && !UIOpen)
+            // Pali hint samo ako papir nije već otvoren
+            if (!UIOpen)
             {
-                if (clickF != null) hintMirandaRenderer.sprite = clickF;
-                hintMirandaRenderer.enabled = true;
+                miranda.PrikaziHint(this, clickF);
             }
         }
     }
@@ -72,16 +81,15 @@ public class MirandaHint : MonoBehaviour
             mirandaRef = null;
             miranda.isInteracting = false;
 
+            // Zatvori papir ako je ostao otvoren
             if (UIOpen)
             {
                 UIOpen = false;
                 if (UI != null) UI.SetActive(false);
             }
 
-            if (hintMirandaRenderer != null)
-            {
-                hintMirandaRenderer.enabled = false;
-            }
+            // Ugasi hint iznad glave
+            miranda.SakrijHint(this);
         }
     }
 }

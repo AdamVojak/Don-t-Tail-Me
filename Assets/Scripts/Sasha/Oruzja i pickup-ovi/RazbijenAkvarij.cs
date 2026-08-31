@@ -34,8 +34,10 @@ public class RazbijenAkvarij : MonoBehaviour
 
         if (gun != null)
         {
-            Instantiate(gun, transform.position, transform.rotation);
+            GameObject stvoreniGun = Instantiate(gun, transform.position, transform.rotation);
+            stvoreniGun.transform.SetParent(this.transform);
         }
+
         ScatterExistingShards();
     }
 
