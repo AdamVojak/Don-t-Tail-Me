@@ -23,7 +23,7 @@ public class StaklenaStijena : MonoBehaviour
 
         if (other.CompareTag("Pajser"))
         {
-            sashaRef.TakeDamage(1, 1);
+            sashaRef.TakeDamage(1, 1, true);
             RazbijStaklo();
         }
     }

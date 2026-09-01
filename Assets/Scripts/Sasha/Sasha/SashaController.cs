@@ -30,6 +30,8 @@ public class SashaController : MonoBehaviour
     public SashaState currentState = SashaState.Active;
     public GameObject mrtavSpritePrefab;
 
+    [SerializeField] private float multiplierSpeed = 2f;
+
     private float originalZ; // Pamti samo Z-koordinatu igrača prije početka guranja
 
     public float moveSpeed = 5f;
@@ -248,8 +250,8 @@ public class SashaController : MonoBehaviour
 
             if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
             {
-                activeMoveSpeed *= 1.5f;
-                if (animacijaNogu != null) animacijaNogu.speed = 2f;
+                activeMoveSpeed *= multiplierSpeed;
+                if (animacijaNogu != null) animacijaNogu.speed = multiplierSpeed;
             }
             else
             {
@@ -362,17 +364,19 @@ public class SashaController : MonoBehaviour
       
     }
 
-    // Dodali smo 'int cause' kako bi znali tko je zadao udarac
-    public void TakeDamage(int damageAmount, int cause)
+    public void TakeDamage(int damageAmount, int cause, bool ignoreCooldown = false)
     {
         if (currentState == SashaState.Dead) return;
 
-        if (Time.time < zadnjeVrijemeStete + stetaCooldown)
+        // Ako NE ignoriramo cooldown, provjeri vrijeme
+        if (!ignoreCooldown && Time.time < zadnjeVrijemeStete + stetaCooldown)
         {
             return;
         }
 
+        // Resetiramo timer kako idući obični udarac ne bi bio trenutan
         zadnjeVrijemeStete = Time.time;
+
         zivot -= damageAmount;
 
         if (sashaAudio != null) sashaAudio.PlayHurtDelayed();
@@ -706,7 +710,6 @@ public class SashaController : MonoBehaviour
     {
         StopAllCoroutines();
 
-        // DODAJ OVO:
         if (sashaAudio != null) sashaAudio.StopAllLoops();
     }
 }

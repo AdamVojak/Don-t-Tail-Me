@@ -1,7 +1,5 @@
 using UnityEngine;
 using System.Collections;
-
-
 public enum ZombieState
 {
     Active,
@@ -9,13 +7,14 @@ public enum ZombieState
     Shocked,
     Dead
 }
-
-public class Zombi : MonoBehaviour, IDamageable {
+public class Zombi : MonoBehaviour, IDamageable
+{
 
     [Header("Postavke Brzine i Juriša")]
-    [SerializeField] float pocetnaBrzina = 6f;      // Brzina čim se stvori
+[SerializeField] float pocetnaBrzina = 6f;      // Brzina čim se stvori
     [SerializeField] float maksimalnaBrzina = 14f;  // Ekstremna brzina trka
     [SerializeField] float brzinaUbrzavanja = 20f;  // Koliko brzo skače na max brzinu
+    [HideInInspector] public float zadnjeVrijemeTranzicije = 0f; // Dodati na vrh klase Zombi
 
     [Header("Postavke Zakoraka (Impuls)")]
     [SerializeField] float snagaZakoraka = 0.3f;    // Dodatni mali "push" pri koraku
@@ -26,10 +25,23 @@ public class Zombi : MonoBehaviour, IDamageable {
     [SerializeField] private GameManager gameManagerRef;
     public bool aktivan;
 
+    [Header("Postavke Izbjegavanja Prepreka")]
+    [SerializeField] private LayerMask obstacleLayerMask; // Dodijelite slojeve "Obstacle" i "Terrain" u Inspectoru
+    [SerializeField] private float detectionDistance = 1.5f;
+    private System.Collections.Generic.Queue<Vector3> tranzicijskeTocke = new System.Collections.Generic.Queue<Vector3>();
+    private Vector3 trenutnaMetaKretanja; // Ovu smo dodali ranije za rotaciju
+
+    [Header("Postavke Rotacije")]
+    [SerializeField] private float brzinaRotacije = 5.0f; // Manja vrijednost = sporije okretanje (veće kašnjenje)
+
+    private Rigidbody rb;
+    private Vector3 moveDirection;
+
     [Header("Postavke Napada")]
     [SerializeField] private Collider triggerArea;
     [SerializeField] private GameObject fist;
     private bool uDometu = false;
+    private bool animacijaZamahaUTijeku = false; // Prati samo vrti li se trenutno animacija udarca
 
     [Header("Postavke Zdravlja")]
     [SerializeField] int health = 100;
@@ -66,18 +78,22 @@ public class Zombi : MonoBehaviour, IDamageable {
         DohvatiIgraca();
         if (tijelo == null) tijelo = GetComponent<SpriteRenderer>();
         animator = GetComponent<Animator>();
-        if (fist == null) fist = GetComponent<GameObject>();
         if (gameManagerRef == null) gameManagerRef = FindFirstObjectByType<GameManager>();
         if (zombieAudio == null) zombieAudio = GetComponent<ZombieAudio>();
 
-        OkreniSePremaIgracu();
+        rb = GetComponent<Rigidbody>();
+
+        if (igracMeta != null) trenutnaMetaKretanja = igracMeta.position;
+        OkreniSePremaMeti(trenutnaMetaKretanja);
     }
 
     void OnEnable()
     {
         currentState = ZombieState.Active;
         DohvatiIgraca();
-        OkreniSePremaIgracu();
+
+        if (igracMeta != null) trenutnaMetaKretanja = igracMeta.position;
+        OkreniSePremaMeti(trenutnaMetaKretanja);
 
         ResetirajUbrzanje();
     }
@@ -109,6 +125,42 @@ public class Zombi : MonoBehaviour, IDamageable {
         }
     }
 
+    void FixedUpdate()
+    {
+        if (currentState == ZombieState.Active && aktivan && !uDometu && igracMeta != null && rb != null)
+        {
+            Vector3 targetVelocity = moveDirection * trenutnaBrzina;
+            targetVelocity.z = rb.linearVelocity.z;
+            rb.linearVelocity = targetVelocity;
+        }
+        else if (rb != null)
+        {
+            rb.linearVelocity = new Vector3(0, 0, rb.linearVelocity.z);
+        }
+    }
+
+    private void OkreniSePremaMeti(Vector3 meta)
+    {
+        Vector3 smjerGledanja = meta - transform.position;
+
+        if (moveDirection != Vector3.zero)
+        {
+            smjerGledanja = moveDirection;
+        }
+
+        smjerGledanja.z = 0;
+
+        if (smjerGledanja != Vector3.zero)
+        {
+            float ciljaniKut = Mathf.Atan2(smjerGledanja.y, smjerGledanja.x) * Mathf.Rad2Deg - 90f;
+            Quaternion ciljanaRotacija = Quaternion.Euler(0f, 0f, ciljaniKut);
+
+            float stvarnaBrzinaRotacije = (brzinaRotacije > 0f) ? brzinaRotacije : 15f;
+
+            transform.rotation = Quaternion.Slerp(transform.rotation, ciljanaRotacija, stvarnaBrzinaRotacije * Time.deltaTime);
+        }
+    }
+
     void Update()
     {
         if (sashaControllerRef == null)
@@ -137,7 +189,8 @@ public class Zombi : MonoBehaviour, IDamageable {
         }
 
 
-        if (triggerArea != null)
+        // 1. PROVJERA DOMETA I AKTIVACIJA ZAMAHA (Originalna logika)
+        if (triggerArea != null && igracMeta != null)
         {
             bool sashaJeBlizu = triggerArea.bounds.Contains(igracMeta.position);
 
@@ -153,33 +206,90 @@ public class Zombi : MonoBehaviour, IDamageable {
             {
                 uDometu = false;
                 if (noge != null) noge.SetActive(true);
-                fist.SetActive(false);
-                if (animator != null)
-                {
-                    animator.SetBool("uDometu", false);
-                    animator.SetInteger("strana", 0);
-                    animator.Play("Idle", 0, 0f);
-                }
+                if (animator != null) animator.SetBool("uDometu", false);
+                // Ovdje NE gasimo animaciju na silu - puštamo je da sama dođe do KrajZamaha()
             }
         }
 
+        // 2. KONTROLA NOGU
         if (uDometu)
         {
             if (noge != null) noge.SetActive(false);
+            trenutnaMetaKretanja = igracMeta.position;
         }
         else
         {
             if (noge != null) noge.SetActive(true);
             animacijaNogu.Play("Idle", 0);
-            animator.Play("Idle", 0);
         }
 
+        // 3. KRETANJE (Izvršava se kad god zombi NIJE u dometu)
         if (!uDometu)
         {
-            trenutnaBrzina = Mathf.MoveTowards(trenutnaBrzina, maksimalnaBrzina, brzinaUbrzavanja * Time.deltaTime);
+            Vector3 trenutnaMeta = igracMeta.position;
 
-            Vector3 targetPosition = new Vector3(igracMeta.position.x, igracMeta.position.y, transform.position.z);
-            transform.position = Vector3.MoveTowards(transform.position, targetPosition, trenutnaBrzina * Time.deltaTime);
+            // TRANZICIJE
+            if (tranzicijskeTocke.Count > 0)
+            {
+                trenutnaMeta = tranzicijskeTocke.Peek();
+                if (Vector3.Distance(transform.position, trenutnaMeta) < 0.5f)
+                {
+                    tranzicijskeTocke.Dequeue();
+                }
+            }
+            else
+            {
+                // MRVICE / SASHA
+                Vector3 smjerDoSase = igracMeta.position - transform.position;
+                float udaljenostDoSase = smjerDoSase.magnitude;
+                bool sasaBlokirana = Physics.Raycast(transform.position, smjerDoSase.normalized, udaljenostDoSase, obstacleLayerMask);
+
+                if (sasaBlokirana && SashaPath.Instance != null && SashaPath.Instance.points.Count > 0)
+                {
+                    bool nasaoVidljivuTocku = false;
+                    for (int i = SashaPath.Instance.points.Count - 1; i >= 0; i--)
+                    {
+                        Vector3 tockaPatha = SashaPath.Instance.points[i];
+                        Vector3 smjerDoTocke = tockaPatha - transform.position;
+                        if (!Physics.Raycast(transform.position, smjerDoTocke.normalized, smjerDoTocke.magnitude, obstacleLayerMask))
+                        {
+                            trenutnaMeta = tockaPatha;
+                            nasaoVidljivuTocku = true;
+                            break;
+                        }
+                    }
+                    if (!nasaoVidljivuTocku) trenutnaMeta = SashaPath.Instance.points[0];
+                }
+            }
+
+            trenutnaMetaKretanja = trenutnaMeta;
+
+            Vector3 desiredDirection = (trenutnaMeta - transform.position);
+            desiredDirection.z = 0f;
+            desiredDirection.Normalize();
+
+            // USPORAVANJE LIJEVOG ZOMBIJA
+            float ciljanaBrzina = maksimalnaBrzina;
+            Collider[] nearby = Physics.OverlapSphere(transform.position, 1.2f);
+
+            foreach (var col in nearby)
+            {
+                if (col.gameObject != gameObject && col.GetComponent<Zombi>() != null)
+                {
+                    Vector3 dirToOther = col.transform.position - transform.position;
+                    dirToOther.z = 0f;
+                    Vector3 myRight = Vector3.Cross(desiredDirection, Vector3.forward).normalized;
+
+                    if (Vector3.Dot(dirToOther, myRight) > 0.2f)
+                    {
+                        ciljanaBrzina = maksimalnaBrzina * 0.4f;
+                        break;
+                    }
+                }
+            }
+
+            trenutnaBrzina = Mathf.MoveTowards(trenutnaBrzina, ciljanaBrzina, brzinaUbrzavanja * Time.deltaTime);
+            moveDirection = FindAvoidanceDirection(desiredDirection, Vector3.Distance(transform.position, trenutnaMeta));
 
             if (animacijaNogu != null)
             {
@@ -187,7 +297,18 @@ public class Zombi : MonoBehaviour, IDamageable {
             }
         }
 
-        OkreniSePremaIgracu();
+        // 4. ROTACIJA
+        if (aktivan && currentState == ZombieState.Active && igracMeta != null && !loading)
+        {
+            OkreniSePremaMeti(trenutnaMetaKretanja);
+        }
+    }
+
+    public void PostaviTranziciju(Vector3 ulaz, Vector3 izlaz)
+    {
+        tranzicijskeTocke.Clear();
+        tranzicijskeTocke.Enqueue(ulaz);
+        tranzicijskeTocke.Enqueue(izlaz);
     }
 
     public void TakeDamage(int amount, DamageType damageType = DamageType.Physical)
@@ -222,6 +343,7 @@ public class Zombi : MonoBehaviour, IDamageable {
     {
         if (currentState == ZombieState.Dead) return;
 
+        // Ako cooldown još traje, odmah prekidamo metodu
         if (Time.time < zadnjeVrijemeStete + stetaCooldown) return;
 
         if (other.CompareTag("Projectile"))
@@ -230,12 +352,8 @@ public class Zombi : MonoBehaviour, IDamageable {
             if (projectile != null)
             {
                 Destroy(other.gameObject);
-
-                if (Time.time >= zadnjeVrijemeStete + stetaCooldown)
-                {
-                    zombieAudio.PlayHurtSound();
-                    PrimiUdarac(projectile.damage);
-                }
+                zombieAudio.PlayHurtSound();
+                PrimiUdarac(projectile.damage);
             }
         }
 
@@ -245,19 +363,29 @@ public class Zombi : MonoBehaviour, IDamageable {
             if (bullet != null)
             {
                 Destroy(other.gameObject);
-
-                if (Time.time >= zadnjeVrijemeStete + stetaCooldown)
-                {
-                    zombieAudio.PlayHurtSound();
-                    PrimiUdarac(bullet.damage);
-                }
+                zombieAudio.PlayHurtSound();
+                PrimiUdarac(bullet.damage);
             }
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (currentState == ZombieState.Dead) return;
+
+        if (other.CompareTag("Sasha") || (igracMeta != null && other.transform == igracMeta))
+        {
+            uDometu = false;
+            if (noge != null) noge.SetActive(true);
+            if (animator != null) animator.SetBool("uDometu", false);
         }
     }
 
     void IzvediZamah()
     {
         if (animator == null || currentState != ZombieState.Active || aktivan == false) return;
+
+        animacijaZamahaUTijeku = true; // Započinjemo zamah
 
         int strana = Random.Range(1, 11);
         animator.SetInteger("strana", strana);
@@ -275,25 +403,17 @@ public class Zombi : MonoBehaviour, IDamageable {
     public void KrajZamaha()
     {
         fist.SetActive(false);
-        if (uDometu && currentState == ZombieState.Active)
+
+        if (currentState != ZombieState.Active) return;
+
+        if (uDometu)
         {
-            IzvediZamah();
+            IzvediZamah(); // Sasha je još u dometu -> započni novi zamah (Loop)
         }
-    }
-
-    void OnTriggerExit(Collider other)
-    {
-        if (currentState == ZombieState.Dead) return;
-
-        if (other.CompareTag("Sasha") || (igracMeta != null && other.transform == igracMeta))
+        else
         {
-            uDometu = false;
-            if (noge != null) noge.SetActive(true);
-            if (animator != null)
-            {
-                animator.SetBool("uDometu", false);
-                animator.Play("Idle", 0, 0f);
-            }
+            // Sasha je izašla -> zamah je gotov, vrati gornji dio u Idle (zombi već hoda)
+            if (animator != null) animator.Play("Idle", 0, 0f);
         }
     }
 
@@ -334,7 +454,7 @@ public class Zombi : MonoBehaviour, IDamageable {
         StartCoroutine(EfektStruje());
     }
 
-        void Umri()
+    void Umri()
     {
         currentState = ZombieState.Dead;
         if (deadZombiePrefab != null)
@@ -436,19 +556,87 @@ public class Zombi : MonoBehaviour, IDamageable {
         ResetirajUbrzanje();
     }
 
+    private Vector3 FindAvoidanceDirection(Vector3 desiredDir, float distanceToTarget)
+    {
+        // Koristimo udaljenost do mete (mrvice), a ne do igrača
+        float checkDistance = Mathf.Min(detectionDistance, distanceToTarget);
+
+        RaycastHit hit;
+        bool hasObstacle = Physics.Raycast(transform.position, desiredDir, out hit, checkDistance, obstacleLayerMask);
+
+        Vector3 bypassDir = desiredDir;
+
+        // 1. IZBJEGAVANJE ZIDOVA (Wall Sliding)
+        if (hasObstacle)
+        {
+            // Projektiramo smjer kretanja na ravninu zida. 
+            // Ovo omogućuje zombiju da automatski i glatko klizi uzduž zida prema izlazu.
+            Vector3 slideDir = Vector3.ProjectOnPlane(desiredDir, hit.normal);
+            slideDir.z = 0f;
+
+            if (slideDir != Vector3.zero)
+            {
+                bypassDir = slideDir.normalized;
+            }
+            else
+            {
+                // Ako je zombi pod savršenim pravim kutem, koristimo normalu zida da se odgurne
+                bypassDir = hit.normal;
+            }
+        }
+
+        // 2. IZBJEGAVANJE DRUGIH ZOMBIJA (Separation / Flanking)
+        // Provjeravamo ima li drugih zombija u krugu od 1.5 metara
+        Collider[] nearbyColliders = Physics.OverlapSphere(transform.position, 1.5f);
+        Vector3 separationVec = Vector3.zero;
+        int zombieCount = 0;
+
+        foreach (var col in nearbyColliders)
+        {
+            // Detektiramo druge zombije provjerom komponente 'Zombi' (tag-neovisno)
+            if (col.gameObject != gameObject && col.GetComponent<Zombi>() != null)
+            {
+                Vector3 diff = transform.position - col.transform.position;
+                diff.z = 0f;
+
+                // Što je drugi zombi bliže, sila odgurivanja je jača
+                separationVec += diff.normalized / (diff.magnitude + 0.1f);
+                zombieCount++;
+            }
+        }
+
+        if (zombieCount > 0)
+        {
+            separationVec = separationVec.normalized;
+
+            // Miješamo smjer kretanja i silu odgurivanja od drugih zombija.
+            // Ovo stvara efekt širenja i prirodnog bokorenja oko igrača.
+            bypassDir = Vector3.Lerp(bypassDir, (bypassDir + separationVec * 0.8f).normalized, 0.5f);
+        }
+
+        return bypassDir.normalized;
+    }
+
     private void OkreniSePremaIgracu()
     {
         if (igracMeta == null) return;
 
         Vector3 smjerDoIgraca = igracMeta.position - transform.position;
         smjerDoIgraca.z = 0;
-        float kut = Mathf.Atan2(smjerDoIgraca.y, smjerDoIgraca.x) * Mathf.Rad2Deg - 90f;
-        transform.rotation = Quaternion.Euler(0, 0, kut);
+
+        if (smjerDoIgraca != Vector3.zero)
+        {
+            float ciljaniKut = Mathf.Atan2(smjerDoIgraca.y, smjerDoIgraca.x) * Mathf.Rad2Deg - 90f;
+            Quaternion ciljanaRotacija = Quaternion.Euler(0f, 0f, ciljaniKut);
+
+
+            transform.rotation = Quaternion.Slerp(transform.rotation, ciljanaRotacija, brzinaRotacije * Time.deltaTime);
+        }
     }
 
     public void NapraviKorak()
     {
-        if (currentState != ZombieState.Active || uDometu || igracMeta == null || !aktivan) return;
+        if (currentState != ZombieState.Active || igracMeta == null || !aktivan) return;
 
         if (korakCoroutine != null) StopCoroutine(korakCoroutine);
         korakCoroutine = StartCoroutine(GladakKorak());
@@ -465,7 +653,10 @@ public class Zombi : MonoBehaviour, IDamageable {
         {
             if (currentState != ZombieState.Active) yield break;
 
-            transform.position = Vector3.Lerp(pocetnaPozicija, ciljanaPozicija, protekloVrijeme / trajanjeZakoraka);
+            if (rb != null)
+            {
+                rb.MovePosition(Vector3.Lerp(pocetnaPozicija, ciljanaPozicija, protekloVrijeme / trajanjeZakoraka));
+            }
 
             protekloVrijeme += Time.deltaTime;
             yield return null;

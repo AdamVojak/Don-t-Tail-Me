@@ -857,8 +857,8 @@ Transform:
   m_GameObject: {fileID: 8676865}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -9.7733, y: -1.3662, z: 0.1435}
-  m_LocalScale: {x: 0.32723445, y: 6.2243314, z: 20.736265}
+  m_LocalPosition: {x: -9.7733, y: -1.3496, z: 0.1435}
+  m_LocalScale: {x: 0.32723445, y: 6.2573204, z: 20.736265}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 310124959}
@@ -10894,7 +10894,7 @@ GameObject:
   m_Component:
   - component: {fileID: 68987892}
   - component: {fileID: 68987893}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: Wire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11829,8 +11829,8 @@ Transform:
   m_GameObject: {fileID: 75078903}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -23.6089, y: 25.339, z: 7.4012}
-  m_LocalScale: {x: 0.5287975, y: 2.8413405, z: 25.88071}
+  m_LocalPosition: {x: -23.6089, y: 25.339, z: -1}
+  m_LocalScale: {x: 0.5287975, y: 2.8413405, z: 21}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 781751314}
@@ -14903,7 +14903,7 @@ GameObject:
   - component: {fileID: 97057504}
   - component: {fileID: 97057506}
   - component: {fileID: 97057505}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: Lampica
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -38923,8 +38923,8 @@ Transform:
   m_GameObject: {fileID: 272792522}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -9.7211, y: 7.3692, z: 0.1435}
-  m_LocalScale: {x: 0.33980313, y: 5.6632504, z: 20.736265}
+  m_LocalPosition: {x: -9.7211, y: 7.4515, z: 0.1435}
+  m_LocalScale: {x: 0.33980313, y: 5.49845, z: 20.736265}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 310124959}
@@ -43107,7 +43107,7 @@ MonoBehaviour:
     CustomLookAtTarget: 0
   Lens:
     FieldOfView: 30
-    OrthographicSize: 4
+    OrthographicSize: 5
     NearClipPlane: 0.32
     FarClipPlane: 1000
     Dutch: 0
@@ -43153,7 +43153,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineConfiner3D
   BoundingVolume: {fileID: 1909151623}
-  SlowingDistance: 10
+  SlowingDistance: 5
 --- !u!114 &300651920
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -43197,7 +43197,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
   TrackerSettings:
-    BindingMode: 4
+    BindingMode: 3
     PositionDamping: {x: 1, y: 1, z: 1}
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
@@ -46292,8 +46292,8 @@ Transform:
   m_GameObject: {fileID: 325308496}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -26.2887, y: 26.57, z: 7.4012}
-  m_LocalScale: {x: 5.8886137, y: 0.3792449, z: 25.88071}
+  m_LocalPosition: {x: -26.2887, y: 26.57, z: -1}
+  m_LocalScale: {x: 5.8886137, y: 0.3792449, z: 21}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 781751314}
@@ -48066,7 +48066,7 @@ GameObject:
   - component: {fileID: 342873683}
   - component: {fileID: 342873685}
   - component: {fileID: 342873684}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -61991,8 +61991,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.28, y: 0.15, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 0.5, y: 0.5, z: 1}
+  m_Center: {x: 0, y: 0, z: -0.45}
 --- !u!1001 &443510792
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -66511,7 +66511,7 @@ MonoBehaviour:
   minigun: {fileID: 1546100451}
   pajser: {fileID: 1770966022}
   gameManager: {fileID: 1769046971}
-  sashaAudio: {fileID: 0}
+  sashaAudio: {fileID: 470633976}
   JacinaUdarcaUI: {fileID: 1372850447}
   AmmoUI: {fileID: 619225662}
   MinigunUI: {fileID: 1903490254}
@@ -66682,14 +66682,15 @@ MonoBehaviour:
   - {fileID: 8300000, guid: f9be06f1e91cd504aa44ee869a677d6a, type: 3}
   - {fileID: 8300000, guid: 8e205944b2691f14e97b5ce7f736eb56, type: 3}
   wormBiteClip: {fileID: 8300000, guid: a8f44848a553b3340a66204908637717, type: 3}
+  hitVolume: 0.5
   hurtVolume: 0.75
-  hurtDelay: 0.12
+  hurtDelay: 0.15
   weaponSwitchClips:
   - {fileID: 8300000, guid: 74307dfb386f5c8478ec23b19552bfae, type: 3}
   - {fileID: 8300000, guid: 4bd7e00dc91e7184bbc8e97b5cfc8efe, type: 3}
   - {fileID: 8300000, guid: cc52e6a1baa1c2d4cbe04ac2f8c0ddac, type: 3}
   - {fileID: 8300000, guid: bb0514f3bb005c040bac35d8daba4f89, type: 3}
-  changeVolume: 0.75
+  changeVolume: 0.7
   pushStartClip: {fileID: 8300000, guid: 34f41682dde1efc42b6c5b9a9de6276f, type: 3}
   pushLoopClip: {fileID: 8300000, guid: 91185fcad777a8341a251139d87458f8, type: 3}
   pushStopClip: {fileID: 8300000, guid: 9a8845457fa821447b0f00827dca45e1, type: 3}
@@ -73281,7 +73282,7 @@ GameObject:
   m_Component:
   - component: {fileID: 515640320}
   - component: {fileID: 515640324}
-  - component: {fileID: 515640323}
+  - component: {fileID: 515640325}
   - component: {fileID: 515640322}
   - component: {fileID: 515640321}
   m_Layer: 0
@@ -73343,32 +73344,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 515640319}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4d75924d76b05344aa410607bc57db98, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineConfiner3D
   BoundingVolume: {fileID: 1745387374}
   SlowingDistance: 5
---- !u!114 &515640323
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 515640319}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
-  TrackerSettings:
-    BindingMode: 4
-    PositionDamping: {x: 1, y: 1, z: 1}
-    AngularDampingMode: 0
-    RotationDamping: {x: 1, y: 1, z: 1}
-    QuaternionDamping: 1
-  FollowOffset: {x: 0, y: 0, z: -10}
 --- !u!114 &515640324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -73412,6 +73394,25 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
+--- !u!114 &515640325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 515640319}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
+  TrackerSettings:
+    BindingMode: 3
+    PositionDamping: {x: 1, y: 1, z: 1}
+    AngularDampingMode: 0
+    RotationDamping: {x: 1, y: 1, z: 1}
+    QuaternionDamping: 1
+  FollowOffset: {x: 0, y: 0, z: -10}
 --- !u!1001 &515872983
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -96510,7 +96511,7 @@ GameObject:
   - component: {fileID: 648122622}
   - component: {fileID: 648122621}
   - component: {fileID: 648122620}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: CompPanel1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -103845,7 +103846,7 @@ GameObject:
   m_Component:
   - component: {fileID: 698957758}
   - component: {fileID: 698957757}
-  - component: {fileID: 698957756}
+  - component: {fileID: 698957759}
   - component: {fileID: 698957755}
   - component: {fileID: 698957754}
   m_Layer: 0
@@ -103899,25 +103900,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineConfiner3D
   BoundingVolume: {fileID: 1313851355}
   SlowingDistance: 5
---- !u!114 &698957756
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 698957753}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
-  TrackerSettings:
-    BindingMode: 4
-    PositionDamping: {x: 1, y: 1, z: 1}
-    AngularDampingMode: 0
-    RotationDamping: {x: 1, y: 1, z: 1}
-    QuaternionDamping: 1
-  FollowOffset: {x: 0, y: 0, z: -10}
 --- !u!114 &698957757
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -103943,7 +103925,7 @@ MonoBehaviour:
     CustomLookAtTarget: 0
   Lens:
     FieldOfView: 30
-    OrthographicSize: 4
+    OrthographicSize: 5
     NearClipPlane: 0.32
     FarClipPlane: 1000
     Dutch: 0
@@ -103976,6 +103958,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 198308619}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &698957759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 698957753}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
+  TrackerSettings:
+    BindingMode: 3
+    PositionDamping: {x: 1, y: 1, z: 1}
+    AngularDampingMode: 0
+    RotationDamping: {x: 1, y: 1, z: 1}
+    QuaternionDamping: 1
+  FollowOffset: {x: 0, y: 0, z: -10}
 --- !u!1 &699463079
 GameObject:
   m_ObjectHideFlags: 0
@@ -117186,7 +117187,7 @@ GameObject:
   - component: {fileID: 798892027}
   - component: {fileID: 798892029}
   - component: {fileID: 798892028}
-  m_Layer: 10
+  m_Layer: 3
   m_Name: HintCollider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -121282,13 +121283,14 @@ GameObject:
   - component: {fileID: 825055370}
   - component: {fileID: 825055369}
   - component: {fileID: 825055371}
+  - component: {fileID: 825055372}
   m_Layer: 6
   m_Name: Sasha_Player
   m_TagString: Sasha
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &825055365
 Transform:
   m_ObjectHideFlags: 0
@@ -121325,11 +121327,12 @@ MonoBehaviour:
   wormBiteDelay: 0.5
   minWormsForDamage: 2
   pushSpeed: 1.75
-  pushRotationSpeed: 120
+  pushRotationSpeed: 90
   attachDistance: 1.5
   currentState: 0
   mrtavSpritePrefab: {fileID: 2874807202234103300, guid: 29290d2bcecedfd43883353fae176ba6, type: 3}
-  moveSpeed: 2.5
+  multiplierSpeed: 1.8
+  moveSpeed: 2.8
   zivot: 0
   dozvoljenoKretanje: 0
   trenutnaVentilacija: {fileID: 2086044194}
@@ -121479,6 +121482,21 @@ MonoBehaviour:
   mirandinaVentilacija: {fileID: 912873417}
   giovanniVentilacija: {fileID: 1549407325}
   sashaAudio: {fileID: 470633976}
+--- !u!114 &825055372
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 825055363}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bad9cd329490dd74baa26724dcf1405b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  points: []
+  minDistanceBetweenPoints: 1.25
+  maxPoints: 20
 --- !u!1001 &825115233
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -124957,7 +124975,7 @@ GameObject:
   - component: {fileID: 848959625}
   - component: {fileID: 848959624}
   - component: {fileID: 848959623}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: CompPanel2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -126454,7 +126472,7 @@ GameObject:
   - component: {fileID: 858704840}
   - component: {fileID: 858704842}
   - component: {fileID: 858704841}
-  m_Layer: 10
+  m_Layer: 3
   m_Name: Spot Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -135015,7 +135033,7 @@ Camera:
   far clip plane: 1000
   field of view: 30
   orthographic: 1
-  orthographic size: 4
+  orthographic size: 5
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -146100,7 +146118,7 @@ GameObject:
   m_Component:
   - component: {fileID: 997248917}
   - component: {fileID: 997248921}
-  - component: {fileID: 997248920}
+  - component: {fileID: 997248922}
   - component: {fileID: 997248919}
   - component: {fileID: 997248918}
   m_Layer: 0
@@ -146169,25 +146187,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineConfiner3D
   BoundingVolume: {fileID: 1730256282}
   SlowingDistance: 10
---- !u!114 &997248920
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 997248916}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
-  TrackerSettings:
-    BindingMode: 4
-    PositionDamping: {x: 1, y: 1, z: 1}
-    AngularDampingMode: 0
-    RotationDamping: {x: 1, y: 1, z: 1}
-    QuaternionDamping: 1
-  FollowOffset: {x: 0, y: 0, z: -10}
 --- !u!114 &997248921
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -146213,7 +146212,7 @@ MonoBehaviour:
     CustomLookAtTarget: 0
   Lens:
     FieldOfView: 30
-    OrthographicSize: 4
+    OrthographicSize: 5
     NearClipPlane: 0.32
     FarClipPlane: 1000
     Dutch: 0
@@ -146231,6 +146230,25 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
+--- !u!114 &997248922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 997248916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
+  TrackerSettings:
+    BindingMode: 3
+    PositionDamping: {x: 1, y: 1, z: 1}
+    AngularDampingMode: 0
+    RotationDamping: {x: 1, y: 1, z: 1}
+    QuaternionDamping: 1
+  FollowOffset: {x: 0, y: 0, z: -10}
 --- !u!1001 &998022529
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -153426,8 +153444,8 @@ Transform:
   m_GameObject: {fileID: 1048664311}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -20.8789, y: 10.238, z: -0.10000038}
-  m_LocalScale: {x: 16.757292, y: 0.25832903, z: 20.1}
+  m_LocalPosition: {x: -20.8789, y: 10.2858, z: -0.10000038}
+  m_LocalScale: {x: 16.757292, y: 0.21998502, z: 20.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 781751314}
@@ -170655,7 +170673,7 @@ GameObject:
   - component: {fileID: 1123934962}
   - component: {fileID: 1123934961}
   - component: {fileID: 1123934963}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: Lever
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -181158,7 +181176,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1188075691}
   - component: {fileID: 1188075695}
-  - component: {fileID: 1188075694}
+  - component: {fileID: 1188075696}
   - component: {fileID: 1188075693}
   - component: {fileID: 1188075692}
   m_Layer: 0
@@ -181227,25 +181245,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineConfiner3D
   BoundingVolume: {fileID: 443164631}
   SlowingDistance: 5
---- !u!114 &1188075694
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1188075690}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
-  TrackerSettings:
-    BindingMode: 4
-    PositionDamping: {x: 1, y: 1, z: 1}
-    AngularDampingMode: 0
-    RotationDamping: {x: 1, y: 1, z: 1}
-    QuaternionDamping: 1
-  FollowOffset: {x: 0, y: 0, z: -10}
 --- !u!114 &1188075695
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181271,7 +181270,7 @@ MonoBehaviour:
     CustomLookAtTarget: 0
   Lens:
     FieldOfView: 30
-    OrthographicSize: 4
+    OrthographicSize: 5
     NearClipPlane: 0.32
     FarClipPlane: 1000
     Dutch: 0
@@ -181289,6 +181288,25 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
+--- !u!114 &1188075696
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1188075690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
+  TrackerSettings:
+    BindingMode: 3
+    PositionDamping: {x: 1, y: 1, z: 1}
+    AngularDampingMode: 0
+    RotationDamping: {x: 1, y: 1, z: 1}
+    QuaternionDamping: 1
+  FollowOffset: {x: 0, y: 0, z: -10}
 --- !u!1001 &1188138129
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -182134,7 +182152,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1191438555}
   - component: {fileID: 1191438556}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: Wire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -191248,7 +191266,7 @@ GameObject:
   - component: {fileID: 1252205463}
   - component: {fileID: 1252205465}
   - component: {fileID: 1252205464}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -202753,8 +202771,8 @@ Transform:
   m_GameObject: {fileID: 1337608474}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -15.5525, y: 21.8398, z: 7.4012}
-  m_LocalScale: {x: 6.3860903, y: 0.3792449, z: 25.88071}
+  m_LocalPosition: {x: -15.5525, y: 21.8398, z: -1}
+  m_LocalScale: {x: 6.3860903, y: 0.3792449, z: 21}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 781751314}
@@ -227789,8 +227807,8 @@ Transform:
   m_GameObject: {fileID: 1508367399}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -21.1956, y: 23.8107, z: -1.5587}
-  m_LocalScale: {x: 5.2154655, y: 0.31625357, z: 17.18349}
+  m_LocalPosition: {x: -21.1956, y: 23.8107, z: -1}
+  m_LocalScale: {x: 5.2154655, y: 0.31625357, z: 22}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 781751314}
@@ -228913,8 +228931,8 @@ MonoBehaviour:
   sfxSource: {fileID: 1519255416}
   staticVariations:
   - {fileID: 8300000, guid: 2374f90a5d4292c40a91ffb0761bdc1e, type: 3}
-  defaultStaticVolume: 0.05
-  volumeChangeSpeed: 4
+  defaultStaticVolume: 0.03
+  volumeChangeSpeed: 3
   dodatakZaHover: 0.025
   buttonClickClip: {fileID: 8300000, guid: 7c540ceb77a5ed142bd6e28de20d01a5, type: 3}
   buttonClickVolume: 0.6
@@ -232889,7 +232907,7 @@ GameObject:
   - component: {fileID: 1546138244}
   - component: {fileID: 1546138246}
   - component: {fileID: 1546138245}
-  m_Layer: 10
+  m_Layer: 3
   m_Name: HintCollider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -246572,7 +246590,7 @@ GameObject:
   - component: {fileID: 1644970995}
   - component: {fileID: 1644970994}
   - component: {fileID: 1644970996}
-  m_Layer: 10
+  m_Layer: 3
   m_Name: Lever
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -255252,7 +255270,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1693932842
 Transform:
   m_ObjectHideFlags: 0
@@ -260462,7 +260480,7 @@ BoxCollider:
   m_Enabled: 1
   serializedVersion: 3
   m_Size: {x: 0.75, y: 0.75, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Center: {x: 0, y: 0, z: -0.45}
 --- !u!1001 &1730558194
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -260985,7 +261003,7 @@ GameObject:
   - component: {fileID: 1737444337}
   - component: {fileID: 1737444339}
   - component: {fileID: 1737444338}
-  m_Layer: 10
+  m_Layer: 3
   m_Name: Spot Light
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -276257,7 +276275,7 @@ GameObject:
   - component: {fileID: 1838731033}
   - component: {fileID: 1838731035}
   - component: {fileID: 1838731034}
-  m_Layer: 9
+  m_Layer: 3
   m_Name: Lampica
   m_TagString: Untagged
   m_Icon: {fileID: 0}

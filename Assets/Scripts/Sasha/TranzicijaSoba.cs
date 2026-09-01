@@ -23,6 +23,8 @@ public class TranzicijaSoba : MonoBehaviour
     private GameManager gameManager;
     private static bool isTransitioning = false;
 
+    private System.Collections.Generic.Queue<Vector3> tranzicijskeTocke = new System.Collections.Generic.Queue<Vector3>();
+
     void Start()
     {
         gameManager = FindFirstObjectByType<GameManager>();
@@ -45,6 +47,27 @@ public class TranzicijaSoba : MonoBehaviour
         if (sashaGlavni != null)
         {
             if (gameManager == null) return;
+
+            Zombi[] sviZombiji = FindObjectsByType<Zombi>(FindObjectsSortMode.None);
+            foreach (Zombi z in sviZombiji)
+            {
+                if (z.aktivan && z.GetCurrentState() == ZombieState.Active)
+                {
+                    if (gameManager.sashaCam == cameraA)
+                    {
+                        z.PostaviTranziciju(spawnPointA.position, spawnPointB.position);
+                    }
+                    else if (gameManager.sashaCam == cameraB)
+                    {
+                        z.PostaviTranziciju(spawnPointB.position, spawnPointA.position);
+                    }
+                }
+            }
+
+            if (SashaPath.Instance != null)
+            {
+                SashaPath.Instance.ForceAddPoint(sashaGlavni.transform.position);
+            }
 
             if (gameManager.sashaCam == cameraA)
             {
@@ -73,8 +96,6 @@ public class TranzicijaSoba : MonoBehaviour
             }
         }
 
-        // --- SADA JE EKRAN 100% CRN ---
-
         // 2. Upali novu sobu
         if (novaSoba != null) novaSoba.SetActive(true);
 
@@ -87,6 +108,12 @@ public class TranzicijaSoba : MonoBehaviour
 
         if (cc != null) cc.enabled = true;
 
+        // FORSIRAMO MRVICU TOČNO NA IZLAZU IZ VRATA
+        if (SashaPath.Instance != null)
+        {
+            SashaPath.Instance.ForceAddPoint(noviSpawn.position);
+        }
+
         // 4. Prebaci kamere
         if (gameManager.sashaCam != null) gameManager.sashaCam.Priority = 0;
         gameManager.sashaCam = novaKamera;
@@ -98,10 +125,8 @@ public class TranzicijaSoba : MonoBehaviour
         // 5. Ugasi staru sobu
         if (staraSoba != null) staraSoba.SetActive(false);
 
-        // 6. PAUZA U MRAKU (Čekamo da se kamera i fizika potpuno smire)
+        // 6. PAUZA U MRAKU
         yield return new WaitForSeconds(pauzaUMraku);
-
-        // --- VRAĆAMO SLIKU ---
 
         // 7. FADE IN (Osvjetljavanje)
         if (fadeImage != null)

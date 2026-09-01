@@ -15,6 +15,7 @@ public class SashaAudio : MonoBehaviour
     [SerializeField] private AudioClip[] swingClips;   // 2 zvuka zamaha (Melee / Pajser)
     [SerializeField] private AudioClip wormBiteClip;
 
+    public float hitVolume = 0.5f;
     public float hurtVolume = 0.75f;
 
     [Tooltip("Koliko kasni krik boli nakon udarca")]
@@ -87,7 +88,7 @@ public class SashaAudio : MonoBehaviour
 
     public void PlayFistHit()
     {
-        PlayRandomSFX(fistHitClips, hurtVolume);
+        PlayRandomSFX(fistHitClips, hitVolume);
     }
 
     public void PlayWormBite()
