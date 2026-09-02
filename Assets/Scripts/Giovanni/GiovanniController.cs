@@ -87,26 +87,33 @@ public class GiovanniController : MonoBehaviour
 
     void Update()
     {
-
-
         uhvacen = tijeloGiovanniRef.uhvacen;
 
         if (currentState != GiovanniState.Dead)
         {
             if (uhvacen)
             {
-                Die(1); // 1 = Viper riba
+                Die(1);
             }
         }
 
-        if (currentState == GiovanniState.Dead || !isControlled)
+        bool uTranziciji = (GameManager.Instance != null && GameManager.Instance.isLoading);
+
+        // Zvuk kontroliramo odvojeno, bez prekidanja Update metode!
+        if (currentState == GiovanniState.Dead || !isControlled || uTranziciji)
         {
-            return;
+            if (giovanniAudio != null) giovanniAudio.StopBrownNoise();
+        }
+        else
+        {
+            if (giovanniAudio != null) giovanniAudio.StartBrownNoise();
         }
 
+        // FIZIKA I KRETANJE SE SADA UVIJEK IZVRŠAVAJU!
         HandleMovement();
 
-        if (isControlled && Input.GetKeyDown(flashlightToggleKey))
+        // Svjetiljku možemo paliti samo ako imamo kontrolu i nismo u tranziciji
+        if (isControlled && !uTranziciji && Input.GetKeyDown(flashlightToggleKey))
         {
             if (flashlightLight != null)
             {
@@ -138,7 +145,10 @@ public class GiovanniController : MonoBehaviour
         float verticalInput = 0f;
         bool wantsToSprint = false;
 
-        if (isControlled)
+        bool uTranziciji = (GameManager.Instance != null && GameManager.Instance.isLoading);
+
+        // Čitamo tipke SAMO ako imamo kontrolu i NISMO u tranziciji
+        if (isControlled && !uTranziciji)
         {
             horizontalInput = Input.GetAxis("Horizontal");
             verticalInput = Input.GetAxis("Vertical");
@@ -258,7 +268,15 @@ public class GiovanniController : MonoBehaviour
         currentState = GiovanniState.Dead;
         flashlightLight.enabled = false;
 
-        if (giovanniAudio != null) giovanniAudio.StopBrownNoise();
+        if (giovanniAudio != null)
+        {
+            giovanniAudio.StopBrownNoise(instant: true);
+
+            if (cause == 0)
+            {
+                giovanniAudio.PlayBombExplosion();
+            }
+        }
 
         if (!deathScreenTriggered && deathScreen != null)
         {

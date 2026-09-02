@@ -23,6 +23,9 @@ public class Ventilacija_Out_Miranda : MonoBehaviour
     private Sprite cekajuciItemSprite;
     private GameObject trenutniStvoreniItem;
 
+    [Header("Guiding Arrow")]
+    [SerializeField] private GuideArrowMiranda guidingArrow;
+
 
     public SFX sfx;
     private AudioSource zvukPadanja;
@@ -43,12 +46,25 @@ public class Ventilacija_Out_Miranda : MonoBehaviour
         zvukPadanja = sfx.ZvukPadanjaKrozVentilacije;
         zvukIzlaska = sfx.ZvukIzlaskaIzVentilacije;
         zvukMetalnogPoda = sfx.ZvukMetalnogPoda;
+
+        if (guidingArrow == null)
+        {
+            guidingArrow = FindFirstObjectByType<GuideArrowMiranda>();
+        }
     }
 
     public void SpremiItemZaMirandu(int tip)
     {
         imaItemNaCekanju = true;
         cekajuciItemTip = tip;
+
+        if (guidingArrow == null) guidingArrow = FindFirstObjectByType<GuideArrowMiranda>();
+
+        if (guidingArrow != null)
+        {
+            guidingArrow.PostaviCilj(transform.position); // Pokazuje na ovu ventilaciju!
+        }
+
         Debug.Log("Ventilacija spremna za izbacivanje itema ID: " + tip);
     }
 

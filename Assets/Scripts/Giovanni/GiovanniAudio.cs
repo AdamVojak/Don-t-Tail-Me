@@ -9,6 +9,9 @@ public class GiovanniAudio : MonoBehaviour
     [SerializeField] private AudioSource footstepSource;
     [SerializeField] private AudioSource stingerSource;
 
+    [SerializeField] private AudioClip bombExplosionClip; // 2D Zvuk eksplozije
+    [Range(0f, 1f)][SerializeField] private float bombVolume = 0.8f;
+
     [Header("1. Koraci (Lijeva / Desna noga)")]
     [SerializeField] private AudioClip[] footstepClips; // 2 zvuka koraka (0 = Lijeva, 1 = Desna)
     [Range(0f, 1f)][SerializeField] private float footstepVolume = 0.6f;
@@ -32,12 +35,19 @@ public class GiovanniAudio : MonoBehaviour
     [Header("5. Podvodni Ambijent (Brown Noise)")]
     [SerializeField] private AudioSource ambientSource;
     [SerializeField] private AudioClip brownNoiseClip;
-    [Range(0f, 1f)][SerializeField] private float brownNoiseVolume = 0.25f;
+    [Range(0f, 1f)][SerializeField] private float brownNoiseVolume = 0.5f;
 
-    [Tooltip("Trajanje fade-in efekta u sekundama (60s = 1 minuta za polagano uranjanje u dubinu)")]
-    [SerializeField] private float brownNoiseFadeDuration = 60f; // Postavljeno na 60 sekundi!
+    [Header("Trajanje Prelaza (Fade)")]
+    [Tooltip("Koliko sekundi traje postepeno pojačavanje kad prebaciš na Giovannija (3 - 5s je idealno)")]
+    [SerializeField] private float fadeInDuration = 4.0f;
 
-    private Coroutine brownNoiseFadeCoroutine;
+    [Tooltip("Koliko sekundi traje postepeno stišavanje kad napustiš Giovannija")]
+    [SerializeField] private float fadeOutDuration = 2.0f;
+
+    private enum AmbientState { Stopped, FadingIn, Playing, FadingOut }
+    private AmbientState ambientState = AmbientState.Stopped;
+
+    private Coroutine ambientFadeCoroutine;
 
     private void Awake()
     {
@@ -113,55 +123,103 @@ public class GiovanniAudio : MonoBehaviour
 
     public void StartBrownNoise()
     {
-        if (ambientSource.isPlaying) return;
+        if (ambientSource == null || brownNoiseClip == null) return;
 
-        if (brownNoiseFadeCoroutine != null) StopCoroutine(brownNoiseFadeCoroutine);
-        brownNoiseFadeCoroutine = StartCoroutine(FadeInBrownNoiseRoutine(brownNoiseFadeDuration));
+        // AKO VEĆ SVIRA ILI JE FADE-IN VEĆ U TIJEKU -> NE DIRAJ NIŠTA I PUSTI GA DA SE POJAČA!
+        if (ambientState == AmbientState.FadingIn || ambientState == AmbientState.Playing)
+            return;
+
+        if (ambientFadeCoroutine != null) StopCoroutine(ambientFadeCoroutine);
+
+        ambientState = AmbientState.FadingIn;
+        ambientFadeCoroutine = StartCoroutine(FadeAmbientRoutine(targetVol: brownNoiseVolume, duration: fadeInDuration, stopOnEnd: false));
     }
 
-    private IEnumerator FadeInBrownNoiseRoutine(float duration)
+    /// <summary>
+    /// Pokreće glatki Fade-Out ambijenta do nule i zatim ga gasi
+    /// </summary>
+    public void StopBrownNoise(bool instant = false)
     {
-        ambientSource.clip = brownNoiseClip;
-        ambientSource.loop = true;
-        ambientSource.volume = 0f;
-        ambientSource.Play();
+        if (ambientSource == null) return;
 
-        float elapsed = 0f;
+        // Ako je već ugašen ili već traje Fade-Out, ne radi ništa
+        if (instant == false && (ambientState == AmbientState.Stopped || ambientState == AmbientState.FadingOut))
+            return;
 
-        if (duration <= 0f)
+        if (ambientFadeCoroutine != null)
         {
-            ambientSource.volume = brownNoiseVolume;
-            yield break;
+            StopCoroutine(ambientFadeCoroutine);
+            ambientFadeCoroutine = null;
         }
 
-        while (elapsed < duration)
+        // Instantno gašenje (npr. pri gašenju objekta)
+        if (instant || !gameObject.activeInHierarchy)
         {
-            elapsed += Time.deltaTime;
-            ambientSource.volume = Mathf.Lerp(0f, brownNoiseVolume, elapsed / duration);
-            yield return null;
-        }
-
-        ambientSource.volume = brownNoiseVolume;
-        brownNoiseFadeCoroutine = null;
-    }
-
-    public void StopBrownNoise()
-    {
-        if (brownNoiseFadeCoroutine != null)
-        {
-            StopCoroutine(brownNoiseFadeCoroutine);
-            brownNoiseFadeCoroutine = null;
-        }
-
-        if (ambientSource != null && ambientSource.isPlaying)
-        {
+            ambientState = AmbientState.Stopped;
             ambientSource.Stop();
             ambientSource.volume = 0f;
+            return;
         }
+
+        // Glatko stišavanje
+        ambientState = AmbientState.FadingOut;
+        ambientFadeCoroutine = StartCoroutine(FadeAmbientRoutine(targetVol: 0f, duration: fadeOutDuration, stopOnEnd: true));
+    }
+
+    private IEnumerator FadeAmbientRoutine(float targetVol, float duration, bool stopOnEnd)
+    {
+        if (!ambientSource.isPlaying)
+        {
+            ambientSource.clip = brownNoiseClip;
+            ambientSource.loop = true;
+            ambientSource.volume = 0f;
+            ambientSource.Play();
+        }
+
+        float startVol = ambientSource.volume;
+        float elapsed = 0f;
+
+        if (duration <= 0.05f)
+        {
+            ambientSource.volume = targetVol;
+        }
+        else
+        {
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                ambientSource.volume = Mathf.Lerp(startVol, targetVol, Mathf.SmoothStep(0f, 1f, t));
+                yield return null;
+            }
+        }
+
+        ambientSource.volume = targetVol;
+
+        if (stopOnEnd)
+        {
+            ambientSource.Stop();
+            ambientState = AmbientState.Stopped;
+        }
+        else
+        {
+            ambientState = AmbientState.Playing; // Uspješno postignut puni volumen!
+        }
+
+        ambientFadeCoroutine = null;
     }
 
     private void OnDisable()
     {
-        StopBrownNoise();
+        StopBrownNoise(instant: true);
+    }
+
+    public void PlayBombExplosion()
+    {
+        if (sfxSource != null && bombExplosionClip != null)
+        {
+            sfxSource.pitch = 1f;
+            sfxSource.PlayOneShot(bombExplosionClip, bombVolume);
+        }
     }
 }

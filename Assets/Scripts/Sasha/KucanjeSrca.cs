@@ -3,64 +3,82 @@ using UnityEngine;
 public class KucanjeSrca: MonoBehaviour
 {
     [Header("Audio Source")]
-    [Tooltip("Možeš ga ostaviti praznim ako je AudioSource na istom ovom UI objektu")]
     [SerializeField] private AudioSource audioSource;
 
     [Header("Zvučni Efekti Srca")]
-    [SerializeField] private AudioClip beat1;
-    [SerializeField] private AudioClip beat2;
-    [SerializeField] private AudioClip flatlineSound;
+    [SerializeField] private AudioClip beat1;        // Prvi dio otkucaja ("Lub")
+    [SerializeField] private AudioClip beat2;        // Drugi dio otkucaja ("Dub")
+    [SerializeField] private AudioClip flatlineSound; // Zvuk smrti (pištanje)
 
-    [SerializeField] private float razlikaGlasnoce = 2.5f;
+    [Header("Postavke Dinamičkog Pulsa")]
+    [Range(0f, 1f)][SerializeField] private float baseVolume = 0.8f; // Početna glasnoća na 3 HP
+    [SerializeField] private float volumeIncreasePerLostHP = 0.1f;    // Povećanje po izgubljenom HP-u
 
-    [Header("Glasnoća")]
-    [Range(0f, 1f)][SerializeField] private float volume = 1f;
-
+    private float currentVolume;
     private bool isDead = false;
+    private Animator heartAnimator;
 
     private void Awake()
     {
-        // Ako nisi ručno dohvatio AudioSource, skripta ga sama uzme
-        if (audioSource == null)
-        {
-            audioSource = GetComponent<AudioSource>();
-        }
+        if (audioSource == null) audioSource = GetComponent<AudioSource>();
+        heartAnimator = GetComponent<Animator>();
 
-        // Osiguravamo da je zvuk 100% 2D jer je ovo sučelje (UI)
         if (audioSource != null)
         {
-            audioSource.spatialBlend = 0f; // 2D zvuk
+            audioSource.spatialBlend = 0f; // 2D zvuk za UI
             audioSource.playOnAwake = false;
         }
+
+        currentVolume = baseVolume;
     }
 
+    /// <summary>
+    /// Poziva se iz SashaControllera pri primanju štete ili liječenju
+    /// </summary>
+    public void UpdateHeartRateByHealth(int currentHealth, int maxHealth = 3)
+    {
+        if (isDead) return;
+
+        // Koliko je HP-a izgubljeno (npr. 3 - 2 = 1 izgubljen HP)
+        int lostHP = Mathf.Max(0, maxHealth - currentHealth);
+
+        // Dinamička glasnoća: 0.8 + (1 * 0.1) = 0.9f itd.
+        currentVolume = Mathf.Clamp01(baseVolume + (lostHP * volumeIncreasePerLostHP));
+
+        // Blago ubrzavamo i visinu tona i animaciju srca radi panike
+        float speedMultiplier = 1.0f + (lostHP * 0.15f);
+
+        if (audioSource != null) audioSource.pitch = speedMultiplier;
+        if (heartAnimator != null) heartAnimator.speed = speedMultiplier;
+    }
+
+    // --- ANIMATION EVENTS POZIVAJU OVO ---
     public void PlayBeat1()
     {
         if (isDead || beat1 == null || audioSource == null) return;
-        audioSource.PlayOneShot(beat1, volume);
+        audioSource.PlayOneShot(beat1, currentVolume);
     }
-
 
     public void PlayBeat2()
     {
         if (isDead || beat2 == null || audioSource == null) return;
-        audioSource.PlayOneShot(beat2, volume);
+        audioSource.PlayOneShot(beat2, currentVolume);
     }
 
-
+    // --- SMRT ---
     public void PlayFlatline()
     {
         if (audioSource == null || flatlineSound == null) return;
 
         isDead = true;
-
-        // Zaustavi bilo kakav zvuk koji trenutno svira
         audioSource.Stop();
+        audioSource.pitch = 1f;
 
-        // Pusti zvuk pištanja
+        if (heartAnimator != null) heartAnimator.speed = 1f;
+
         audioSource.clip = flatlineSound;
-        audioSource.volume = volume - razlikaGlasnoce;
-        audioSource.loop = false; // Stavi na true ako imaš kratki audio file koji želiš da pišti u krug
+        audioSource.volume = baseVolume;
+        audioSource.loop = false;
         audioSource.Play();
     }
 }

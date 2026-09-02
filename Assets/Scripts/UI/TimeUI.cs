@@ -87,6 +87,16 @@ public class TimerUI : MonoBehaviour
                     currentTime -= Time.deltaTime * timeMultiplier;
                 }
 
+                if (audioSource != null)
+                {
+                    // Ciljani pitch (1.0x za normalno, do 3.0x za ubrzano da zvuči frenetično)
+                    float ciljaniPitch = Mathf.Clamp(timeMultiplier, 1.0f, 3.0f);
+
+                    // Kroz 1 sekundu glatko ubrzava ili usporava prema cilju:
+                    audioSource.pitch = Mathf.MoveTowards(audioSource.pitch, ciljaniPitch, 2.5f * Time.deltaTime);
+                }
+
+
                 float rotationAngle = (currentTime / totalTimeInSeconds) * 360f;
                 handRectTransform.rotation = Quaternion.Euler(0f, 0f, rotationAngle);
 
@@ -137,12 +147,11 @@ public class TimerUI : MonoBehaviour
         if (timerRunning)
         {
             timerRunning = false;
-
             if (audioSource != null)
             {
                 audioSource.Stop();
+                audioSource.pitch = 1f;
             }
-
             Debug.Log("Timer je zaustavljen!");
         }
     }

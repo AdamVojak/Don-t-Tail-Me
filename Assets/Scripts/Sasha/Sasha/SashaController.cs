@@ -13,6 +13,9 @@ public class SashaController : MonoBehaviour
     public float stetaCooldown = 1.0f;
     private float zadnjeVrijemeStete = -1f;
 
+    [Header("UI Srce Audio")]
+    [SerializeField] private KucanjeSrca uiHeartAudio;
+
     [Header("Postavke Roja Crva")]
     public float wormBiteDelay = 1.0f;       // Koliko dugo crvi moraju biti na igraču za ugriz (1 sekunda)
     public int minWormsForDamage = 2;        // Minimalan broj crva potreban za nanošenje štete (2 crva)
@@ -80,6 +83,8 @@ public class SashaController : MonoBehaviour
     void Start()
     {
         if (sashaAudio == null) sashaAudio = GetComponent<SashaAudio>();
+        if (uiHeartAudio == null) uiHeartAudio = FindFirstObjectByType<KucanjeSrca>();
+        if (uiHeartAudio != null) uiHeartAudio.UpdateHeartRateByHealth(zivot, 3);
         tijeloSprite.material.color = Color.white;
         glavaSprite.material.color = Color.white;
         zivot = 3;
@@ -416,9 +421,12 @@ public class SashaController : MonoBehaviour
 
     public void Heal(int paket)
     {
+        if (sashaAudio != null) sashaAudio.PlayHeal();
         int dodatak = paket;
         zivot += dodatak;
+        if (uiHeartAudio != null) uiHeartAudio.UpdateHeartRateByHealth(zivot, 3);
         if (zivot > 3) zivot = 3;
+
         tijeloSprite.material.color = Color.green;
         glavaSprite.material.color = Color.green;
         StartCoroutine(ChangeColorTemporary(Color.green, 0.3f));

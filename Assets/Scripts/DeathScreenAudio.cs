@@ -28,6 +28,14 @@ public class DeathScreenAudio : MonoBehaviour
     [SerializeField] private AudioClip boneCrackClip;
     [Range(0f, 1f)][SerializeField] private float boneCrackVolume = 1f;
 
+    [Header("4. Zvukovi Uzroka Smrti (2D)")]
+    [SerializeField] private AudioClip bombExplosionClip;
+
+    [SerializeField] private AudioClip viperScreechClip;
+
+    [Range(0f, 1f)][SerializeField] private float bombVolume = 0.65f;
+    [Range(0f, 1f)][SerializeField] private float viperVolume = 0.75f;
+
     private float targetStaticVolume = 0.5f;
     private Coroutine fadeInCoroutine;
 
@@ -74,6 +82,20 @@ public class DeathScreenAudio : MonoBehaviour
     // 1. KONTROLA TV STATIKE (Loop, Fade-In i Gašenje)
     // =========================================================================
 
+    public void PlayDeathCauseSound(int cause)
+    {
+        if (sfxSource == null) return;
+
+        if (cause == 0 && bombExplosionClip != null)
+        {
+            sfxSource.PlayOneShot(bombExplosionClip, bombVolume);
+        }
+        else if (cause == 1 && viperScreechClip != null)
+        {
+            sfxSource.PlayOneShot(viperScreechClip, viperVolume);
+        }
+    }
+
     public void StartStatic(int variationIndex = 0, bool useFadeIn = false, float fadeDuration = 0.5f)
     {
         if (staticSource == null || staticVariations == null || staticVariations.Length == 0) return;
@@ -85,7 +107,6 @@ public class DeathScreenAudio : MonoBehaviour
 
         if (fadeInCoroutine != null) StopCoroutine(fadeInCoroutine);
 
-        if (defaultStaticVolume <= 0.05f) defaultStaticVolume = 0.5f; // Sigurnosna provjera
         targetStaticVolume = defaultStaticVolume;
 
         if (useFadeIn)

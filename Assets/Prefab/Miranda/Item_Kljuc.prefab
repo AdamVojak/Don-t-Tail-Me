@@ -253,7 +253,6 @@ GameObject:
   - component: {fileID: 3296602134916432511}
   - component: {fileID: 8617299330287782433}
   - component: {fileID: 8358666270790940757}
-  - component: {fileID: 3116481549396243185}
   - component: {fileID: -3748616922347293958}
   m_Layer: 0
   m_Name: Item_Kljuc
@@ -340,20 +339,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MirandaPickup
   itemTip: 0
---- !u!114 &3116481549396243185
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2733938807656289167}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b873fe44275aee64fab3c302844f567e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Kljucevi
-  tip_kljuca: 0
-  mirandaPlayerInventory: {fileID: 0}
 --- !u!114 &-3748616922347293958
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -8,9 +8,6 @@ public class MinskoPolje : MonoBehaviour
     private int potrebnoDodira;
     private int trenutnoDodira = 0;
 
-    [Header("Vizualni Efekt Eksplozije (Opcionalno)")]
-    [SerializeField] private GameObject explosionEffectPrefab;
-
     private GiovanniController giovanniControllerRef;
     private bool isExploded = false;
 
@@ -21,12 +18,11 @@ public class MinskoPolje : MonoBehaviour
             giovanniControllerRef = FindFirstObjectByType<GiovanniController>();
         }
 
-        // Određujemo ukupan broj dodira za cijelo minsko polje (od 3 do 6)
+        // Određujemo ukupan broj dodira (3 do 6)
         potrebnoDodira = Random.Range(minUpozorenja, maxUpozorenja + 1);
         trenutnoDodira = 0;
     }
 
-    // Poziva se čim BILO KOJA bomba registrira dodir
     public void RegistrirajDodir(Vector3 pozicijaBombe, GameObject bombaKojaJeEksplodirala)
     {
         if (isExploded) return;
@@ -35,12 +31,6 @@ public class MinskoPolje : MonoBehaviour
 
         if (trenutnoDodira < potrebnoDodira)
         {
-            // ZVUK UPOZORENJA
-            if (SFX.zvucniEfekti != null && SFX.zvucniEfekti.ZvukNeuspjehaUdarcaVent != null)
-            {
-                SFX.zvucniEfekti.ZvukNeuspjehaUdarcaVent.Play();
-            }
-
             int preostalo = potrebnoDodira - trenutnoDodira;
             Debug.Log("<color=yellow>MINSKO POLJE:</color> Dodir na bombi! Preostalo još dodira: " + preostalo);
         }
@@ -57,11 +47,6 @@ public class MinskoPolje : MonoBehaviour
         isExploded = true;
 
         Debug.Log("<color=red>MINSKO POLJE:</color> BUM! Bomba je eksplodirala!");
-
-        if (explosionEffectPrefab != null)
-        {
-            Instantiate(explosionEffectPrefab, pozicijaBombe, Quaternion.identity);
-        }
 
         // Pokreni Death Screen za bombu (0 = Bomba)
         if (giovanniControllerRef != null)

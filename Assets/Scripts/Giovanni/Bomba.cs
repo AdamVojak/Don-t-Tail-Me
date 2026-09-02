@@ -7,7 +7,15 @@ public class Bomba : MonoBehaviour
     [SerializeField] private float lokalniCooldown = 1.0f;
     private float zadnjiDodir = -1f;
 
+    [Header("Audio")]
+    [SerializeField] private BombaAudio bombaAudio; // Referenca na zvuk mine
+
     private MinskoPolje minskoPoljeRef;
+
+    void Awake()
+    {
+        if (bombaAudio == null) bombaAudio = GetComponent<BombaAudio>();
+    }
 
     void Start()
     {
@@ -23,12 +31,14 @@ public class Bomba : MonoBehaviour
     {
         if (other.CompareTag("Giovanni") && minskoPoljeRef != null)
         {
-            // Provjera cooldowna SAMO ZA OVU BOMBU
             if (Time.time < zadnjiDodir + lokalniCooldown) return;
 
             zadnjiDodir = Time.time;
 
-            // Šalje signal u Minsko Polje (odmah, bez čekanja drugih bombi!)
+            // 1. PUSTI 3D ZVUK ZVECKANJA LANCA OVE BOMBE:
+            if (bombaAudio != null) bombaAudio.PlayChainHit();
+
+            // 2. Pošalji signal u Minsko Polje
             minskoPoljeRef.RegistrirajDodir(transform.position, gameObject);
         }
     }

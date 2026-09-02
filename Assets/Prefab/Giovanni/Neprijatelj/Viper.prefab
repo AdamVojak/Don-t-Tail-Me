@@ -5755,10 +5755,10 @@ MonoBehaviour:
   terrainDetectionDistance: 15
   avoidanceTurnSpeed: 120
   innerAvoidRadius: 15
-  outerBoundaryRadius: 45
+  outerBoundaryRadius: 75
   threatDamageAmount: 55
-  illuminationTimeRequired: 0
-  damageCooldown: 1
+  illuminationTimeRequired: 0.1
+  damageCooldown: 2
   wavyFrequency: 5
   wavyAmplitude: 30
   giovanniAudio: {fileID: 0}
@@ -5781,8 +5781,8 @@ MonoBehaviour:
   - {fileID: 2055738260309312062}
   - {fileID: 5413979760591328919}
   baseGlowColor: {r: 1, g: 1, b: 1, a: 1}
-  innerRadius: 20
-  fadeDistance: 30
+  innerRadius: 15
+  fadeDistance: 40
 --- !u!95 &7094360219498544722
 Animator:
   serializedVersion: 7
@@ -5882,7 +5882,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -5890,8 +5890,8 @@ AudioSource:
   Spatialize: 0
   SpatializePostEffects: 0
   Priority: 128
-  DopplerLevel: 1
-  MinDistance: 1
+  DopplerLevel: 2
+  MinDistance: 25
   MaxDistance: 500
   Pan2D: 0
   rolloffMode: 0
@@ -5942,7 +5942,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 0
+      value: 0.0027777778
       inSlope: 0
       outSlope: 0
       tangentMode: 0
@@ -5981,4 +5981,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   audioSource: {fileID: 3934172701334085589}
   jumpscareScreamClip: {fileID: 8300000, guid: 02b339d9b69264a448eade4b9f961d72, type: 3}
-  screamVolume: 0.85
+  screamVolume: 0.8

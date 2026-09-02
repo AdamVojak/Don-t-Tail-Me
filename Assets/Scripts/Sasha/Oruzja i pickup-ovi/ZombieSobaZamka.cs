@@ -12,6 +12,7 @@ public class ZombieSobaZamka : MonoBehaviour
     public GameObject glavnoSvijetlo;
     public GameObject strujaUI;
     public GameObject crvenaSvijetla;
+    public GuideArrowSasha guideArrow;
 
     private bool trapActivated = false;
     private bool isAlertActive = false; // Prati svira li trenutno uzbuna
@@ -31,6 +32,8 @@ public class ZombieSobaZamka : MonoBehaviour
 
     void Start()
     {
+
+
         foreach (Spawner s in spawneri)
         {
             s.SetActiveState(false);
@@ -81,6 +84,7 @@ public class ZombieSobaZamka : MonoBehaviour
                 isAlertActive = false;
                 crvenaSvijetla.SetActive(false);
                 glavnoSvijetlo.SetActive(true); // Normalno svjetlo se vraća!
+                guideArrow.PostaviCilj(new Vector3(-3.320000171661377f, 18.440000534057618f, 0.0f), 1f);
 
                 if (trapAudio != null) trapAudio.StopSiren();
             }

@@ -78,8 +78,12 @@ public class ViperFishController : MonoBehaviour
             viperAudio = FindAnyObjectByType<ViperFishAudio>();
         }
 
-        if (headCollider != null) yOffset = headCollider.bounds.center.y - transform.position.y;
-        fixedYPosition = transform.position.y;
+        if (headCollider != null)
+        {
+            yOffset = headCollider.bounds.center.y - transform.position.y;
+            fixedYPosition = transform.position.y;
+            headCollider.enabled = false;
+        }
 
         currentMoveDirection = -transform.forward;
         if (currentMoveDirection == Vector3.zero) currentMoveDirection = Vector3.forward;
@@ -398,6 +402,8 @@ public class ViperFishController : MonoBehaviour
 
     private IEnumerator AttackPlayer()
     {
+        if (headCollider != null) headCollider.enabled = true;
+
         if (viperAudio != null) viperAudio.PlayDeathScream();
 
         float distance = Vector3.Distance(jumpscareStart.position, cameraRoot.position);
@@ -434,6 +440,7 @@ public class ViperFishController : MonoBehaviour
         {
             giovanni.Die(1);
             currentPhase = 1;
+            if (headCollider != null) headCollider.enabled = false;
             gameObject.SetActive(false);
         }
     }

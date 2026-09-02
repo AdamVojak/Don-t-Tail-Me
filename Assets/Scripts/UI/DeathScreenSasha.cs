@@ -14,6 +14,7 @@ public class DeathScreenSasha : MonoBehaviour
     [Header("UI Elementi Uzroka")]
     public Image wormUI;
     public Image fistUI;
+    public Image glassUI;
 
     [Header("Završni Ekran (Gumbi)")]
     public GameObject buttonsContainer;
@@ -35,6 +36,7 @@ public class DeathScreenSasha : MonoBehaviour
         if (tvStaticAnimator != null) tvStaticAnimator.enabled = false;
         if (wormUI != null) wormUI.enabled = false;
         if (fistUI != null) fistUI.enabled = false;
+        if (glassUI != null) glassUI.enabled = false;
         if (buttonsContainer != null) buttonsContainer.SetActive(false);
 
         // 2. Sada sigurno palimo Canvas (ništa se ne vidi jer su Image komponente ugašene)
@@ -62,7 +64,22 @@ public class DeathScreenSasha : MonoBehaviour
         }
 
         // 3. Palimo Image uzroka i radimo fade-in
-        Image causeImage = (cause == 0) ? wormUI : fistUI;
+        Image causeImage = null;
+        switch (cause)
+        {
+            case 0:
+                causeImage = wormUI;
+                break;
+            case 1:
+                causeImage = fistUI;
+                break;
+            case 2:
+                causeImage = glassUI;
+                break;
+            default:
+                Debug.LogWarning("Nepoznat uzrok smrti: " + cause);
+                break;
+        }
         if (causeImage != null)
         {
             causeImage.gameObject.SetActive(true);

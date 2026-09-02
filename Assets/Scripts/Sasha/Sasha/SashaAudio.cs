@@ -18,6 +18,11 @@ public class SashaAudio : MonoBehaviour
     public float hitVolume = 0.5f;
     public float hurtVolume = 0.75f;
 
+    [Header("Liječenje (Heal)")]
+    [SerializeField] private AudioClip healClip;
+
+    public float healVolume = 0.75f;
+
     [Tooltip("Koliko kasni krik boli nakon udarca")]
     [Range(0.05f, 0.3f)][SerializeField] private float hurtDelay = 0.12f;
     private Coroutine hurtCoroutine;
@@ -112,6 +117,11 @@ public class SashaAudio : MonoBehaviour
         yield return new WaitForSeconds(hurtDelay);
         PlayRandomSFX(hurtClips, hurtVolume, 0.95f, 1.05f);
         hurtCoroutine = null;
+    }
+
+    public void PlayHeal()
+    {
+        PlaySingleSFX(healClip, healVolume);
     }
 
     // ==========================================

@@ -28,15 +28,22 @@ public class DeathScreenGiovanni : MonoBehaviour
 
     public void ShowDeathScreen(int cause)
     {
-        if (deathAudio != null) deathAudio.StartStatic(1, false);
+        // 1. ZVUČNI UDAR SMRTI (Eksplozija ili Viper Krik + Statika):
+        if (deathAudio != null)
+        {
+            deathAudio.PlayDeathCauseSound(cause); // <-- DODAJ OVU LINIJU!
+            deathAudio.StartStatic(1, false);
+        }
 
-        // 1. STATIC ODMAH PALIMO (Image i Animator = true, Alpha = 1)
+        // 2. STATIC ODMAH PALIMO (Image i Animator = true, Alpha = 1)
         if (tvStaticBackground != null)
         {
             SetAlpha(tvStaticBackground, 1f);
             tvStaticBackground.enabled = true;
         }
         if (tvStaticAnimator != null) tvStaticAnimator.enabled = true;
+
+        if (deathAudio != null) deathAudio.StartStatic(1, false);
 
         // 2. UZROKE GASIMO (Image = false)
         if (bombUI != null) bombUI.enabled = false;

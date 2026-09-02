@@ -17,6 +17,7 @@ public class Worms_Spawner : MonoBehaviour
     [Header("Okidači i Prepreke")]
     [SerializeField] private SpawnTrigger triggerScript;
     public float snapRadius = 0.45f;         // Unutar ovog radijusa prepreka se snap-a na centar rupe
+    public GuideArrowSasha activeArrow;
 
     private GameObject current;
     private bool isBlocked = false;
@@ -90,6 +91,12 @@ public class Worms_Spawner : MonoBehaviour
                 yield return null;
             }
 
+            if (activeArrow != null)
+            {
+                activeArrow.SakrijStrelicu();
+                activeArrow = null;
+            }
+
             // Prije stvaranja novog crva, očisti i izblijedi sve stare prepreke u blizini
             CleanUpOldObstacles();
 
@@ -127,6 +134,13 @@ public class Worms_Spawner : MonoBehaviour
             if (stopwatchObject != null && !isBlocked)
             {
                 Debug.Log("Worms_Spawner: Aktiviram štopericu na odbrojavanje...");
+                activeArrow = PronadiStrelicuNaPrepreci();
+
+                if (activeArrow != null)
+                {
+                    activeArrow.PostaviCilj(transform.position, snapRadius);
+                }
+
                 stopwatchObject.SetActive(true);
                 if (stopwatchBackground != null) stopwatchBackground.color = Color.white;
 
@@ -249,8 +263,12 @@ public class Worms_Spawner : MonoBehaviour
     {
         Debug.Log("Worms_Spawner: Pokrećem proces snap-anja prepreke (0.75s)...");
 
-        // --- NOVO: ISKLJUČI COLLIDERE NA PREPRECI ODMAH NA POČETKU ---
-        // Ovo sprječava da prepreka fizički gurne Sashu u pod dok klizi prema centru
+        if (activeArrow != null)
+        {
+            activeArrow.SakrijStrelicu();
+            activeArrow = null;
+        }
+
         if (obstacle != null)
         {
             Collider[] obstacleColliders = obstacle.GetComponentsInChildren<Collider>();
@@ -305,5 +323,35 @@ public class Worms_Spawner : MonoBehaviour
 
         StopAllCoroutines();
         this.enabled = false;
+    }
+
+    private GuideArrowSasha PronadiStrelicuNaPrepreci()
+    {
+        // 1. Ako je prepreka već u triggeru
+        if (nearbyObstacle != null)
+        {
+            GuideArrowSasha arrow = nearbyObstacle.GetComponentInChildren<GuideArrowSasha>();
+            if (arrow != null) return arrow;
+        }
+
+        // 2. Ako nije, pretraži sve prepreke u krugu od 8 metara oko rupe
+        GameObject[] allObstacles = GameObject.FindGameObjectsWithTag("Obstacle");
+        foreach (GameObject obs in allObstacles)
+        {
+            if (obs == null) continue;
+
+            float dist = Vector2.Distance(
+                new Vector2(transform.position.x, transform.position.y),
+                new Vector2(obs.transform.position.x, obs.transform.position.y)
+            );
+
+            if (dist < 8.0f)
+            {
+                GuideArrowSasha arrow = obs.GetComponentInChildren<GuideArrowSasha>();
+                if (arrow != null) return arrow;
+            }
+        }
+
+        return null;
     }
 }
