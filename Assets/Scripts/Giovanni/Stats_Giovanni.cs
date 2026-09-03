@@ -40,6 +40,12 @@ public class GiovanniStats : MonoBehaviour
 
     public bool isThreatLocked = false;
 
+    [Header("Cooldown Nakon Napada")]
+    public float postAttackCooldown = 5f;
+    private float cooldownTimer = 0f;
+
+
+
     void Start()
     {
         currentStamina = maxStamina;
@@ -73,20 +79,30 @@ public class GiovanniStats : MonoBehaviour
             currentStamina += staminaRegenIdle * Time.deltaTime;
         }
 
-        // NOVO: Threat se mijenja SAMO ako nije zaključan na nuli
+        // NOVO: Smanjujemo cooldown timer ako je aktivan
+        if (cooldownTimer > 0)
+        {
+            cooldownTimer -= Time.deltaTime;
+        }
+
+        // Threat se mijenja SAMO ako nije zaključan na nuli I ako je prošao cooldown!
         if (!isThreatLocked)
         {
             if (isMoving)
             {
-                float currentDrain = isSprinting ? threatDrainSprinting : threatDrainWalking;
-                currentThreat -= currentDrain * Time.deltaTime;
+                // Ako je cooldown aktivan, threat NE PADA od hodanja/sprintanja
+                if (cooldownTimer <= 0)
+                {
+                    float currentDrain = isSprinting ? threatDrainSprinting : threatDrainWalking;
+                    currentThreat -= currentDrain * Time.deltaTime;
+                }
             }
             else
             {
                 currentThreat += threatRegenIdle * Time.deltaTime;
             }
 
-            if (isFlashlightOn)
+            if (isFlashlightOn && cooldownTimer <= 0)
             {
                 currentThreat -= threatDrainFlashlight * Time.deltaTime;
             }
@@ -146,7 +162,7 @@ public class GiovanniStats : MonoBehaviour
 
     public void ReduceThreat(float amount)
     {
-        if (isThreatLocked) return;
+        if (isThreatLocked || cooldownTimer > 0) return;
 
         currentThreat -= amount;
         currentThreat = Mathf.Clamp(currentThreat, 0, maxThreat);
@@ -164,9 +180,16 @@ public class GiovanniStats : MonoBehaviour
         }
     }
 
-    // NOVO: Ovu metodu poziva Viper kada završi prelet/upozorenje
+    public bool IsInCooldown()
+    {
+        return cooldownTimer > 0;
+    }
+
     public void UnlockThreat()
     {
         isThreatLocked = false;
+        cooldownTimer = postAttackCooldown;
+        currentThreat = maxThreat;
+        UpdateUI();
     }
 }

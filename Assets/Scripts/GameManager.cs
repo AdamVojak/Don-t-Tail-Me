@@ -52,6 +52,21 @@ public class GameManager : MonoBehaviour
 
     public GameObject kursorSasha;
 
+    [Header("Win State Settings")]
+    public GameObject canvasConfetti;
+    public UIConfettiEmitter confettiEmitter;
+    public GameObject UI_CongratsScreen;
+
+    [Header("Completed Icons (Slider)")]
+    public GameObject sashaCompletedIcon;   // Kvačica/Pečat uz Sashu na slideru
+    public GameObject mirandaCompletedIcon; // Kvačica/Pečat uz Mirandu
+    public GameObject giovanniCompletedIcon;// Kvačica/Pečat uz Giovannija
+
+    // Zastavice da znamo tko je pobijedio
+    [HideInInspector] public bool sashaWon = false;
+    [HideInInspector] public bool mirandaWon = false;
+    [HideInInspector] public bool giovanniWon = false;
+
     [Header("Transition Settings")]
     [SerializeField] private GameObject UI_Tranzicija;
     [SerializeField] private Slider tranzicijskiSlider;
@@ -118,20 +133,22 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        if (sunLight == null)
-        {
-            Debug.LogWarning("Sun Light referenca nedostaje u GameManageru!");
-        }
-
         if (sunLight == null) Debug.LogWarning("Sun Light referenca nedostaje u GameManageru!");
-
-        //LockCursor(true);
 
         isLoading = false;
 
+        if (canvasConfetti != null) canvasConfetti.SetActive(false);
         if (UI_Tranzicija != null) UI_Tranzicija.SetActive(false);
         if (loadingManager != null) loadingManager.HideAll();
 
+        // 2. NOVO: Gašenje svih elemenata vezanih uz Pobjedu (Win State)
+        if (UI_CongratsScreen != null) UI_CongratsScreen.SetActive(false);
+        if (sashaCompletedIcon != null) sashaCompletedIcon.SetActive(false);
+        if (mirandaCompletedIcon != null) mirandaCompletedIcon.SetActive(false);
+        if (giovanniCompletedIcon != null) giovanniCompletedIcon.SetActive(false);
+        if (confettiEmitter != null) confettiEmitter.Stop();
+
+        // 3. Pokretanje uvodne tranzicije
         StartCoroutine(InitialTransitionRoutine());
     }
 
@@ -190,25 +207,17 @@ public class GameManager : MonoBehaviour
         switch (character)
         {
             case ActiveCharacter.Sasha:
-                return sashaOdabran && sashaScript != null && sashaCam != null && sashaScript.currentState != SashaController.SashaState.Dead;
+                return sashaOdabran && !sashaWon && sashaScript != null && sashaCam != null && sashaScript.currentState != SashaController.SashaState.Dead;
 
             case ActiveCharacter.Miranda:
-                return mirandaOdabrana && mirandaScript != null && mirandaCam != null && mirandaScript.currentState != MirandaController.MirandaState.Dead;
+                return mirandaOdabrana && !mirandaWon && mirandaScript != null && mirandaCam != null && mirandaScript.currentState != MirandaController.MirandaState.Dead;
 
             case ActiveCharacter.Giovanni:
-                return giovanniOdabran && giovanniScript != null && giovanniCam != null && giovanniScript.currentState != GiovanniController.GiovanniState.Dead;
+                return giovanniOdabran && !giovanniWon && giovanniScript != null && giovanniCam != null && giovanniScript.currentState != GiovanniController.GiovanniState.Dead;
 
             default:
                 return false;
         }
-    }
-
-    void SelectFirstAvailableCharacter()
-    {
-        if (IsCharacterAvailable(ActiveCharacter.Sasha)) SwitchCharacter(ActiveCharacter.Sasha);
-        else if (IsCharacterAvailable(ActiveCharacter.Miranda)) SwitchCharacter(ActiveCharacter.Miranda);
-        else if (IsCharacterAvailable(ActiveCharacter.Giovanni)) SwitchCharacter(ActiveCharacter.Giovanni);
-        else Debug.LogError("Nijedan lik nije dostupan u sceni! Provjerite reference u GameManageru.");
     }
 
     int GetAvailableCharacterCount()
@@ -221,54 +230,164 @@ public class GameManager : MonoBehaviour
     }
 
 
-    void SwitchCharacter(ActiveCharacter newCharacter)
+    public void TriggerWinSequence(ActiveCharacter winningCharacter)
     {
-        currChar = newCharacter;
+        StartCoroutine(CharacterWonRoutine(winningCharacter));
+    }
 
-        if (sashaScript != null) sashaScript.isControlled = false;
-        if (mirandaScript != null) mirandaScript.isControlled = false;
-        if (giovanniScript != null) giovanniScript.isControlled = false;
+    IEnumerator CharacterWonRoutine(ActiveCharacter winningCharacter)
+    {
+        isLoading = true;
+        isTransitioning = true;
+        isMenuOpen = true; // Odmah blokiramo druge unose
 
-        if (sashaCam != null) sashaCam.Priority = 0;
-        if (mirandaCam != null) mirandaCam.Priority = 0;
-        if (giovanniCam != null) giovanniCam.Priority = 0;
+        // 1. Zabilježi pobjedu i upali odgovarajuću ikonu na slideru
+        if (winningCharacter == ActiveCharacter.Sasha) { sashaWon = true; if (sashaCompletedIcon != null) sashaCompletedIcon.SetActive(true); }
+        else if (winningCharacter == ActiveCharacter.Miranda) { mirandaWon = true; if (mirandaCompletedIcon != null) mirandaCompletedIcon.SetActive(true); }
+        else if (winningCharacter == ActiveCharacter.Giovanni) { giovanniWon = true; if (giovanniCompletedIcon != null) giovanniCompletedIcon.SetActive(true); }
 
-        if (kursorSasha != null) kursorSasha.SetActive(false);
+        DisableAllControls();
 
-        if (UI_Sasha != null) UI_Sasha.SetActive(false);
-        if (UI_Miranda != null) UI_Miranda.SetActive(false);
-        if (UI_Giovanni != null) UI_Giovanni.SetActive(false);
+        // --- 2. SPORO SPUŠTANJE ZIDA ---
+        if (loadingManager != null)
+            yield return StartCoroutine(loadingManager.DropWallRoutine(2.0f));
+
+        HideAllCharacterUIs();
+
+        yield return new WaitForSeconds(1.0f);
 
 
-        if (newCharacter == ActiveCharacter.Giovanni)
+        // --- 3. IZNENADNI KAZOO ZVUK I KONFETI! ---
+        if (loadingAudio != null) loadingAudio.PlayConfetti();
+
+        if (canvasConfetti != null) canvasConfetti.SetActive(true);
+        if (confettiEmitter != null)
         {
-            ApplyGiovanniEnvironment(true);
+            confettiEmitter.gameObject.SetActive(true);
+            confettiEmitter.Play();
         }
-        else
+
+        // ... (nastavak na 4. korak s Congrats ekranom) ...
+
+
+        // --- 4. PRIKAZ "CONGRATS" EKRANA ---
+        if (UI_CongratsScreen != null)
         {
-            ApplyGiovanniEnvironment(false);
+            // A) Palimo glavni Canvas da bi se natpis mogao vidjeti
+            Canvas parentCanvas = UI_CongratsScreen.GetComponentInParent<Canvas>(true);
+            if (parentCanvas != null) parentCanvas.gameObject.SetActive(true);
+
+            // =========================================================================
+            // KLJUČNA LINIJA: PRISILNO GASIMO SLIDER DOK TRAJE CONGRATS SLAVLJE!
+            // =========================================================================
+            if (UI_Tranzicija != null) UI_Tranzicija.SetActive(false);
+
+            // B) Palimo praznog roditelja od Congratsa
+            UI_CongratsScreen.SetActive(true);
+
+            // C) Palimo sliku unutar roditelja
+            foreach (Transform child in UI_CongratsScreen.transform)
+            {
+                child.gameObject.SetActive(true);
+            }
+
+            if (loadingAudio != null) loadingAudio.PlayFlicker();
+
+            CanvasGroup cg = UI_CongratsScreen.GetComponent<CanvasGroup>();
+            if (cg == null) cg = UI_CongratsScreen.AddComponent<CanvasGroup>();
+
+            float fadeDuration = 0.5f;
+            float elapsedFade = 0f;
+            while (elapsedFade < fadeDuration)
+            {
+                elapsedFade += Time.deltaTime;
+                float baseAlpha = elapsedFade / fadeDuration;
+                float jitter = Random.Range(-0.25f, 0.25f);
+                cg.alpha = Mathf.Clamp01(baseAlpha + jitter);
+                yield return null;
+            }
+            cg.alpha = 1f;
+        }
+
+        // --- 5. SLAVLJE I PRIRODNI IZLAZAK KONFETA ---
+        yield return new WaitForSeconds(1f);
+        if (confettiEmitter != null) confettiEmitter.Stop(); // Konfeti staju na pola
+        yield return new WaitForSeconds(1.5f);
+
+        // --- 6. NAGLI PREKID NATPISA ---
+        if (loadingAudio != null) loadingAudio.PlayFlicker();
+        if (UI_CongratsScreen != null) UI_CongratsScreen.SetActive(false); // Gasimo Congrats!
+
+        yield return new WaitForSeconds(0.5f); // 0.5s čiste tišine u mraku
+
+
+        // --- 7. TEK SADA PALIMO SLIDER IZBORNIK ---
+        // --- 7. TRAŽENJE SLJEDEĆEG LIKA I PALJENJE IZBORNIKA ---
+
+        // A) Algoritam koji traži prvog idućeg slobodnog lika u krug (Sasha -> Miranda -> Giovanni)
+        ActiveCharacter nextChar = ActiveCharacter.Odabir;
+        ActiveCharacter check = winningCharacter;
+
+        for (int i = 0; i < 3; i++)
+        {
+            if (check == ActiveCharacter.Sasha) check = ActiveCharacter.Miranda;
+            else if (check == ActiveCharacter.Miranda) check = ActiveCharacter.Giovanni;
+            else if (check == ActiveCharacter.Giovanni) check = ActiveCharacter.Sasha;
+
+            // Provjeravamo je li taj lik u igri, živ i DA NIJE VEĆ POBIJEDIO:
+            if (IsCharacterAvailable(check))
+            {
+                nextChar = check;
+                break;
+            }
+        }
+
+        // B) Provjera: Što ako su SVI likovi već pobijedili? (KRAJ CIJELE IGRE!)
+        if (nextChar == ActiveCharacter.Odabir)
+        {
+            Debug.Log("ČESTITAMO! Svi likovi su završili svoje levele! KRAJ IGRE!");
+            // Ovdje kasnije možemo dodati završnu špicu ili pobjednički meni!
+            yield break;
         }
 
 
-        if (currChar == ActiveCharacter.Sasha && IsCharacterAvailable(ActiveCharacter.Sasha))
+        // C) Postavljamo slider na pobjednika u mraku da se vidi njegov pečat čim se TV upali
+        if (tranzicijskiSlider != null)
+            tranzicijskiSlider.value = GetCharacterSliderValue(winningCharacter);
+        if (UI_EnterTipka != null) UI_EnterTipka.SetActive(false);
+
+
+        // D) Drhtavo paljenje TV-a (Slider izbornika)
+        if (UI_Tranzicija != null)
         {
-            sashaScript.isControlled = true;
-            if (kursorSasha != null) kursorSasha.SetActive(true);
-            sashaCam.Priority = 10;
-            if (UI_Sasha != null) UI_Sasha.SetActive(true);
+            if (loadingAudio != null) loadingAudio.PlayComputerStartup();
+            if (loadingAudio != null) loadingAudio.PlayFlicker();
+
+            UI_Tranzicija.SetActive(true);
+
+            CanvasGroup cg = UI_Tranzicija.GetComponent<CanvasGroup>();
+            if (cg == null) cg = UI_Tranzicija.AddComponent<CanvasGroup>();
+
+            float fadeDuration = 0.4f;
+            float elapsedFade = 0f;
+            while (elapsedFade < fadeDuration)
+            {
+                elapsedFade += Time.deltaTime;
+                float baseAlpha = elapsedFade / fadeDuration;
+                float jitter = Random.Range(-0.25f, 0.25f);
+                cg.alpha = Mathf.Clamp01(baseAlpha + jitter);
+                yield return null;
+            }
+            cg.alpha = 1f;
         }
-        else if (currChar == ActiveCharacter.Miranda && IsCharacterAvailable(ActiveCharacter.Miranda))
-        {
-            mirandaScript.isControlled = true;
-            mirandaCam.Priority = 10;
-            if (UI_Miranda != null) UI_Miranda.SetActive(true);
-        }
-        else if (currChar == ActiveCharacter.Giovanni && IsCharacterAvailable(ActiveCharacter.Giovanni))
-        {
-            giovanniScript.isControlled = true;
-            giovanniCam.Priority = 10;
-            if (UI_Giovanni != null) UI_Giovanni.SetActive(true);
-        }
+
+        // E) Kratka pauza (0.4s) da igrač vidi pobjednički pečat na liku koji je završio
+        yield return new WaitForSeconds(0.4f);
+
+
+        // F) AUTOMATSKI POMICAMO SLIDER NA SLJEDEĆEG SLOBODNOG LIKA!
+        // Ova metoda će sama pokrenuti zvukove klikanja i upaliti tipku ENTER čim stigne!
+        MoveSliderTo(nextChar);
     }
 
 
@@ -444,7 +563,6 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(1f);
 
 
-        // --- OVO JE KLJUČNA PROMJENA ---
         // 4. PRIPREMA SLIDERA (Postavljamo vrijednost PRIJE paljenja ekrana!)
         float targetValue = GetCharacterSliderValue(targetCharacter);
         if (tranzicijskiSlider != null)
@@ -620,7 +738,19 @@ public class GameManager : MonoBehaviour
         }
         else if (newCharacter == ActiveCharacter.Miranda && IsCharacterAvailable(ActiveCharacter.Miranda))
         {
-            mirandaScript.isControlled = true;
+            // PROVJERAVAMO TREBA LI ODIGRATI INTRO:
+            MirandaIntroSequence intro = mirandaScript.GetComponent<MirandaIntroSequence>();
+            if (intro != null && !intro.hasPlayedIntro)
+            {
+                // Pokrećemo intro (skripta će sama dati kontrole kad se vrata zatvore!)
+                intro.PokreniIntro();
+            }
+            else
+            {
+                // Ako je intro već odrađen prije, odmah dajemo kontrole
+                mirandaScript.isControlled = true;
+            }
+
             if (UI_Miranda != null) UI_Miranda.SetActive(true);
         }
         else if (newCharacter == ActiveCharacter.Giovanni && IsCharacterAvailable(ActiveCharacter.Giovanni))
@@ -706,6 +836,14 @@ public class GameManager : MonoBehaviour
         }
 
         if (kursorSasha != null) kursorSasha.SetActive(false);
+    }
+
+    public void WinCurrentCharacter()
+    {
+        if (isTransitioning || isLoading || currChar == ActiveCharacter.Odabir)
+            return;
+
+        TriggerWinSequence(currChar);
     }
 
     void HideAllCharacterUIs()

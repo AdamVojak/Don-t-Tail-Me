@@ -82,7 +82,7 @@ Transform:
   m_GameObject: {fileID: 2215627296156539702}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0.95}
+  m_LocalPosition: {x: 0, y: 0, z: -0.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -206,6 +206,8 @@ GameObject:
   - component: {fileID: 669013387466385614}
   - component: {fileID: 5740106558815703125}
   - component: {fileID: 8662175097707616711}
+  - component: {fileID: 477484179307519554}
+  - component: {fileID: 3646743736360040393}
   m_Layer: 9
   m_Name: Glava
   m_TagString: Obstacle
@@ -306,6 +308,40 @@ MonoBehaviour:
   glava3: {fileID: -40852999, guid: bb4ccf7508ed34244bfb3837117c40fd, type: 3}
   glava4: {fileID: 896205840, guid: bb4ccf7508ed34244bfb3837117c40fd, type: 3}
   glava5: {fileID: -1586952589, guid: bb4ccf7508ed34244bfb3837117c40fd, type: 3}
+--- !u!114 &477484179307519554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2595088867865419841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06ebd1088eeda454595c99b7771c787d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AmmoPickup
+  gunTag: Gun
+--- !u!65 &3646743736360040393
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2595088867865419841}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.75, y: 0.9, z: 2}
+  m_Center: {x: 0, y: 0, z: -0.25}
 --- !u!1 &8250824110364502592
 GameObject:
   m_ObjectHideFlags: 0

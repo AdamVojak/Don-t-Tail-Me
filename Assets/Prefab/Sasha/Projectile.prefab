@@ -110,7 +110,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   speed: 10
   lifeTime: 4
-  damage: 15
+  damage: 20
 --- !u!65 &1695934129367789015
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -413,7 +413,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 0.0000005
+      scalar: 0.00000005
       minScalar: 1
       maxCurve:
         serializedVersion: 2

@@ -41,7 +41,6 @@ public class Zombi : MonoBehaviour, IDamageable
     [SerializeField] private Collider triggerArea;
     [SerializeField] private GameObject fist;
     private bool uDometu = false;
-    private bool animacijaZamahaUTijeku = false; // Prati samo vrti li se trenutno animacija udarca
 
     [Header("Postavke Zdravlja")]
     [SerializeField] int health = 100;
@@ -127,7 +126,10 @@ public class Zombi : MonoBehaviour, IDamageable
 
     void FixedUpdate()
     {
-        if (currentState == ZombieState.Active && aktivan && !uDometu && igracMeta != null && rb != null)
+        bool sashaMrtva = (sashaControllerRef == null || sashaControllerRef.currentState == SashaController.SashaState.Dead);
+        bool loading = (gameManagerRef != null && gameManagerRef.isLoading);
+
+        if (currentState == ZombieState.Active && aktivan && !uDometu && !sashaMrtva && !loading && rb != null)
         {
             Vector3 targetVelocity = moveDirection * trenutnaBrzina;
             targetVelocity.z = rb.linearVelocity.z;
@@ -268,9 +270,9 @@ public class Zombi : MonoBehaviour, IDamageable
             desiredDirection.z = 0f;
             desiredDirection.Normalize();
 
-            // USPORAVANJE LIJEVOG ZOMBIJA
+            // PRAVILO DESNE RUKE: Lijevi zombi potpuno staje i čeka
             float ciljanaBrzina = maksimalnaBrzina;
-            Collider[] nearby = Physics.OverlapSphere(transform.position, 1.2f);
+            Collider[] nearby = Physics.OverlapSphere(transform.position, 1.0f);
 
             foreach (var col in nearby)
             {
@@ -280,13 +282,14 @@ public class Zombi : MonoBehaviour, IDamageable
                     dirToOther.z = 0f;
                     Vector3 myRight = Vector3.Cross(desiredDirection, Vector3.forward).normalized;
 
-                    if (Vector3.Dot(dirToOther, myRight) > 0.2f)
+                    // Ako je drugi zombi s naše desne strane, mi smo lijevo -> STAJEMO NA MJESTU (0 brzina)
+                    if (Vector3.Dot(dirToOther, myRight) > 0.1f)
                     {
-                        ciljanaBrzina = maksimalnaBrzina * 0.4f;
+                        ciljanaBrzina = 0f;
                         break;
                     }
                 }
-            }
+        }
 
             trenutnaBrzina = Mathf.MoveTowards(trenutnaBrzina, ciljanaBrzina, brzinaUbrzavanja * Time.deltaTime);
             moveDirection = FindAvoidanceDirection(desiredDirection, Vector3.Distance(transform.position, trenutnaMeta));
@@ -384,8 +387,6 @@ public class Zombi : MonoBehaviour, IDamageable
     void IzvediZamah()
     {
         if (animator == null || currentState != ZombieState.Active || aktivan == false) return;
-
-        animacijaZamahaUTijeku = true; // Započinjemo zamah
 
         int strana = Random.Range(1, 11);
         animator.SetInteger("strana", strana);
@@ -558,19 +559,15 @@ public class Zombi : MonoBehaviour, IDamageable
 
     private Vector3 FindAvoidanceDirection(Vector3 desiredDir, float distanceToTarget)
     {
-        // Koristimo udaljenost do mete (mrvice), a ne do igrača
         float checkDistance = Mathf.Min(detectionDistance, distanceToTarget);
-
         RaycastHit hit;
         bool hasObstacle = Physics.Raycast(transform.position, desiredDir, out hit, checkDistance, obstacleLayerMask);
 
         Vector3 bypassDir = desiredDir;
 
-        // 1. IZBJEGAVANJE ZIDOVA (Wall Sliding)
+        // Izbjegava SAMO zidove (nema više kruženja oko drugih zombija)
         if (hasObstacle)
         {
-            // Projektiramo smjer kretanja na ravninu zida. 
-            // Ovo omogućuje zombiju da automatski i glatko klizi uzduž zida prema izlazu.
             Vector3 slideDir = Vector3.ProjectOnPlane(desiredDir, hit.normal);
             slideDir.z = 0f;
 
@@ -580,38 +577,8 @@ public class Zombi : MonoBehaviour, IDamageable
             }
             else
             {
-                // Ako je zombi pod savršenim pravim kutem, koristimo normalu zida da se odgurne
                 bypassDir = hit.normal;
             }
-        }
-
-        // 2. IZBJEGAVANJE DRUGIH ZOMBIJA (Separation / Flanking)
-        // Provjeravamo ima li drugih zombija u krugu od 1.5 metara
-        Collider[] nearbyColliders = Physics.OverlapSphere(transform.position, 1.5f);
-        Vector3 separationVec = Vector3.zero;
-        int zombieCount = 0;
-
-        foreach (var col in nearbyColliders)
-        {
-            // Detektiramo druge zombije provjerom komponente 'Zombi' (tag-neovisno)
-            if (col.gameObject != gameObject && col.GetComponent<Zombi>() != null)
-            {
-                Vector3 diff = transform.position - col.transform.position;
-                diff.z = 0f;
-
-                // Što je drugi zombi bliže, sila odgurivanja je jača
-                separationVec += diff.normalized / (diff.magnitude + 0.1f);
-                zombieCount++;
-            }
-        }
-
-        if (zombieCount > 0)
-        {
-            separationVec = separationVec.normalized;
-
-            // Miješamo smjer kretanja i silu odgurivanja od drugih zombija.
-            // Ovo stvara efekt širenja i prirodnog bokorenja oko igrača.
-            bypassDir = Vector3.Lerp(bypassDir, (bypassDir + separationVec * 0.8f).normalized, 0.5f);
         }
 
         return bypassDir.normalized;

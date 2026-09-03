@@ -39,7 +39,7 @@ public class MirandaController : MonoBehaviour
     private object trenutniVlasnikHinta = null;
 
     public float rotationMultiplier = 60f;
-    private float currentRotation = 0f;
+    public float currentRotation = 0f;
 
     [Header("Fizika")]
     public float gravity = -15f;

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Rib-cage bones low poly prop
+* source:	https://sketchfab.com/3d-models/rib-cage-bones-low-poly-prop-0390dbf638c94cefa14b2d608b015e48
+* author:	Eirik Sundby (https://sketchfab.com/Eirik_Sundby)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Rib-cage bones low poly prop" (https://sketchfab.com/3d-models/rib-cage-bones-low-poly-prop-0390dbf638c94cefa14b2d608b015e48) by Eirik Sundby (https://sketchfab.com/Eirik_Sundby) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

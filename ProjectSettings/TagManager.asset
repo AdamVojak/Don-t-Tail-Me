@@ -37,6 +37,7 @@ TagManager:
   - BeamCone
   - Pajser
   - Shaka
+  - Laser
   layers:
   - Default
   - TransparentFX

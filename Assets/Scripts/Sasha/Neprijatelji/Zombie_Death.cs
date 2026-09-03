@@ -25,6 +25,9 @@ public class ZombieDeath : MonoBehaviour
 
     private int rand;
 
+    private Vector3 pocetnaPozicijaGlave;
+    private Vector3 pocetnaPozicijaKacige;
+
 
     void Start()
     {
@@ -38,22 +41,25 @@ public class ZombieDeath : MonoBehaviour
             zvukKacige = zvucniEfekti.ZvukKacige;
             zvukDecap = zvucniEfekti.ZvukRibljeGlave;
             zvukDecap2 = zvucniEfekti.ZvukRibljeGlave2;
-        }
-        else
-        {
-            Debug.LogWarning(gameObject.name + " ne može pronaći SFX u sceni!");
+
+            // Zvukove pokrećemo OVDJE (samo jednom), a ne u Update-u!
+            if (zvukKacige != null) zvukKacige.Play();
+            rand = Random.Range(1, 5);
+            if (rand > 3 && zvukDecap != null) zvukDecap.Play();
+            else if (zvukDecap2 != null) zvukDecap2.Play();
         }
 
         Vector3 smjerIza = -transform.up;
+
+        // Pamtimo točne fiksne početne i ciljne pozicije
+        pocetnaPozicijaGlave = glava.position;
+        pocetnaPozicijaKacige = kaciga.position;
 
         ciljGlave = glava.position + (smjerIza * udaljenostGlave);
         ciljKacige = kaciga.position + (smjerIza * udaljenostKacige);
 
         glava.localRotation = Quaternion.Euler(-180f, -180f, 180f);
-
         pocetnaPozicija = transform.position;
-
-        rand = Random.Range(1,5);
     }
 
     void Update()
@@ -62,25 +68,51 @@ public class ZombieDeath : MonoBehaviour
         {
             timer += Time.deltaTime * brzinaAnimacije;
 
-            glava.position = Vector3.Lerp(glava.position, ciljGlave, timer);
-            zvukKacige.Play();
-            kaciga.position = Vector3.Lerp(kaciga.position, ciljKacige, timer);
-            if (rand > 3)
-            {
-                zvukDecap.Play();
-            }
-            else zvukDecap2.Play();
-
+            // Koristimo FIKSNU početnu poziciju (ovo sprječava trzanje u zadnjem frameu)
+            glava.position = Vector3.Lerp(pocetnaPozicijaGlave, ciljGlave, timer);
+            kaciga.position = Vector3.Lerp(pocetnaPozicijaKacige, ciljKacige, timer);
         }
         else if (!animacijaZavrsena)
         {
             animacijaZavrsena = true;
-            Invoke("UnistiObjekt", vrijemeDoUnistenja);
-        }
-    }
 
-    void UnistiObjekt()
+            // Osiguravamo točne krajnje pozicije
+            glava.position = ciljGlave;
+            kaciga.position = ciljKacige;
+
+            // ODVAJAMO GLAVU: Glava više nije dijete ovog objekta i NEĆE se uništiti!
+            glava.SetParent(null);
+
+            // Pokrećemo postepeni fade out za tijelo i kacigu
+            StartCoroutine(NestaniIUnistiTijelo());
+        }
+}
+
+    private System.Collections.IEnumerator NestaniIUnistiTijelo()
     {
+        yield return new WaitForSeconds(vrijemeDoUnistenja);
+
+        SpriteRenderer[] spriteoviZaNestajanje = GetComponentsInChildren<SpriteRenderer>();
+        float trajanjeNestajanja = 1.0f;
+        float proteklo = 0f;
+
+        while (proteklo < trajanjeNestajanja)
+        {
+            proteklo += Time.deltaTime;
+            float alpha = Mathf.Lerp(1f, 0f, proteklo / trajanjeNestajanja);
+
+            foreach (SpriteRenderer sr in spriteoviZaNestajanje)
+            {
+                if (sr != null && sr.material != null)
+                {
+                    Color c = sr.material.color;
+                    c.a = alpha;
+                    sr.material.color = c;
+                }
+            }
+            yield return null;
+        }
+
         Destroy(gameObject);
     }
 }

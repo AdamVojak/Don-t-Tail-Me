@@ -30,6 +30,7 @@ public class Ventilacija_Out_Giovanni : MonoBehaviour
     private int cekajuciItemTip;
     private bool isBusy = false;
     public bool MozePrimiti => !isBusy && !imaItemNaCekanju;
+    public bool ImaAktivnogItema => imaItemNaCekanju || isBusy;
 
     void Start()
     {

@@ -12,6 +12,7 @@ public class ViperFishController : MonoBehaviour
     [SerializeField] private Transform frontStart;
     [SerializeField] private Transform frontEnd;
     [SerializeField] private Collider headCollider;
+    [SerializeField] private Collider bodyCollider;
     private float yOffset;
 
     [Header("Reference Igrača")]
@@ -38,6 +39,12 @@ public class ViperFishController : MonoBehaviour
     [SerializeField] private float terrainDetectionDistance = 10f;
     [SerializeField] private float avoidanceTurnSpeed = 120f;
 
+    [Header("Zaštitni Balon Protiv Zidova")]
+    [SerializeField] private float obstacleBubbleRadius = 2.0f;
+
+    [Tooltip("Pomiče centar balona gore/dolje tako da bude točno na centru tijela ribe")]
+    [SerializeField] private Vector3 bubbleCenterOffset = new Vector3(0, 0.8f, 0);
+
     [Header("Granice Izbjegavanja")]
     [SerializeField] private float innerAvoidRadius = 15f;
     [SerializeField] private float outerBoundaryRadius = 80f;
@@ -50,9 +57,9 @@ public class ViperFishController : MonoBehaviour
     [SerializeField] private float wavyAmplitude = 45f;
 
     private bool isIlluminated = false;
-    private bool isTouchingConeTrigger = false; // NOVO: Prati dodir s triggerom
-    private float currentIlluminationTimer = 0f; // Prati koliko dugo je pod svjetlom
-    private float currentCooldownTimer = 0f;     // Prati cooldown
+    private float lastConeTouchTime = -1f; // NOVO: Heartbeat tajmer (rješava stackanje zauvijek!)
+    private float currentIlluminationTimer = 0f;
+    private float currentCooldownTimer = 0f;
 
     private int currentPhase = 1;
     private float fixedYPosition;
@@ -68,6 +75,11 @@ public class ViperFishController : MonoBehaviour
 
     void Start()
     {
+        if (bodyCollider == null)
+        {
+            bodyCollider = GetComponent<Collider>();
+        }
+
         if (giovanniAudio == null && giovanni != null)
         {
             giovanniAudio = giovanni.GetComponent<GiovanniAudio>();
@@ -94,7 +106,7 @@ public class ViperFishController : MonoBehaviour
 
     void Update()
     {
-        if (giovanni.currentState == GiovanniController.GiovanniState.Dead) return;
+        if (giovanni.currentState != GiovanniController.GiovanniState.Active) return;
 
         if (currentState == FishState.Roaming)
         {
@@ -104,42 +116,43 @@ public class ViperFishController : MonoBehaviour
 
     private void HandleRoaming()
     {
-        Vector3 fishHeadPos = headCollider != null ? headCollider.bounds.center : transform.position;
+        Vector3 lightPos = (giovanni != null && giovanni.flashlightHolder != null) ? giovanni.flashlightHolder.position : transform.position;
+
+        Vector3 fishHeadPos = transform.position;
+        if (bodyCollider != null)
+        {
+            fishHeadPos = bodyCollider.bounds.ClosestPoint(lightPos);
+        }
+
         Vector2 flatFish = new Vector2(fishHeadPos.x, fishHeadPos.z);
         Vector2 flatPlayer = new Vector2(giovanni.transform.position.x, giovanni.transform.position.z);
         float distanceToPlayer = Vector2.Distance(flatFish, flatPlayer);
 
-        // --- NOVO: NAPREDNA DETEKCIJA SVJETLA (Rješava zidove i blizinu) ---
         isIlluminated = false;
 
-        if (giovanni.flashlightLight != null && giovanni.flashlightLight.enabled)
+        bool igracZasticen = (giovanniStats != null && giovanniStats.IsInCooldown());
+
+        if (!igracZasticen && giovanni.flashlightLight != null && giovanni.flashlightLight.enabled)
         {
-            Vector3 lightPos = giovanni.flashlightHolder.position;
             Vector3 dirToFish = (fishHeadPos - lightPos).normalized;
             float distToFish = Vector3.Distance(lightPos, fishHeadPos);
 
-            // 1. Provjera blizine: Ako je riba blizu (do 18m) i gledaš u njenom smjeru
-            float angleToLight = Vector3.Angle(giovanni.flashlightHolder.forward, dirToFish);
-            bool isUpCloseAndAiming = (distToFish <= innerAvoidRadius + 3f) && (angleToLight <= 65f);
+            bool isTouchingCone = (Time.time - lastConeTouchTime) < 0.15f;
 
-            // Ako je u triggeru ILI je jako blizu ispred lampe
-            if (isTouchingConeTrigger || isUpCloseAndAiming)
+            // Kut se sada mjeri točno prema dijelu tijela koji ti je najbliži!
+            float angleToLight = Vector3.Angle(giovanni.flashlightHolder.forward, dirToFish);
+            bool isUpCloseAndAiming = (distToFish <= innerAvoidRadius + 3f) && (angleToLight <= 60f);
+
+            if (isTouchingCone || isUpCloseAndAiming)
             {
-                // 2. PROVJERA ZIDOVA (Line of Sight):
-                // Pucamo zraku od lampe do ribe. Ako NE udari u teren, znači da zid ne blokira svjetlo!
-                if (!Physics.Raycast(lightPos, dirToFish, distToFish - 0.3f, terrainLayer))
+                if (!Physics.Raycast(lightPos, dirToFish, Mathf.Max(0.1f, distToFish - 0.5f), terrainLayer))
                 {
                     isIlluminated = true;
                 }
             }
         }
 
-        if (!isIlluminated)
-        {
-            currentIlluminationTimer = 0f;
-        }
-
-        // 1. LOGIKA SKIDANJA THREAT-a
+        // 1. LOGIKA SKIDANJA THREAT-A I ZVUKA
         if (currentCooldownTimer > 0)
         {
             currentCooldownTimer -= Time.deltaTime;
@@ -149,18 +162,21 @@ public class ViperFishController : MonoBehaviour
         {
             currentIlluminationTimer += Time.deltaTime;
 
+            // Kada drži svjetlo 0.15s i cooldown je spreman -> DAMAGE + ZVUK
             if (currentIlluminationTimer >= illuminationTimeRequired && currentCooldownTimer <= 0f)
             {
                 giovanniStats.ReduceThreat(threatDamageAmount);
                 currentCooldownTimer = damageCooldown;
                 currentIlluminationTimer = 0f;
 
+                // ZVUK REAKCIJE
                 if (giovanniAudio != null) giovanniAudio.PlayViperLightReaction();
             }
         }
         else
         {
-            currentIlluminationTimer = 0f;
+            // Glatko smanjivanje umjesto naglog reseta na 0 (sprječava da mikro-prekid ugasi zvuk)
+            currentIlluminationTimer = Mathf.MoveTowards(currentIlluminationTimer, 0f, Time.deltaTime * 2f);
         }
 
         // 2. PRIORITETI KRETANJA
@@ -174,22 +190,44 @@ public class ViperFishController : MonoBehaviour
         Vector3 leftAngle = Quaternion.Euler(0, -30, 0) * headFwd;
         RaycastHit hit;
 
-        // PRIORITET 1: Teren (Zidovi)
-        if (Physics.Raycast(transform.position, headFwd, out hit, terrainDetectionDistance, terrainLayer))
+        // --- PRIORITET 1: TEREN (Izbjegavanje centrirano na tijelu) ---
+
+        Vector3 bubbleCenter = transform.position + bubbleCenterOffset;
+
+        // 1. SILA ODBIJANJA: Provjerava stijene u radijusu oko centra tijela
+        Collider[] closeTerrain = Physics.OverlapSphere(bubbleCenter, obstacleBubbleRadius, terrainLayer);
+
+        if (closeTerrain.Length > 0)
+        {
+            isAvoiding = true;
+            // SIGURNO: 'bounds.ClosestPoint' sprječava rušenje na MeshColliderima!
+            Vector3 closestPoint = closeTerrain[0].bounds.ClosestPoint(bubbleCenter);
+            Vector3 pushAwayDir = (bubbleCenter - closestPoint).normalized;
+            pushAwayDir.y = 0;
+
+            targetDirection = pushAwayDir;
+            currentTurnSpeedLimit = avoidanceTurnSpeed * 5f;
+            currentSpeed = escapeSpeed;
+        }
+        // 2. DEBELA ZRAKA: Puca iz centra tijela prema naprijed
+        else if (Physics.SphereCast(bubbleCenter, 1.0f, headFwd, out hit, terrainDetectionDistance, terrainLayer))
         {
             isAvoiding = true;
             targetDirection = Vector3.ProjectOnPlane(hit.normal, Vector3.up);
+            currentTurnSpeedLimit = avoidanceTurnSpeed * 2f;
         }
-        else if (Physics.Raycast(transform.position, rightAngle, out hit, terrainDetectionDistance, terrainLayer))
+        // 3. Bočni senzori
+        else if (Physics.Raycast(bubbleCenter, rightAngle, out hit, terrainDetectionDistance, terrainLayer))
         {
             isAvoiding = true; targetDirection = Quaternion.Euler(0, -45, 0) * headFwd;
         }
-        else if (Physics.Raycast(transform.position, leftAngle, out hit, terrainDetectionDistance, terrainLayer))
+        else if (Physics.Raycast(bubbleCenter, leftAngle, out hit, terrainDetectionDistance, terrainLayer))
         {
             isAvoiding = true; targetDirection = Quaternion.Euler(0, 45, 0) * headFwd;
         }
-        // PRIORITET 2: APSOLUTNA BLOKADA RADIJUSA (Računa se od glave + Fizički Pushback)
-        else if (distanceToPlayer <= innerAvoidRadius)
+
+        // PRIORITET 2: APSOLUTNA BLOKADA RADIJUSA
+        else if (distanceToPlayer <= innerAvoidRadius + 1f)
         {
             isAvoiding = true;
             Vector3 dirAway = (fishHeadPos - giovanni.transform.position).normalized;
@@ -197,12 +235,17 @@ public class ViperFishController : MonoBehaviour
 
             targetDirection = dirAway;
             currentSpeed = escapeSpeed;
-            currentTurnSpeedLimit = avoidanceTurnSpeed * 4f; // Ekstremno brzo okretanje od igrača
 
-            // NOVO (FIZIČKA BLOKADA): Ako glava uđe unutra, trenutno je izbaci na rub radijusa!
-            Vector3 clampedPos = giovanni.transform.position + (dirAway * innerAvoidRadius);
-            clampedPos.y = fixedYPosition;
-            transform.position = clampedPos;
+            // Ekstremno brzo okretanje (gotovo instantno)
+            currentTurnSpeedLimit = avoidanceTurnSpeed * 5f;
+
+            // FIZIČKA BLOKADA: Ako je stvarno probila pravu granicu, izbaci je van!
+            if (distanceToPlayer <= innerAvoidRadius)
+            {
+                Vector3 clampedPos = giovanni.transform.position + (dirAway * (innerAvoidRadius + 0.5f));
+                clampedPos.y = fixedYPosition;
+                transform.position = clampedPos;
+            }
         }
         // PRIORITET 3: Reakcija na svjetlo (Samo dok je IZVAN unutarnjeg radijusa)
         else if (isIlluminated)
@@ -430,7 +473,7 @@ public class ViperFishController : MonoBehaviour
     {
         if (other.CompareTag("BeamCone"))
         {
-            isTouchingConeTrigger = true;
+            lastConeTouchTime = Time.time;
         }
     }
 
@@ -445,14 +488,6 @@ public class ViperFishController : MonoBehaviour
         }
     }
 
-    private void OnTriggerExit(Collider other)
-    {
-        if (other.CompareTag("BeamCone"))
-        {
-            isTouchingConeTrigger = false;
-        }
-    }
-
     private void OnDrawGizmos()
     {
         if (giovanni != null)
@@ -463,5 +498,9 @@ public class ViperFishController : MonoBehaviour
             Gizmos.color = new Color(0, 1, 0, 0.3f);
             Gizmos.DrawWireSphere(giovanni.transform.position, outerBoundaryRadius);
         }
+
+        Gizmos.color = Color.yellow;
+        Vector3 bubbleCenter = transform.position + bubbleCenterOffset;
+        Gizmos.DrawWireSphere(bubbleCenter, obstacleBubbleRadius);
     }
 }

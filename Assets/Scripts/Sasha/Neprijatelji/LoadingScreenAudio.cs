@@ -41,6 +41,10 @@ public class LoadingScreenAudio : MonoBehaviour
     [Tooltip("Zvuk kada gumb iskoči natrag van (Release)")]
     [SerializeField] private AudioClip buttonReleaseClip;
 
+    [Header("6. Flicker / Treperenje Ekrana")]
+    [SerializeField] private AudioClip confettiClip;
+    [Range(0f, 1f)][SerializeField] private float confettiVolume = 0.8f;
+
     [Range(0f, 1f)][SerializeField] private float buttonClickVolume = 0.85f;
     [Range(0f, 1f)][SerializeField] private float buttonDeClickVolume = 0.85f;
 
@@ -208,6 +212,15 @@ public class LoadingScreenAudio : MonoBehaviour
         {
             sfxSource.pitch = Random.Range(0.97f, 1.03f); // Mala varijacija da zvuči prirodno
             sfxSource.PlayOneShot(buttonClickClip, buttonClickVolume);
+        }
+    }
+
+    public void PlayConfetti()
+    {
+        if (sfxSource != null && confettiClip != null)
+        {
+            sfxSource.pitch = Random.Range(0.97f, 1.03f); // Mala varijacija da zvuči prirodno
+            sfxSource.PlayOneShot(confettiClip, confettiVolume);
         }
     }
 

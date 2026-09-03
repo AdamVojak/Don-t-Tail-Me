@@ -36,10 +36,18 @@ public class Computer : MonoBehaviour
     [Header("Poveznica sa Sashom (Ako Miranda nije tu)")]
     [SerializeField] private Ventilacija_Out_Sasha sashaVentilacija;
 
+    [Header("Poveznica s Mobitelom")]
+    [SerializeField] private MobitelTracker mobitelTracker;
+
+    [Header("Audio")]
+    [SerializeField] private ComputerAudio computerAudio;
+
     public bool IsUIOpen => isUIOpen;
 
     void Start()
     {
+        if (computerAudio == null) computerAudio = GetComponent<ComputerAudio>();
+
         if (screenLight != null)
         {
             screenLight.enabled = false;
@@ -216,6 +224,12 @@ public class Computer : MonoBehaviour
         {
             isReadyToSend = true;
             StartCoroutine(FadeInLight());
+
+            if (mobitelTracker != null)
+            {
+                mobitelTracker.OnComputerUsed();
+            }
+
             Debug.Log("Kompjuter se pali...");
         }
     }
@@ -223,6 +237,8 @@ public class Computer : MonoBehaviour
     private IEnumerator FadeInLight()
     {
         if (screenLight == null) yield break;
+
+        if (computerAudio != null) computerAudio.PlayStartupSequence();
 
         screenLight.intensity = 0;
         screenLight.enabled = true;
@@ -239,7 +255,6 @@ public class Computer : MonoBehaviour
         {
             computerUI.SetActive(true);
             ToggleComputerState(true);
-                //neki zvuk paljenja
         }
     }
 
@@ -247,6 +262,8 @@ public class Computer : MonoBehaviour
     {
         float currentTime = 0;
         float startIntensity = screenLight.intensity;
+
+        if (computerAudio != null) computerAudio.PlayShutdown();
 
         if (computerUI != null) computerUI.SetActive(false);
 

@@ -129,7 +129,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Bullet
   speed: 20
   lifeTime: 2
-  damage: 10
+  damage: 25
 --- !u!54 &5806639248973084776
 Rigidbody:
   m_ObjectHideFlags: 0
