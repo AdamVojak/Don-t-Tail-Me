@@ -234,4 +234,20 @@ public class VentWormAI : MonoBehaviour
         }
         Destroy(gameObject);
     }
+
+    // NOVO: Provjera je li rep stvoren
+    public bool IsTailSpawned()
+    {
+        return isTailSpawned;
+    }
+
+    // NOVO: Vraća Transform repa (zadnjeg dijela tijela)
+    public Transform GetTailTransform()
+    {
+        if (allBodyParts.Count > 0)
+        {
+            return allBodyParts[allBodyParts.Count - 1]; // Rep je zadnji element
+        }
+        return null;
+    }
 }

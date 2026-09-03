@@ -8,6 +8,10 @@ public class Lever : MonoBehaviour
     public Transform tockaIskljucen; // Gornja točka (OFF)
     public Transform tockaUkljucen;  // Donja točka (ON)
 
+    [Header("Povezana Vrata (Logika Bijega)")]
+    [Tooltip("Uvuci UlaznaVrata koja ova poluga otvara")]
+    public UlaznaVrata ulaznaVrata; // NOVO: Direktna veza s ulaznim vratima!
+
     [Header("Postavke 3D Dubine")]
     [Tooltip("Koliko se knob pomakne po X osi dok ga držiš")]
     public float xOffsetDrzanja = 5.5f;
@@ -32,7 +36,6 @@ public class Lever : MonoBehaviour
 
     void Start()
     {
-        // Zaštita od Unity Inspector reseta na 0
         if (radiusHvatanja <= 0.1f) radiusHvatanja = 1.0f;
         if (radiusPraga <= 0.1f) radiusPraga = 0.4f;
 
@@ -60,11 +63,10 @@ public class Lever : MonoBehaviour
         if (ruka == null) PronadjiRuku();
         if (knob == null || tockaIskljucen == null || tockaUkljucen == null || ruka == null) return;
 
-        // OVDJE KORISTIMO VRH PINCETE/PRSTIJU UMJESTO CENTRA ŠAKE!
         Transform tockaPrstiju = ruka.GetTockaHvatanja();
         float udaljenostDoKnoba = UdaljenostYZ(tockaPrstiju.position, knob.position);
 
-        // 1. POČETAK HVATANJA (Gleda se točno vrh pincete)
+        // 1. POČETAK HVATANJA
         if (!isDragging && udaljenostDoKnoba <= radiusHvatanja && ruka.isStisnuta)
         {
             isDragging = true;
@@ -77,7 +79,7 @@ public class Lever : MonoBehaviour
             ZavrsiPovlacenje();
         }
 
-        // 3. POVLAČENJE (Knob prati točno vrh pincete duž vodilice)
+        // 3. POVLAČENJE
         if (isDragging)
         {
             Vector2 a = new Vector2(tockaIskljucen.position.z, tockaIskljucen.position.y);
@@ -93,7 +95,6 @@ public class Lever : MonoBehaviour
 
             Vector3 novaPozicija = Vector3.Lerp(tockaIskljucen.position, tockaUkljucen.position, t);
 
-            // Pop-out po X osi dok držiš
             float privremeniX = fiksniX + xOffsetDrzanja;
             knob.position = new Vector3(privremeniX, novaPozicija.y, novaPozicija.z);
         }
@@ -114,22 +115,40 @@ public class Lever : MonoBehaviour
         float udaljenostDoUkljuceno = UdaljenostYZ(knob.position, tockaUkljucen.position);
         float udaljenostDoIskljuceno = UdaljenostYZ(knob.position, tockaIskljucen.position);
 
+        // A) POVUČENO PREMA DOLJE (UKLJUČENO - ON)
         if (udaljenostDoUkljuceno <= radiusPraga)
         {
             if (!isUkljucen)
             {
                 isUkljucen = true;
+
+                // OTVARAMO ULAZNA VRATA I ZAKLJUČAVAMO DA OSTANU OTVORENA ZA BIJEG:
+                if (ulaznaVrata != null)
+                {
+                    ulaznaVrata.otvorenaPrekoPoluge = true;
+                    ulaznaVrata.OtvoriVrata();
+                }
+
                 onUkljuci.Invoke();
-                Debug.Log("Lever: Uspješno UKLJUČEN (ON)!");
+                Debug.Log("Lever: Uspješno UKLJUČEN (ON)! Ulazna vrata su trajno otvorena za bijeg.");
             }
         }
+        // B) VRAĆENO PREMA GORE (ISKLJUČENO - OFF)
         else if (udaljenostDoIskljuceno <= radiusPraga)
         {
             if (isUkljucen)
             {
                 isUkljucen = false;
+
+                // AKO VRATI POLUGU GORE, VRATA SE PONOVO ZATVARAJU:
+                if (ulaznaVrata != null)
+                {
+                    ulaznaVrata.otvorenaPrekoPoluge = false;
+                    ulaznaVrata.ZatvoriVrata();
+                }
+
                 onIskljuci.Invoke();
-                Debug.Log("Lever: Uspješno UGAŠEN (OFF)!");
+                Debug.Log("Lever: Uspješno UGAŠEN (OFF)! Vrata se ponovo zatvaraju.");
             }
         }
         else
@@ -143,7 +162,6 @@ public class Lever : MonoBehaviour
         return Vector2.Distance(new Vector2(tockaA.z, tockaA.y), new Vector2(tockaB.z, tockaB.y));
     }
 
-    // --- GIZMOS ---
     private void OnDrawGizmosSelected()
     {
         if (tockaIskljucen != null && tockaUkljucen != null)
@@ -160,7 +178,6 @@ public class Lever : MonoBehaviour
 
         if (knob != null)
         {
-            // Žuti krug prikazuje zonu hvatanja
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(knob.position, radiusHvatanja);
         }

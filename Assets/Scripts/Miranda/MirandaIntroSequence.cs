@@ -8,22 +8,16 @@ public class MirandaIntroSequence : MonoBehaviour
     public float rollSpeed = 6f;
     public float rollRotationMultiplier = 60f;
 
-    [Header("Svijetlo")]
-    public Light mirandaLight;
-    public float pocetniIntenzitet = 1f;
-    private float ciljniIntenzitet;
+    [Header("Audio")]
+    public float kutZvuka = 180f;
+    private MirandaAudio mirandaAudio;
+    private float accumulatedRotation = 0f;
 
     [Header("Povezana Ulazna Vrata")]
     public UlaznaVrata ulaznaVrata;
 
     private MirandaController mirandaController;
     private CharacterController characterController;
-    private float currentRotation = 0f;
-
-    [Header("Audio")]
-    public float kutZvuka = 180f;
-    private MirandaAudio mirandaAudio;
-    private float accumulatedRotation = 0f;
 
     [HideInInspector] public bool hasPlayedIntro = false;
 
@@ -32,11 +26,6 @@ public class MirandaIntroSequence : MonoBehaviour
         mirandaController = GetComponent<MirandaController>();
         characterController = GetComponent<CharacterController>();
         mirandaAudio = GetComponent<MirandaAudio>();
-
-        if (mirandaLight != null)
-        {
-            ciljniIntenzitet = mirandaLight.intensity;
-        }
     }
 
     public void PokreniIntro()
@@ -49,70 +38,62 @@ public class MirandaIntroSequence : MonoBehaviour
     {
         hasPlayedIntro = true;
 
-        // 1. PRIVREMENO GASIMO MirandaController da se skripte ne bi tukle oko rotacije!
+        // 1. Privremeno gasimo kontroler
         if (mirandaController != null)
         {
             mirandaController.isControlled = false;
-            mirandaController.enabled = false; // <--- OVO SPJEČAVA SUKOB!
+            mirandaController.enabled = false;
         }
-
-        if (mirandaLight != null) mirandaLight.intensity = pocetniIntenzitet;
 
         yield return new WaitForSeconds(0.2f);
 
-        // 2. Automatsko rolanje do točke B s glatkim usporavanjem
+        // 2. Automatsko rolanje s glatkim kočenjem
         if (pointB != null && characterController != null)
         {
-            float ukupnaUdaljenostZ = Mathf.Abs(pointB.position.z - transform.position.z);
             float pocetniSmjerZ = Mathf.Sign(pointB.position.z - transform.position.z);
-            float zonaUsporavanja = 2.0f; // Na 2 metra prije točke B počinje lagano kočiti
+            float zonaUsporavanja = 2.0f; // Počinje lagano kočiti 2m prije cilja
 
             while (true)
             {
                 float preostalaUdaljenost = Mathf.Abs(pointB.position.z - transform.position.z);
                 float trenutniSmjerZ = Mathf.Sign(pointB.position.z - transform.position.z);
 
-                // OSIGURAČ: Ako je došla dovoljno blizu (0.3m) ILI ako je slučajno prešla točku -> ODMAH STANI!
+                // Ako je došla blizu (0.3m) ili prešla točku -> STANI
                 if (preostalaUdaljenost <= 0.3f || trenutniSmjerZ != pocetniSmjerZ)
                 {
                     break;
                 }
 
-                // GLATKO USPORAVANJE (Što je bliže točki B, to se sporije kotrlja):
+                // Glatko usporavanje
                 float trenutnaBrzina = rollSpeed;
                 if (preostalaUdaljenost < zonaUsporavanja)
                 {
-                    // Usporava s pune brzine na lagano kotrljanje (1.5f)
                     trenutnaBrzina = Mathf.Lerp(1.5f, rollSpeed, preostalaUdaljenost / zonaUsporavanja);
                 }
 
                 float moveStepZ = pocetniSmjerZ * trenutnaBrzina;
-
                 Vector3 move = new Vector3(0, -9.81f, moveStepZ);
                 characterController.Move(move * Time.deltaTime);
 
-                // Rotacija tijela prati trenutnu (smanjenu) brzinu
+                // ROTACIJA (Direktno ažuriramo MirandaController varijablu!)
                 if (mirandaController != null && mirandaController.mirandaTijelo != null)
                 {
                     float rotDelta = moveStepZ * rollRotationMultiplier * Time.deltaTime;
-                    currentRotation -= rotDelta;
-                    mirandaController.mirandaTijelo.localRotation = Quaternion.Euler(0, -90, currentRotation);
+                    mirandaController.currentRotation -= rotDelta; // <--- KLJUČNO: Miranda pamti ovaj kut!
 
-                    // ZVUK KOTAČA (Whoosh zvuk svakih 180 stupnjeva):
+                    mirandaController.mirandaTijelo.localRotation = Quaternion.Euler(0, -90, mirandaController.currentRotation);
+
+                    // Audio Whoosh
                     accumulatedRotation += Mathf.Abs(rotDelta);
-
                     if (accumulatedRotation >= kutZvuka)
                     {
-                        accumulatedRotation = 0f; // Resetiramo brojač
-                        if (mirandaAudio != null) mirandaAudio.PlayWheelWhoosh(); // Pusti whoosh!
+                        accumulatedRotation = 0f;
+                        if (mirandaAudio != null) mirandaAudio.PlayWheelWhoosh();
                     }
                 }
 
                 yield return null;
             }
-
-            // Kada stane, osiguravamo da je svjetlo na 100%
-            if (mirandaLight != null) mirandaLight.intensity = ciljniIntenzitet;
         }
 
         // 3. Zatvaranje ulaznih vrata iza nje
@@ -128,10 +109,10 @@ public class MirandaIntroSequence : MonoBehaviour
 
         yield return new WaitForSeconds(0.3f);
 
-        // 4. VRAĆAMO MirandaController NATRAG U ŽIVOT I DAJEMO KONTROLE!
+        // 4. Vraćamo kontroler (Kut tijela ostaje savršeno očuvan!)
         if (mirandaController != null)
         {
-            mirandaController.enabled = true; // <--- PONOVO PALIMO SKRIPTU!
+            mirandaController.enabled = true;
             mirandaController.isControlled = true;
         }
     }

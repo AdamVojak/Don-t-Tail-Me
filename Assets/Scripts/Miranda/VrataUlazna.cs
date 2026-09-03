@@ -16,6 +16,22 @@ public class UlaznaVrata : MonoBehaviour
     private bool vrataSeMicu = false;
     public bool suVrataOtvorena { get; private set; }
 
+    [HideInInspector] public bool otvorenaPrekoPoluge = false; // Pamti je li poluga povučena
+
+    // Ovu metodu zove crv kada izađe s repom:
+    public void ZatvoriNakonCrva()
+    {
+        // Zatvaraju se SAMO ako poluga NIJE povučena!
+        if (!otvorenaPrekoPoluge)
+        {
+            ZatvoriVrata();
+        }
+        else
+        {
+            Debug.Log("Poluga je bila povučena, vrata ostaju OTVORENA za Mirandu!");
+        }
+    }
+
     void Start()
     {
         if (doorAudio == null) doorAudio = GetComponent<DoorAudio>();
