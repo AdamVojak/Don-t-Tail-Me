@@ -267,12 +267,12 @@ MonoBehaviour:
   mirandaController: {fileID: 0}
   attackDistance: 0.2
   stepSize: 2.65
-  moveInterval: 0.25
+  moveInterval: 0.5
   obstacleLayer:
     serializedVersion: 2
     m_Bits: 8
   bodyPrefab: {fileID: 1601378697755928975, guid: 9e21d1d88aa9e254ba631f9052161bf6, type: 3}
-  targetBodyCount: 3
+  targetBodyCount: 5
   tailPrefab: {fileID: 6826396673881977876, guid: ca0445a4feda9c8478a6694c0b49afba, type: 3}
   timerUI: {fileID: 0}
 --- !u!1 &8738510383749872001

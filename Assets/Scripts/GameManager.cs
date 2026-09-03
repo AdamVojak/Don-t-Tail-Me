@@ -250,7 +250,7 @@ public class GameManager : MonoBehaviour
 
         // --- 2. SPORO SPUŠTANJE ZIDA ---
         if (loadingManager != null)
-            yield return StartCoroutine(loadingManager.DropWallRoutine(2.0f));
+            yield return StartCoroutine(loadingManager.DropWallRoutine(1.3f)); // Umjesto 2.0f
 
         HideAllCharacterUIs();
 

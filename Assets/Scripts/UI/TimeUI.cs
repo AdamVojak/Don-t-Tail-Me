@@ -31,6 +31,9 @@ public class TimerUI : MonoBehaviour
     [SerializeField] private AudioClip alarmClip;
     [Range(0f, 1f)][SerializeField] private float alarmVolume = 1f;
 
+    [Header("Climax Reference")]
+    [SerializeField] private MirandaClimaxManager climaxManager;
+
     void Awake()
     {
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
@@ -111,7 +114,11 @@ public class TimerUI : MonoBehaviour
                         audioSource.PlayOneShot(alarmClip, alarmVolume);
                     }
 
-                    if (ventWorm != null)
+                    if (climaxManager != null)
+                    {
+                        climaxManager.PokreniKlimaksPrekoTajmera();
+                    }
+                    else if (ventWorm != null)
                     {
                         ventWorm.SetActive(true);
                     }

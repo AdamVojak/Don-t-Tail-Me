@@ -86,7 +86,10 @@ public class VentWormAI : MonoBehaviour
             moveTimer = 0f;
         }
     }
-
+    public void SetMoveInterval(float newInterval)
+    {
+        moveInterval = newInterval;
+    }
     private void MoveWorm()
     {
         Vector3 currentPos = transform.position;

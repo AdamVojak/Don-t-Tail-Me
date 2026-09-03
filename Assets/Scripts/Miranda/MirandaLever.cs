@@ -34,8 +34,15 @@ public class Lever : MonoBehaviour
     private float fiksniX;
     [SerializeField] private MirandaRuka ruka;
 
+    public MirandaClimaxManager climaxManager;
+
+    [Header("Audio")]
+    [SerializeField] private LeverAudio leverAudio; // Referenca na LeverAudio skriptu
+
     void Start()
     {
+        if (leverAudio == null) leverAudio = GetComponent<LeverAudio>();
+
         if (radiusHvatanja <= 0.1f) radiusHvatanja = 1.0f;
         if (radiusPraga <= 0.1f) radiusPraga = 0.4f;
 
@@ -122,15 +129,18 @@ public class Lever : MonoBehaviour
             {
                 isUkljucen = true;
 
-                // OTVARAMO ULAZNA VRATA I ZAKLJUČAVAMO DA OSTANU OTVORENA ZA BIJEG:
-                if (ulaznaVrata != null)
+                // =========================================================
+                // NOVO: PUSTI ZVUK UKLJUČIVANJA (ON)
+                // =========================================================
+                if (leverAudio != null) leverAudio.PlaySwitch(true);
+
+                if (climaxManager != null)
                 {
-                    ulaznaVrata.otvorenaPrekoPoluge = true;
-                    ulaznaVrata.OtvoriVrata();
+                    climaxManager.PokreniKlimaksPrekoPoluge();
                 }
 
                 onUkljuci.Invoke();
-                Debug.Log("Lever: Uspješno UKLJUČEN (ON)! Ulazna vrata su trajno otvorena za bijeg.");
+                Debug.Log("Lever: UKLJUČEN! Zvuk + Pokreće se klimaks sekvenca.");
             }
         }
         // B) VRAĆENO PREMA GORE (ISKLJUČENO - OFF)
@@ -140,7 +150,11 @@ public class Lever : MonoBehaviour
             {
                 isUkljucen = false;
 
-                // AKO VRATI POLUGU GORE, VRATA SE PONOVO ZATVARAJU:
+                // =========================================================
+                // NOVO: PUSTI ZVUK ISKLJUČIVANJA (OFF)
+                // =========================================================
+                if (leverAudio != null) leverAudio.PlaySwitch(false);
+
                 if (ulaznaVrata != null)
                 {
                     ulaznaVrata.otvorenaPrekoPoluge = false;
@@ -148,7 +162,7 @@ public class Lever : MonoBehaviour
                 }
 
                 onIskljuci.Invoke();
-                Debug.Log("Lever: Uspješno UGAŠEN (OFF)! Vrata se ponovo zatvaraju.");
+                Debug.Log("Lever: UGAŠEN! Zvuk + Vrata se ponovo zatvaraju.");
             }
         }
         else
