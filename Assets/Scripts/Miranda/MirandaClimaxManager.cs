@@ -113,7 +113,7 @@ public class MirandaClimaxManager : MonoBehaviour
         // Vraćamo kontrole igraču (Bježi!)
         if (mirandaController != null) mirandaController.SetLock(false);
 
-        // Glatko širimo kadar (leću) sa 5 na 7
+        // Glatko širimo kadar (leću) sa 5 na 8
         if (mirandaCam != null)
         {
             float startLens = mirandaCam.Lens.OrthographicSize;

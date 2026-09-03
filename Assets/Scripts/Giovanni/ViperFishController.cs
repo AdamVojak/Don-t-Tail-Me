@@ -226,26 +226,20 @@ public class ViperFishController : MonoBehaviour
             isAvoiding = true; targetDirection = Quaternion.Euler(0, 45, 0) * headFwd;
         }
 
-        // PRIORITET 2: APSOLUTNA BLOKADA RADIJUSA
-        else if (distanceToPlayer <= innerAvoidRadius + 1f)
+        // PRIORITET 2: UNUTARNJI RADIJUS (Čisto i glatko bježanje, BEZ lijepljenja za igrača!)
+        else if (distanceToPlayer <= innerAvoidRadius + 2f)
         {
             isAvoiding = true;
-            Vector3 dirAway = (fishHeadPos - giovanni.transform.position).normalized;
+
+            // Računamo smjer točno OD igrača prema ribi
+            Vector3 dirAway = (transform.position - giovanni.transform.position).normalized;
             dirAway.y = 0;
 
             targetDirection = dirAway;
-            currentSpeed = escapeSpeed;
+            currentSpeed = escapeSpeed; // Riba ubacuje u petu brzinu i sama pliva van!
+            currentTurnSpeedLimit = avoidanceTurnSpeed * 3f; // Oštro skretanje od igrača
 
-            // Ekstremno brzo okretanje (gotovo instantno)
-            currentTurnSpeedLimit = avoidanceTurnSpeed * 5f;
-
-            // FIZIČKA BLOKADA: Ako je stvarno probila pravu granicu, izbaci je van!
-            if (distanceToPlayer <= innerAvoidRadius)
-            {
-                Vector3 clampedPos = giovanni.transform.position + (dirAway * (innerAvoidRadius + 0.5f));
-                clampedPos.y = fixedYPosition;
-                transform.position = clampedPos;
-            }
+            // UKLONJENO: Nema više 'clampedPos' teleportiranja koje ju je lijepilo za igrača!
         }
         // PRIORITET 3: Reakcija na svjetlo (Samo dok je IZVAN unutarnjeg radijusa)
         else if (isIlluminated)

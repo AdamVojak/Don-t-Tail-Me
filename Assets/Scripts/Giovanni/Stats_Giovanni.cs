@@ -79,18 +79,16 @@ public class GiovanniStats : MonoBehaviour
             currentStamina += staminaRegenIdle * Time.deltaTime;
         }
 
-        // NOVO: Smanjujemo cooldown timer ako je aktivan
         if (cooldownTimer > 0)
         {
             cooldownTimer -= Time.deltaTime;
         }
 
-        // Threat se mijenja SAMO ako nije zaključan na nuli I ako je prošao cooldown!
+        // Threat se puni ili prazni
         if (!isThreatLocked)
         {
             if (isMoving)
             {
-                // Ako je cooldown aktivan, threat NE PADA od hodanja/sprintanja
                 if (cooldownTimer <= 0)
                 {
                     float currentDrain = isSprinting ? threatDrainSprinting : threatDrainWalking;
@@ -99,6 +97,7 @@ public class GiovanniStats : MonoBehaviour
             }
             else
             {
+                // OVDJE SE POLAKO PUNI OD NULE PREMA GORE DOK IGRAČ MIRUJE!
                 currentThreat += threatRegenIdle * Time.deltaTime;
             }
 
@@ -113,7 +112,9 @@ public class GiovanniStats : MonoBehaviour
 
         UpdateUI();
 
-        if (currentThreat <= 0 && !isThreatLocked)
+        // NOVO: Napad se može pokrenuti SAMO ako je threat na nuli, nije zaključan I ISTEKAO JE COOLDOWN!
+        // Ovo omogućava da threat počne od 0 i raste bez da se riba odmah zaleti!
+        if (currentThreat <= 0 && !isThreatLocked && cooldownTimer <= 0)
         {
             isThreatLocked = true;
             currentThreat = 0f;
@@ -168,7 +169,7 @@ public class GiovanniStats : MonoBehaviour
         currentThreat = Mathf.Clamp(currentThreat, 0, maxThreat);
         UpdateUI();
 
-        if (currentThreat <= 0 && !isThreatLocked)
+        if (currentThreat <= 0 && !isThreatLocked && cooldownTimer <= 0)
         {
             isThreatLocked = true;
             currentThreat = 0f;
@@ -189,7 +190,5 @@ public class GiovanniStats : MonoBehaviour
     {
         isThreatLocked = false;
         cooldownTimer = postAttackCooldown;
-        currentThreat = maxThreat;
-        UpdateUI();
     }
 }
