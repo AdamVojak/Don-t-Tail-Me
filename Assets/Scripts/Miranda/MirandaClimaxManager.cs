@@ -44,9 +44,8 @@ public class MirandaClimaxManager : MonoBehaviour
     {
         climaxStarted = true;
 
-        // 1. Privremeno oduzimamo kontrole Mirandi i gasimo sat
         if (mirandaController != null) mirandaController.SetLock(true);
-        if (timerUI != null) timerUI.StopTimer();
+        if (timerUI != null) timerUI.ZaustaviIUgasiTimer();
 
         // 2. Postavljamo brzinu kretanja crva
         if (crvAI != null)

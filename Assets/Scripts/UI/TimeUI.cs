@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 public class TimerUI : MonoBehaviour
 {
@@ -16,23 +17,28 @@ public class TimerUI : MonoBehaviour
     [SerializeField] private GameObject ventWorm;
 
     [Header("Debug / Development Postavke")]
-    [SerializeField] private bool vrijemeTece = true; // <-- TVOJ NOVI BOOLEAN (početno uvijek true)
+    [SerializeField] private bool vrijemeTece = true;
 
     [Header("Audio (2D)")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip clockTickingClip;
     [Range(0f, 1f)][SerializeField] private float clockVolume = 0.15f;
 
-    private float currentTime;
-    private bool timerRunning = false;
-
-    private float timeMultiplier = 1f;
-
     [SerializeField] private AudioClip alarmClip;
     [Range(0f, 1f)][SerializeField] private float alarmVolume = 1f;
 
     [Header("Climax Reference")]
     [SerializeField] private MirandaClimaxManager climaxManager;
+
+    [Header("Fade Out Reference")]
+    [SerializeField] private Image[] clockSprites;
+
+    private float currentTime;
+    private bool timerRunning = false;
+    private float timeMultiplier = 1f;
+
+    // NOVO: Zaključava sat kad istekne vrijeme da ga Update ne restartira preko alarma!
+    private bool isTimerFinished = false;
 
     void Awake()
     {
@@ -60,20 +66,17 @@ public class TimerUI : MonoBehaviour
         }
 
         currentTime = totalTimeInSeconds;
-        vrijemeTece = true; // Osiguravamo da je uvijek upaljen pri pokretanju igre
-        ventWorm.SetActive(false);
+        vrijemeTece = true;
+        isTimerFinished = false;
+        if (ventWorm != null) ventWorm.SetActive(false);
     }
 
     void Update()
     {
-        if (gameManager == null)
-        {
-            Debug.LogError("GameManager referenca je izgubljena! Onemogućujem TimerUI.");
-            enabled = false;
-            return;
-        }
+        if (gameManager == null) return;
 
-
+        // 1. AKO JE SAT ZAVRŠIO (ALARM SVIRA) -> NE DIRAJ NIŠTA I PREKINI UPDATE!
+        if (isTimerFinished) return;
 
         if (gameManager.currChar == GameManager.ActiveCharacter.Miranda && !gameManager.isLoading)
         {
@@ -84,7 +87,6 @@ public class TimerUI : MonoBehaviour
 
             if (timerRunning)
             {
-                // Vrijeme se oduzima SAMO ako je vrijemeTece = true
                 if (vrijemeTece)
                 {
                     currentTime -= Time.deltaTime * timeMultiplier;
@@ -92,35 +94,24 @@ public class TimerUI : MonoBehaviour
 
                 if (audioSource != null)
                 {
-                    // Ciljani pitch (1.0x za normalno, do 3.0x za ubrzano da zvuči frenetično)
                     float ciljaniPitch = Mathf.Clamp(timeMultiplier, 1.0f, 3.0f);
-
-                    // Kroz 1 sekundu glatko ubrzava ili usporava prema cilju:
                     audioSource.pitch = Mathf.MoveTowards(audioSource.pitch, ciljaniPitch, 2.5f * Time.deltaTime);
                 }
-
 
                 float rotationAngle = (currentTime / totalTimeInSeconds) * 360f;
                 handRectTransform.rotation = Quaternion.Euler(0f, 0f, rotationAngle);
 
+                // KADA VRIJEME ISTEKNE
                 if (currentTime <= 0)
                 {
                     currentTime = 0;
-                    StopTimerInternal();
-                    Debug.Log("Game Over: Vrijeme je isteklo");
+                    Debug.Log("<color=red>Game Over: Vrijeme je isteklo!</color>");
 
-                    if (audioSource != null && alarmClip != null)
-                    {
-                        audioSource.PlayOneShot(alarmClip, alarmVolume);
-                    }
+                    ZaustaviIUgasiTimer();
 
                     if (climaxManager != null)
                     {
                         climaxManager.PokreniKlimaksPrekoTajmera();
-                    }
-                    else if (ventWorm != null)
-                    {
-                        ventWorm.SetActive(true);
                     }
                 }
             }
@@ -136,7 +127,7 @@ public class TimerUI : MonoBehaviour
 
     private void StartTimerInternal()
     {
-        if (!timerRunning)
+        if (!timerRunning && !isTimerFinished)
         {
             timerRunning = true;
 
@@ -157,7 +148,6 @@ public class TimerUI : MonoBehaviour
             if (audioSource != null)
             {
                 audioSource.Stop();
-                audioSource.pitch = 1f;
             }
             Debug.Log("Timer je zaustavljen!");
         }
@@ -165,13 +155,9 @@ public class TimerUI : MonoBehaviour
 
     public void StartTimer()
     {
-        if (gameManager != null && gameManager.currChar == GameManager.ActiveCharacter.Miranda)
+        if (gameManager != null && gameManager.currChar == GameManager.ActiveCharacter.Miranda && !isTimerFinished)
         {
             StartTimerInternal();
-        }
-        else
-        {
-            Debug.Log("Timer se ne može pokrenuti jer Miranda nije aktivni lik ili GameManager nije postavljen.");
         }
     }
 
@@ -182,6 +168,7 @@ public class TimerUI : MonoBehaviour
 
     public void ResetTimer()
     {
+        isTimerFinished = false;
         currentTime = totalTimeInSeconds;
         handRectTransform.rotation = Quaternion.Euler(0f, 0f, 0f);
         StopTimerInternal();
@@ -195,29 +182,94 @@ public class TimerUI : MonoBehaviour
         {
             currentTime = totalTimeInSeconds;
         }
-        Debug.Log($"Dodano {secondsToAdd} sekundi. Trenutno vrijeme: {currentTime:F2}");
     }
 
-    public float GetRemainingTime()
-    {
-        return currentTime;
-    }
-
-    public bool IsTimerRunning()
-    {
-        return timerRunning;
-    }
-
-    public void SetTimeMultiplier(float multiplier)
-    {
-        timeMultiplier = multiplier;
-    }
+    public float GetRemainingTime() => currentTime;
+    public bool IsTimerRunning() => timerRunning;
+    public void SetTimeMultiplier(float multiplier) => timeMultiplier = multiplier;
 
     private void OnDisable()
     {
-        if (audioSource != null)
+        // Gasi zvuk samo ako sat NIJE završio (jer ako je završio, coroutine se brine za alarm!)
+        if (audioSource != null && !isTimerFinished)
         {
             audioSource.Stop();
         }
+    }
+
+    // =========================================================================
+    // POZIVA SE KAD ISTEKNE VRIJEME ILI KAD SE SAT UGASI
+    // =========================================================================
+    public void ZaustaviIUgasiTimer()
+    {
+        if (isTimerFinished) return; // Osigurač da se ne pozove dvaput
+        isTimerFinished = true;
+
+        timerRunning = false;
+        vrijemeTece = false;
+
+        // 1. GASIMO KUCANJE I PUŠTAMO ALARM
+        if (audioSource != null)
+        {
+            audioSource.Stop(); // Gasi kucanje
+            audioSource.pitch = 1f;
+
+            if (alarmClip != null)
+            {
+                audioSource.PlayOneShot(alarmClip, alarmVolume); // PUSTI ALARM
+            }
+        }
+
+        // 2. POKREĆEMO NESTANKA SLIKE I GAŠENJE
+        StartCoroutine(FadeOutAndShutdownRoutine());
+    }
+
+    private IEnumerator FadeOutAndShutdownRoutine()
+    {
+        if (clockSprites == null || clockSprites.Length == 0)
+        {
+            clockSprites = GetComponentsInChildren<Image>();
+        }
+
+        Color[] initialColors = new Color[clockSprites.Length];
+        for (int i = 0; i < clockSprites.Length; i++)
+        {
+            if (clockSprites[i] != null) initialColors[i] = clockSprites[i].color;
+        }
+
+        float elapsed = 0f;
+        float fadeDuration = 1.0f;
+
+        // 1. Fade-out slika kroz 1 sekundu
+        while (elapsed < fadeDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / fadeDuration;
+
+            for (int i = 0; i < clockSprites.Length; i++)
+            {
+                if (clockSprites[i] != null)
+                {
+                    Color c = initialColors[i];
+                    c.a = Mathf.Lerp(initialColors[i].a, 0f, t);
+                    clockSprites[i].color = c;
+                }
+            }
+            yield return null;
+        }
+
+        // 2. Čekaj da alarm odsvira do kraja
+        float remainingAudioTime = 0f;
+        if (alarmClip != null)
+        {
+            remainingAudioTime = Mathf.Max(0f, alarmClip.length - fadeDuration);
+        }
+        if (remainingAudioTime > 0f)
+        {
+            yield return new WaitForSeconds(remainingAudioTime);
+        }
+
+        // 3. Tek kad je alarm odsvirao do kraja, ugasi cijeli objekt
+        gameObject.SetActive(false);
     }
 }

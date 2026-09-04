@@ -57,10 +57,20 @@ public class GameManager : MonoBehaviour
     public UIConfettiEmitter confettiEmitter;
     public GameObject UI_CongratsScreen;
 
+    [Header("Brzine Spuštanja Zida")]
+    [SerializeField] private float brzinaZidaTipkaC = 0.45f;      // Brzo spuštanje za tipku C (umjesto 0.8s)
+    [SerializeField] private float pobjednickiZidBrzina = 0.35f;  // Munjevito (giljotina) za pobjedu!
+    [SerializeField] private float pobjednickaPauza = 2.0f;       // 2 sekunde jezive tišine prije fešte
+
     [Header("Completed Icons (Slider)")]
     public GameObject sashaCompletedIcon;   // Kvačica/Pečat uz Sashu na slideru
     public GameObject mirandaCompletedIcon; // Kvačica/Pečat uz Mirandu
     public GameObject giovanniCompletedIcon;// Kvačica/Pečat uz Giovannija
+
+    [Header("Nedostupni Likovi UI (Preko imena)")]
+    public GameObject sashaUnavailableUI;   // UI element preko Sashinog imena (npr. prekriženo ili zaključano)
+    public GameObject mirandaUnavailableUI; // UI element preko Mirandinog imena
+    public GameObject giovanniUnavailableUI;// UI element preko Giovannijevog imena
 
     // Zastavice da znamo tko je pobijedio
     [HideInInspector] public bool sashaWon = false;
@@ -147,6 +157,10 @@ public class GameManager : MonoBehaviour
         if (mirandaCompletedIcon != null) mirandaCompletedIcon.SetActive(false);
         if (giovanniCompletedIcon != null) giovanniCompletedIcon.SetActive(false);
         if (confettiEmitter != null) confettiEmitter.Stop();
+
+        if (sashaUnavailableUI != null) sashaUnavailableUI.SetActive(!sashaOdabran);
+        if (mirandaUnavailableUI != null) mirandaUnavailableUI.SetActive(!mirandaOdabrana);
+        if (giovanniUnavailableUI != null) giovanniUnavailableUI.SetActive(!giovanniOdabran);
 
         // 3. Pokretanje uvodne tranzicije
         StartCoroutine(InitialTransitionRoutine());
@@ -248,13 +262,24 @@ public class GameManager : MonoBehaviour
 
         DisableAllControls();
 
-        // --- 2. SPORO SPUŠTANJE ZIDA ---
+        // --- 2. MUNJEVITO (SKORO INSTANT) SPUŠTANJE ZIDA KOD POBJEDE ---
         if (loadingManager != null)
-            yield return StartCoroutine(loadingManager.DropWallRoutine(1.3f)); // Umjesto 2.0f
+            yield return StartCoroutine(loadingManager.DropWallRoutine(pobjednickiZidBrzina));
 
         HideAllCharacterUIs();
 
-        yield return new WaitForSeconds(1.0f);
+        yield return new WaitForSeconds(pobjednickaPauza);
+
+
+        // --- 3. IZNENADNI KAZOO I KONFETI EKSPLOZIJA! ---
+        if (canvasConfetti != null) canvasConfetti.SetActive(true);
+        if (confettiEmitter != null)
+        {
+            confettiEmitter.gameObject.SetActive(true);
+            confettiEmitter.Play();
+        }
+
+        // ... (ostatak koda ostaje isti) ...
 
 
         // --- 3. IZNENADNI KAZOO ZVUK I KONFETI! ---
@@ -401,9 +426,9 @@ public class GameManager : MonoBehaviour
         selectedCharInMenu = currChar; // Počinjemo od lika kojeg trenutno igramo
         if (UI_EnterTipka != null) UI_EnterTipka.SetActive(false);
 
-        // 1. ZID PADA
+        // 1. BRZO SPUŠTANJE ZIDA NA TIPKU C
         if (loadingManager != null)
-            yield return StartCoroutine(loadingManager.DropWallRoutine(loadingManager.vrijemeZid));
+            yield return StartCoroutine(loadingManager.DropWallRoutine(brzinaZidaTipkaC));
 
         // 2. ODUZIMAMO KONTROLE I UI
         DisableAllControls();

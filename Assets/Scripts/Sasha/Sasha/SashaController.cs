@@ -1,13 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Audio;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.LowLevel;
+
 
 public class SashaController : MonoBehaviour
 {
-    public enum SashaState { Active, Interactive, Pushing, Dead }
+    public enum SashaState { Active, Interactive, Pushing, Dead, Shocked }
 
     [Header("Postavke Ranjenosti")]
     public float stetaCooldown = 1.0f;
@@ -108,10 +106,10 @@ public class SashaController : MonoBehaviour
 
     void Update()
     {
-        if (!isControlled || currentState == SashaState.Dead)
+        if (!isControlled || currentState == SashaState.Dead || currentState == SashaState.Shocked)
         {
             animacijaNogu.StopPlayback();
-            noge.SetActive(false);
+            if (noge != null) noge.SetActive(false);
 
             if (sashaAudio != null) sashaAudio.StopAllLoops();
 
@@ -712,6 +710,121 @@ public class SashaController : MonoBehaviour
         {
             hintRenderer.enabled = false;
         }
+    }
+
+    // =========================================================
+    // EFEKT STRUJNOG UDARA (Poziva ga LaserBarijera)
+    // =========================================================
+    public void PrimijeniStrujniUdar(float snagaOdbacivanja, float trajanje, Sprite sokiraniSprite)
+    {
+        if (currentState == SashaState.Dead || currentState == SashaState.Shocked) return;
+        StartCoroutine(StrujniUdarRoutine(snagaOdbacivanja, trajanje, sokiraniSprite));
+    }
+
+    private System.Collections.IEnumerator StrujniUdarRoutine(float snagaOdbacivanja, float trajanje, Sprite sokiraniSprite)
+    {
+        currentState = SashaState.Shocked;
+        isControlled = false;
+
+        if (noge != null) noge.SetActive(false);
+        animacijaNogu.StopPlayback();
+        if (animacijaTijela != null) animacijaTijela.enabled = false;
+
+        // =========================================================================
+        // 1. PRIVREMENO GASIMO SUSTAV ORUŽJA (Da ne može pucati u šoku)
+        // =========================================================
+        bool oruzjeBiloAktivno = false;
+        if (SustavOruzja != null)
+        {
+            oruzjeBiloAktivno = SustavOruzja.enabled;
+            SustavOruzja.enabled = false; // Isključujemo skriptu za oružje
+        }
+
+        // =========================================================================
+        // 2. AUTOMATSKI PRONALAZIMO I SKRIVAMO ORUŽJE U RUCI (Gun, Minigun, Melee)
+        // =========================================================================
+        List<SpriteRenderer> sakrivenaOruzja = new List<SpriteRenderer>();
+        SpriteRenderer[] sviSpriteovi = GetComponentsInChildren<SpriteRenderer>(false);
+
+        foreach (SpriteRenderer sr in sviSpriteovi)
+        {
+            // Sakrivamo sve spriteove koji NISU tijelo, glava ili hint
+            if (sr != tijeloSprite && sr != glavaSprite && sr != hintRenderer)
+            {
+                // =========================================================
+                // NOVO: IGNORIRAMO BILO ŠTO ŠTO IMA VEZE S GUIDING ARROW!
+                // =========================================================
+                if (sr.name.ToLower().Contains("arrow") || sr.GetComponent("GuidingArrow") != null)
+                {
+                    continue; // Preskoči strelicu, nju ne diraj!
+                }
+
+                sakrivenaOruzja.Add(sr);
+                sr.enabled = false;
+            }
+        }
+
+        // 3. Postavljamo šokirani sprite (kostur) i gasimo glavu
+        Sprite origTijelo = tijeloSprite.sprite;
+        if (sokiraniSprite != null)
+        {
+            tijeloSprite.sprite = sokiraniSprite;
+            if (glava != null) glava.SetActive(false);
+        }
+
+        // 4. Glatko odbacivanje unazad po Y osi (Knockback)
+        float knockbackDuration = 0.2f;
+        float elapsed = 0f;
+        Vector3 startPos = transform.position;
+        Vector3 targetPos = startPos + new Vector3(0, -snagaOdbacivanja, 0);
+
+        while (elapsed < knockbackDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / knockbackDuration;
+            Vector3 frameMove = Vector3.Lerp(startPos, targetPos, t) - transform.position;
+            if (controller != null) controller.Move(frameMove);
+            yield return null;
+        }
+
+        // 5. Brzo treperenje boja (Plava <-> Crna)
+        int brojTreptaja = 8;
+        float vrijemeTreptaja = (trajanje - knockbackDuration) / (brojTreptaja * 2);
+
+        for (int i = 0; i < brojTreptaja; i++)
+        {
+            tijeloSprite.material.color = Color.blue;
+            if (glavaSprite != null) glavaSprite.material.color = Color.blue;
+            yield return new WaitForSeconds(vrijemeTreptaja);
+
+            tijeloSprite.material.color = Color.black;
+            if (glavaSprite != null) glavaSprite.material.color = Color.black;
+            yield return new WaitForSeconds(vrijemeTreptaja);
+        }
+
+        // 6. Vraćanje tijela, glave i animacija u normalu
+        tijeloSprite.material.color = Color.white;
+        if (glavaSprite != null) glavaSprite.material.color = Color.white;
+
+        tijeloSprite.sprite = origTijelo;
+        if (glava != null) glava.SetActive(true);
+        if (animacijaTijela != null) animacijaTijela.enabled = true;
+
+        // =========================================================================
+        // 7. VRAĆAMO ORUŽJE U RUKU I PALIMO SUSTAV ORUŽJA NATRAG
+        // =========================================================================
+        foreach (SpriteRenderer sr in sakrivenaOruzja)
+        {
+            if (sr != null) sr.enabled = true; // Vrati oružje vidljivim!
+        }
+
+        if (SustavOruzja != null)
+        {
+            SustavOruzja.enabled = oruzjeBiloAktivno; // Opet može pucati!
+        }
+
+        currentState = SashaState.Active;
+        isControlled = true;
     }
 
     void OnDisable()

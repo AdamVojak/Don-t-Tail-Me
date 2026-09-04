@@ -118,11 +118,24 @@ public class VentWormAI : MonoBehaviour
                 isTailSpawned = true;
             }
 
+            // Pomicanje svih dijelova tijela na njihove pozicije
             for (int i = 0; i < allBodyParts.Count; i++)
             {
                 allBodyParts[i].position = history[i + 1].position;
                 allBodyParts[i].rotation = history[i + 1].rotation;
             }
+
+            // --- NOVO: Posebna rotacija za rep ---
+            // Ako imamo barem 2 dijela (npr. tijelo i rep), rotiramo rep prema dijelu ispred njega
+            if (allBodyParts.Count >= 2)
+            {
+                Transform tail = allBodyParts[allBodyParts.Count - 1];
+                Transform segmentAhead = allBodyParts[allBodyParts.Count - 2];
+
+                Vector3 dirToAhead = (segmentAhead.position - tail.position).normalized;
+                tail.rotation = GetRotationFromDirection(dirToAhead);
+            }
+            // -------------------------------------
 
             if (history.Count > allBodyParts.Count + 1)
             {
@@ -168,6 +181,14 @@ public class VentWormAI : MonoBehaviour
             {
                 float distToPlayer = Vector3.Distance(potentialPos, targetPos);
 
+                // --- NOVO: Stabilizacija u otvorenom prostoru (Tie-breaker) ---
+                Vector3 moveDir = (potentialPos - currentPos).normalized;
+                if (moveDir == lastDirection)
+                {
+                    distToPlayer -= 0.1f; // Blagi popust za nastavak kretanja ravno
+                }
+                // ---------------------------------------------------------------
+
                 if (distToPlayer < shortestDistance)
                 {
                     shortestDistance = distToPlayer;
@@ -189,25 +210,21 @@ public class VentWormAI : MonoBehaviour
     }
 
     private void UpdateHeadRotation(Vector3 dir)
-        {
-            if (dir.z > 0)
-            {
-                transform.rotation = Quaternion.Euler(0, 0, 0);
-            }
-            else if (dir.z < 0)
-            {
-                transform.rotation = Quaternion.Euler(180, 0, 0);
-            }
-            else if (dir.y > 0)
-            {
-                transform.rotation = Quaternion.Euler(-90, 0, 0);
-            }
-            else if (dir.y < 0)
-            {
-                transform.rotation = Quaternion.Euler(90, 0, 0);
-            }
-        }
+    {
+        transform.rotation = GetRotationFromDirection(dir);
+    }
 
+    private Quaternion GetRotationFromDirection(Vector3 dir)
+    {
+        if (dir.sqrMagnitude < 0.01f) return Quaternion.identity;
+
+        if (dir.z > 0) return Quaternion.Euler(0, 0, 0);       // Naprijed (+Z)
+        if (dir.z < 0) return Quaternion.Euler(180, 0, 0);     // Nazad (-Z)
+        if (dir.y > 0) return Quaternion.Euler(-90, 0, 0);     // Gore (+Y)
+        if (dir.y < 0) return Quaternion.Euler(90, 0, 0);      // Dolje (-Y)
+
+        return Quaternion.identity;
+    }
     private void OnTriggerEnter(Collider other)
     {
         MirandaController mc = other.GetComponent<MirandaController>();

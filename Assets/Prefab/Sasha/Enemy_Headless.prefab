@@ -556,16 +556,16 @@ MonoBehaviour:
   - {fileID: 8300000, guid: f13e0a4ff0e717d46b018c5989764dbc, type: 3}
   electricMeleeHitClips:
   - {fileID: 8300000, guid: 22bcc7349770a6e4d95b14b52c9d6e51, type: 3}
-  hitVolume: 0.2
+  hitVolume: 0.565
   hurtVoiceClips:
   - {fileID: 8300000, guid: bfc6b89ed6c50ab4d93b0d3e4671b675, type: 3}
-  hurtVolume: 0.2
+  hurtVolume: 0.6
   attackShoutClips:
   - {fileID: 8300000, guid: 14472690e8f6e8645bd795403cc78813, type: 3}
   - {fileID: 8300000, guid: 9cbf438a71f5fba4bafd82d19d69168d, type: 3}
-  attackVolume: 0.2
+  attackVolume: 0.7
   shockClip: {fileID: 8300000, guid: 02a15f02182ab1748886c419e7f59959, type: 3}
-  shockVolume: 0.2
+  shockVolume: 0.55
   useRandomPitch: 1
   minPitch: 0.95
   maxPitch: 1.05
