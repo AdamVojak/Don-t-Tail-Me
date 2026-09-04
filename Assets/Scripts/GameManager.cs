@@ -415,6 +415,111 @@ public class GameManager : MonoBehaviour
         MoveSliderTo(nextChar);
     }
 
+    // =========================================================================
+    // GIOVANNI FAIL / PRERANA SMRT (Lignja ga je pojela!)
+    // =========================================================================
+    public void TriggerGiovanniFail()
+    {
+        StartCoroutine(GiovanniFailRoutine());
+    }
+
+    IEnumerator GiovanniFailRoutine()
+    {
+        isLoading = true;
+        isTransitioning = true;
+        isMenuOpen = true;
+
+        // 1. GIOVANNI JE SLUŽBENO MRTAV!
+        if (giovanniScript != null)
+        {
+            giovanniScript.currentState = GiovanniController.GiovanniState.Dead;
+        }
+        giovanniWon = false; // NIJE pobijedio!
+
+        DisableAllControls();
+
+        // 2. Munjeviti zid (0.35s)
+        if (loadingManager != null)
+            yield return StartCoroutine(loadingManager.DropWallRoutine(pobjednickiZidBrzina));
+
+        HideAllCharacterUIs();
+
+        // 3. Tišina 2 sekunde
+        yield return new WaitForSeconds(pobjednickaPauza);
+
+        // 4. I dalje svira Kazoo i padaju konfeti (Crni humor i lažno slavlje!)
+        if (canvasConfetti != null) canvasConfetti.SetActive(true);
+        if (confettiEmitter != null)
+        {
+            confettiEmitter.gameObject.SetActive(true);
+            confettiEmitter.Play();
+        }
+
+        // Prikaz "Congrats" (Igra mu se ruga što je požurio s pištoljem)
+        if (UI_CongratsScreen != null)
+        {
+            Canvas parentCanvas = UI_CongratsScreen.GetComponentInParent<Canvas>(true);
+            if (parentCanvas != null) parentCanvas.gameObject.SetActive(true);
+            if (UI_Tranzicija != null) UI_Tranzicija.SetActive(false);
+
+            UI_CongratsScreen.SetActive(true);
+            foreach (Transform child in UI_CongratsScreen.transform) child.gameObject.SetActive(true);
+
+            if (loadingAudio != null) loadingAudio.PlayFlicker();
+            yield return new WaitForSeconds(1.5f);
+            if (confettiEmitter != null) confettiEmitter.Stop();
+            yield return new WaitForSeconds(1.5f);
+
+            if (loadingAudio != null) loadingAudio.PlayFlicker();
+            UI_CongratsScreen.SetActive(false);
+        }
+
+        yield return new WaitForSeconds(0.5f);
+
+        // 5. NA SLIDERU SE PALI IKSIĆ UMESTO KVAČICE!
+        if (giovanniUnavailableUI != null) giovanniUnavailableUI.SetActive(true); // Crveni iksić!
+        if (giovanniCompletedIcon != null) giovanniCompletedIcon.SetActive(false); // Nema kvačice!
+
+        // 6. Tražimo idućeg živog lika koji nije Dead
+        ActiveCharacter nextChar = ActiveCharacter.Odabir;
+        ActiveCharacter check = ActiveCharacter.Giovanni;
+
+        for (int i = 0; i < 3; i++)
+        {
+            if (check == ActiveCharacter.Sasha) check = ActiveCharacter.Miranda;
+            else if (check == ActiveCharacter.Miranda) check = ActiveCharacter.Giovanni;
+            else if (check == ActiveCharacter.Giovanni) check = ActiveCharacter.Sasha;
+
+            if (IsCharacterAvailable(check))
+            {
+                nextChar = check;
+                break;
+            }
+        }
+
+        // Postavljamo slider na Giovannija da igrač vidi IKSIĆ
+        if (tranzicijskiSlider != null) tranzicijskiSlider.value = GetCharacterSliderValue(ActiveCharacter.Giovanni);
+
+        // Palimo TV
+        if (UI_Tranzicija != null)
+        {
+            if (loadingAudio != null) loadingAudio.PlayComputerStartup();
+            if (loadingAudio != null) loadingAudio.PlayFlicker();
+            UI_Tranzicija.SetActive(true);
+        }
+
+        yield return new WaitForSeconds(0.4f);
+
+        // Slider automatski bježi s Giovannija na sljedećeg slobodnog lika!
+        if (nextChar != ActiveCharacter.Odabir)
+        {
+            MoveSliderTo(nextChar);
+        }
+        else
+        {
+            Debug.Log("Nema više živih likova! KRAJ IGRE.");
+        }
+    }
 
     // --- FAZA 1: OTVARANJE IZBORNIKA ---
     IEnumerator OpenTransitionMenu()

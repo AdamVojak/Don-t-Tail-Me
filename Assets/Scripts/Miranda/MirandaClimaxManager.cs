@@ -101,7 +101,7 @@ public class MirandaClimaxManager : MonoBehaviour
         if (wormCam != null) wormCam.Priority = 35;
 
         // Gledamo gotovog, spojenog crva točno 1.2 sekunde dok izlazi ispod otvorenih vrata
-        yield return new WaitForSeconds(1.2f);
+        yield return new WaitForSeconds(2.5f);
 
 
         // =========================================================================

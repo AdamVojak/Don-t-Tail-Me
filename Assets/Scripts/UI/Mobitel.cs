@@ -191,4 +191,9 @@ public class MobitelTracker : MonoBehaviour
             arrowImage.sprite = strelicaDesno;
         }
     }
+
+    public bool AreAllItemsFinished()
+    {
+        return allItemsFinished;
+    }
 }

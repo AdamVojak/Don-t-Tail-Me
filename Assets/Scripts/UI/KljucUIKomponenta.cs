@@ -41,7 +41,6 @@ public class KljucUIKomponenta : MonoBehaviour
 
         if (mirandaInventory == null)
         {
-            Debug.LogError("KljucUIKomponenta: MirandaInventory komponenta nije pronađena na objektu s tagom 'Player'. UI za ključeve neće raditi ispravno.");
             enabled = false; // Onemogući skriptu ako nema inventara
         }
     }

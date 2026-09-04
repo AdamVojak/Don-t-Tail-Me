@@ -26,6 +26,10 @@ public class Ventilacija_Out_Giovanni : MonoBehaviour
     [SerializeField] private float initialItemSpeed = 15f;
     [SerializeField] private float itemDeceleration = 10f;
 
+    [Header("Pobjednički Klimaks")]
+    public GiovanniWinSequence winSequence;
+    public MobitelTracker mobitelTracker;
+
     private bool imaItemNaCekanju = false;
     private int cekajuciItemTip;
     private bool isBusy = false;
@@ -51,8 +55,21 @@ public class Ventilacija_Out_Giovanni : MonoBehaviour
     {
         if (imaItemNaCekanju && !isBusy && other.CompareTag("Giovanni"))
         {
-            imaItemNaCekanju = false;
-            StartCoroutine(ReceiveRoutine(cekajuciItemTip));
+            if (cekajuciItemTip == 1)
+            {
+                imaItemNaCekanju = false;
+                isBusy = true;
+
+                // Provjeravamo je li riješio mobitel (Pravi Win) ili je uranio (Smrt / Lažni Win)
+                bool rijesioMobitel = (mobitelTracker != null && mobitelTracker.AreAllItemsFinished());
+
+                if (winSequence != null)
+                {
+                    // Šaljemo informaciju režiseru scene!
+                    winSequence.PokreniScenuLignje(rijesioMobitel);
+                }
+                return;
+            }
         }
     }
 
