@@ -1,141 +1,129 @@
 using System.Collections;
 using UnityEngine;
-using Unity.Cinemachine;
 
 public class GiovanniWinSequence : MonoBehaviour
 {
-    [Header("Kamere (Cinemachine)")]
-    public CinemachineCamera kameraCijevi;   // Gleda cijevi dok pucaju
-    public CinemachineCamera kameraLignja;   // Gleda prema stropu/lignji
+    [Header("Divovska Lignja")]
+    public GameObject divovskaLignja;
+    public Transform lignjaPocetnaTocka;     // TVOJA POČETNA TOČKA U SCENI
+    public Transform lignjaKrajnjaTocka;     // TVOJA KRAJNJA TOČKA U SCENI
+    public float trajanjeSpustanja = 4.0f;   // Vrijeme kretanja između točaka
 
-    [Header("Cijevi koje se ruše")]
-    public Transform cijevLijeva;
-    public Transform cijevLijevaCiljNaPodu;  // Prazan objekt na podu kamo lijeva cijev padne
-    public Transform cijevDesna;
-    public Transform cijevDesnaCiljNaPodu;  // Prazan objekt na podu kamo desna cijev padne
-    public float brzinaPadaCijevi = 2.5f;
+    [Header("Bistrenje Vode i Magla")]
+    public float cistaMaglaGustoca = 0.008f; // Smanjena magla da se lignja jasno vidi
+    public Color osvijetljenaVoda = new Color(0.05f, 0.2f, 0.4f); // Plavičasto svjetlo vode
 
-    [Header("Divovska Lignja (Gun)")]
-    public GameObject divovskaLignja;        // Model ogromne vampirske lignje
-    public Transform lignjaPocetnaTocka;     // Visoko gore u magli/stropu
-    public Transform lignjaCiljnaTocka;      // Iznad Giovannijeve glave
-    public float brzinaSpustanjaLignje = 2f;
-
-    [Header("Audio")]
-    public AudioSource audioSource;
-    public AudioClip zvukLomaCijevi;         // Metalno škripanje / pucanje
-    public AudioClip zvukLignje;             // Duboki vodeni huk / glasanje nemani
+    [Header("Audio (Krik Lignje)")]
+    public AudioSource squidAudioSource;
+    public AudioClip squidRoarClip;
 
     [Header("Reference")]
     public GiovanniController giovanniController;
 
     private bool sequenceStarted = false;
 
-    // 1. Prima informaciju od cijevi
+    void Start()
+    {
+        if (divovskaLignja != null) divovskaLignja.SetActive(false);
+        if (giovanniController == null) giovanniController = FindFirstObjectByType<GiovanniController>();
+    }
+
     public void PokreniScenuLignje(bool jePravaPobjeda)
     {
         if (sequenceStarted) return;
-        StartCoroutine(SquidArrivalRoutine(jePravaPobjeda));
+        StartCoroutine(DirectSquidRoutine(jePravaPobjeda));
     }
 
-    // 2. OVDJE JE BIO POPRAVAK: Dodan je (bool jePravaPobjeda) u zagradu!
-    IEnumerator SquidArrivalRoutine(bool jePravaPobjeda)
+    IEnumerator DirectSquidRoutine(bool jePravaPobjeda)
     {
         sequenceStarted = true;
 
-        // 1. ODUZIMAMO KONTROLE GIOVANNIJU
+        // 1. ZAMRZAVAMO GIOVANNIJA
         if (giovanniController != null)
         {
             giovanniController.SetLock(true);
             giovanniController.isControlled = false;
         }
 
-        // 2. KAMERA GLEDA CIJEVI DOK PUCAJU
-        if (kameraCijevi != null) kameraCijevi.Priority = 30;
+        // 2. BISTRIMO VODU (Da magla ne proguta tvoje točke)
+        StartCoroutine(BistriVoduRoutine(1.5f));
 
-        if (audioSource != null && zvukLomaCijevi != null)
+        // 3. GIOVANNI GLATKO DIŽE POGLED I PALI BATERIJU
+        if (giovanniController != null)
         {
-            audioSource.PlayOneShot(zvukLomaCijevi);
+            yield return StartCoroutine(giovanniController.LookUpAndAimLightRoutine(1.0f));
         }
 
-        // 3. RUŠENJE CIJEVI NA POD
-        float elapsedTubes = 0f;
-        Vector3 startPosL = cijevLijeva != null ? cijevLijeva.position : Vector3.zero;
-        Quaternion startRotL = cijevLijeva != null ? cijevLijeva.rotation : Quaternion.identity;
-        Vector3 startPosD = cijevDesna != null ? cijevDesna.position : Vector3.zero;
-        Quaternion startRotD = cijevDesna != null ? cijevDesna.rotation : Quaternion.identity;
-
-        while (elapsedTubes < 1f)
-        {
-            elapsedTubes += Time.deltaTime * brzinaPadaCijevi;
-
-            if (cijevLijeva != null && cijevLijevaCiljNaPodu != null)
-            {
-                cijevLijeva.position = Vector3.Lerp(startPosL, cijevLijevaCiljNaPodu.position, elapsedTubes);
-                cijevLijeva.rotation = Quaternion.Slerp(startRotL, cijevLijevaCiljNaPodu.rotation, elapsedTubes);
-            }
-
-            if (cijevDesna != null && cijevDesnaCiljNaPodu != null)
-            {
-                cijevDesna.position = Vector3.Lerp(startPosD, cijevDesnaCiljNaPodu.position, elapsedTubes);
-                cijevDesna.rotation = Quaternion.Slerp(startRotD, cijevDesnaCiljNaPodu.rotation, elapsedTubes);
-            }
-
-            yield return null;
-        }
-
-        yield return new WaitForSeconds(0.4f); // Kratka tišina nakon pada cijevi
-
-        // 4. KAMERA SE DIŽE PREMA STROPU / MAGLI
-        if (kameraCijevi != null) kameraCijevi.Priority = 0;
-        if (kameraLignja != null) kameraLignja.Priority = 35;
-
-        // Palimo model ogromne lignje
+        // 4. POSTAVLJAMO LIGNJU TOČNO NA TVOJU POČETNU TOČKU
         if (divovskaLignja != null && lignjaPocetnaTocka != null)
         {
             divovskaLignja.transform.position = lignjaPocetnaTocka.position;
+            divovskaLignja.transform.rotation = lignjaPocetnaTocka.rotation;
             divovskaLignja.SetActive(true);
         }
 
-        if (audioSource != null && zvukLignje != null)
+        // KRIK LIGNJE
+        if (squidAudioSource != null && squidRoarClip != null)
         {
-            audioSource.PlayOneShot(zvukLignje);
+            squidAudioSource.PlayOneShot(squidRoarClip);
         }
 
-        // 5. GIGANTSKA LIGNJA TONE PREMA GIOVANNIJU
-        float elapsedSquid = 0f;
-        while (elapsedSquid < 2.5f)
+        // 5. GLATKO KRETANJE TOČNO OD POČETNE DO KRAJNJE TOČKE
+        if (lignjaPocetnaTocka != null && lignjaKrajnjaTocka != null)
         {
-            elapsedSquid += Time.deltaTime;
+            Vector3 startPos = lignjaPocetnaTocka.position;
+            Vector3 endPos = lignjaKrajnjaTocka.position;
 
-            if (divovskaLignja != null && lignjaCiljnaTocka != null)
+            float elapsed = 0f;
+            while (elapsed < trajanjeSpustanja)
             {
-                divovskaLignja.transform.position = Vector3.MoveTowards(
-                    divovskaLignja.transform.position,
-                    lignjaCiljnaTocka.position,
-                    brzinaSpustanjaLignje * Time.deltaTime
-                );
-            }
+                elapsed += Time.deltaTime;
+                float t = elapsed / trajanjeSpustanja;
 
-            yield return null;
+                if (divovskaLignja != null)
+                {
+                    // Kreće se striktno po tvojim koordinatama
+                    divovskaLignja.transform.position = Vector3.Lerp(startPos, endPos, t);
+                }
+
+                yield return null;
+            }
         }
 
-        // 6. GASIMO ZVUKOVE
-        if (audioSource != null) audioSource.Stop();
+        // 6. GASIMO ZVUK I REZ NA POBJEDU / FAIL
+        if (squidAudioSource != null) squidAudioSource.Stop();
 
-        // 7. JAVLJAMO REZULTAT GAME MANAGERU
         if (GameManager.Instance != null)
         {
             if (jePravaPobjeda)
             {
-                // PRAVI WIN: Kvačica na slideru!
                 GameManager.Instance.WinCurrentCharacter();
             }
             else
             {
-                // PRERANA SMRT: Crveni iksić i status Dead!
                 GameManager.Instance.TriggerGiovanniFail();
             }
         }
+    }
+
+    IEnumerator BistriVoduRoutine(float duration)
+    {
+        float elapsed = 0f;
+        float startDensity = RenderSettings.fogDensity;
+        Color startAmbient = RenderSettings.ambientLight;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+
+            RenderSettings.fogDensity = Mathf.Lerp(startDensity, cistaMaglaGustoca, t);
+            RenderSettings.ambientLight = Color.Lerp(startAmbient, osvijetljenaVoda, t);
+
+            yield return null;
+        }
+
+        RenderSettings.fogDensity = cistaMaglaGustoca;
+        RenderSettings.ambientLight = osvijetljenaVoda;
     }
 }

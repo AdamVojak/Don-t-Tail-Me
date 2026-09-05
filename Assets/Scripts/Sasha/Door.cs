@@ -15,10 +15,10 @@ public class Door : MonoBehaviour
     [Header("Audio")]
     [SerializeField] private DoorAudio doorAudio;
 
-    private void OnEnable()
+    /*private void OnEnable()
     {
         OdrediSmjerIPokreni();
-    }
+    }*/
 
     public void OdrediSmjerIPokreni()
     {
@@ -64,6 +64,6 @@ public class Door : MonoBehaviour
 
         if (doorAudio != null) doorAudio.StopMoving();
 
-        this.enabled = false;
+        //this.enabled = false;
     }
 }

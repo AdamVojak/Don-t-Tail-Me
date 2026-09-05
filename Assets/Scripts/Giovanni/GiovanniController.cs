@@ -286,6 +286,57 @@ public class GiovanniController : MonoBehaviour
         }
     }
 
+    // POPRAVLJENO: Pomiče točku gledanja 15m u visinu tako da Cinemachine MORA podići pogled!
+    public System.Collections.IEnumerator LookUpAndAimLightRoutine(float duration)
+    {
+        // 1. Palimo i pojačavamo svjetiljku kroz maglu
+        if (flashlightLight != null)
+        {
+            flashlightLight.enabled = true;
+            flashlightLight.range = 35f;
+            flashlightLight.intensity = 3.5f;
+        }
+        if (flashlightBeamObject != null) flashlightBeamObject.SetActive(true);
+
+        float elapsed = 0f;
+
+        // Pamtimo početne pozicije i rotacije
+        Vector3 startLookPos = cameraPoint != null ? cameraPoint.position : transform.position + transform.forward * 5f;
+
+        // CILJ: Točka gledanja leti 15 metara ravno uvis iznad Giovannija!
+        Vector3 targetLookPos = transform.position + Vector3.up * 15f + transform.forward * 1.5f;
+
+        Quaternion startRootRot = cameraRoot != null ? cameraRoot.localRotation : Quaternion.identity;
+        Quaternion targetRot = Quaternion.Euler(-75f, 0f, 0f); // 75 stupnjeva prema gore
+        Quaternion startFlashlightRot = flashlightHolder != null ? flashlightHolder.localRotation : Quaternion.identity;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+
+            // A) PODIŽEMO TOČKU U ZRAK: Cinemachine LookAt prati ovu točku i DIŽE POGLED U STROP!
+            if (cameraPoint != null)
+            {
+                cameraPoint.position = Vector3.Lerp(startLookPos, targetLookPos, t);
+            }
+
+            // B) Naginjemo i cameraRoot za svaki slučaj ako Cinemachine prati rotaciju
+            if (cameraRoot != null)
+            {
+                cameraRoot.localRotation = Quaternion.Slerp(startRootRot, targetRot, t);
+            }
+
+            // C) Baterija prati pogled i svijetli ravno u lignju
+            if (flashlightHolder != null)
+            {
+                flashlightHolder.localRotation = Quaternion.Slerp(startFlashlightRot, targetRot, t);
+            }
+
+            yield return null;
+        }
+    }
+
     private void OnDisable()
     {
         if (giovanniAudio != null) giovanniAudio.StopBrownNoise();

@@ -23,8 +23,8 @@ public class Ventilacija_Out_Giovanni : MonoBehaviour
     [SerializeField] private float fanTransitionTime = 1f;
 
     [Header("Postavke Kretanja Itema")]
-    [SerializeField] private float initialItemSpeed = 15f;
-    [SerializeField] private float itemDeceleration = 10f;
+    //[SerializeField] private float initialItemSpeed = 15f;
+    //[SerializeField] private float itemDeceleration = 10f;
 
     [Header("Pobjednički Klimaks")]
     public GiovanniWinSequence winSequence;
@@ -55,27 +55,40 @@ public class Ventilacija_Out_Giovanni : MonoBehaviour
     {
         if (imaItemNaCekanju && !isBusy && other.CompareTag("Giovanni"))
         {
+            // OSIGURAČ: Ako slučajno nisi uvukao reference u Inspectoru, skripta ih sama pronađe!
+            if (winSequence == null) winSequence = FindFirstObjectByType<GiovanniWinSequence>();
+            if (mobitelTracker == null) mobitelTracker = FindFirstObjectByType<MobitelTracker>();
+
+            // =========================================================================
+            // DETEKCIJA GUN-a (ID 1)
+            // =========================================================================
             if (cekajuciItemTip == 1)
             {
                 imaItemNaCekanju = false;
                 isBusy = true;
 
-                // Provjeravamo je li riješio mobitel (Pravi Win) ili je uranio (Smrt / Lažni Win)
                 bool rijesioMobitel = (mobitelTracker != null && mobitelTracker.AreAllItemsFinished());
 
                 if (winSequence != null)
                 {
-                    // Šaljemo informaciju režiseru scene!
                     winSequence.PokreniScenuLignje(rijesioMobitel);
                 }
+                else
+                {
+                    Debug.LogError("GiovanniWinSequence skripta NIJE pronađena na sceni!");
+                }
+
                 return;
             }
+
+            // Normalna dostava za sve ostale predmete:
+            imaItemNaCekanju = false;
+            StartCoroutine(ReceiveRoutine(cekajuciItemTip));
         }
     }
 
     private IEnumerator ReceiveRoutine(int tip)
     {
-
         isBusy = true;
         StartCoroutine(LerpFanSpeed(normalFanSpeed, fastFanSpeed));
 
@@ -88,31 +101,54 @@ public class Ventilacija_Out_Giovanni : MonoBehaviour
         {
             GameObject item = Instantiate(odabraniPrefab);
 
+            // Gasimo fiziku dok putuje kroz cijev
             PadObjekta fallScript = item.GetComponent<PadObjekta>();
             if (fallScript != null) fallScript.enabled = false;
 
+            Rigidbody rb = item.GetComponent<Rigidbody>();
+            if (rb != null) rb.isKinematic = true; // Sprječava propadanje kroz pod tokom Lerp-a
+
+            // Postavljamo početnu poziciju
+            Vector3 pocetnaPozicija = startPoint.position;
+
+            // Računamo završnu poziciju (endPoint) s korekcijom za visinu collidera
+            Vector3 ciljnaPozicija = endPoint.position;
             Collider col = item.GetComponent<Collider>();
             if (col != null)
             {
                 float pivotToBottom = item.transform.position.y - col.bounds.min.y;
-                item.transform.position = new Vector3(startPoint.position.x, startPoint.position.y + pivotToBottom, startPoint.position.z);
-            }
-            else
-            {
-                item.transform.position = startPoint.position;
+                ciljnaPozicija.y += pivotToBottom; // Dižemo cilj taman toliko da item ne uđe u pod
             }
 
-            float currentSpeed = initialItemSpeed;
-            while (item.transform.position.y > endPoint.position.y)
-            {
-                currentSpeed -= itemDeceleration * Time.deltaTime;
-                if (currentSpeed < 2f) currentSpeed = 2f;
+            item.transform.position = pocetnaPozicija;
 
-                item.transform.Translate(Vector3.down * currentSpeed * Time.deltaTime, Space.World);
+            // --- NOVO: SIGURNO I PRECIZNO KRETANJE (LERP) ---
+            float trajanjePuta = 1.0f; // Koliko sekundi traje putovanje kroz cijev (prilagodi po želji)
+            float protekloVrijeme = 0f;
+
+            while (protekloVrijeme < trajanjePuta)
+            {
+                if (item == null) break;
+
+                // SmoothStep daje onaj lijepi efekt: krene polako, ubrza, pa uspori pred kraj
+                float postotak = protekloVrijeme / trajanjePuta;
+                float smoothPostotak = Mathf.SmoothStep(0f, 1f, postotak);
+
+                item.transform.position = Vector3.Lerp(pocetnaPozicija, ciljnaPozicija, smoothPostotak);
+
+                protekloVrijeme += Time.deltaTime;
                 yield return null;
             }
 
-            if (fallScript != null) fallScript.enabled = true;
+            // Osiguravamo da završi točno na milimetar na cilju
+            if (item != null)
+            {
+                item.transform.position = ciljnaPozicija;
+
+                // Vraćamo fiziku
+                if (rb != null) rb.isKinematic = false;
+                if (fallScript != null) fallScript.enabled = true;
+            }
 
             StartCoroutine(LerpFanSpeed(fastFanSpeed, normalFanSpeed));
 
@@ -128,9 +164,11 @@ public class Ventilacija_Out_Giovanni : MonoBehaviour
                 StartCoroutine(MoveTube(ogTubeY, 1f));
             }
         }
-        else { 
-            yield return StartCoroutine(LerpFanSpeed(fastFanSpeed, normalFanSpeed)); 
+        else
+        {
+            yield return StartCoroutine(LerpFanSpeed(fastFanSpeed, normalFanSpeed));
         }
+
         isBusy = false;
     }
 

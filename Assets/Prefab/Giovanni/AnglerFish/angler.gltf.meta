@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 4b8baa42b9f8ac94f859afed4a65a307
+guid: e763410d94f8a3e4ca6860402b3a809c
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -12,7 +12,7 @@ ScriptedImporter:
     generateSecondaryUVSet: 0
   importSettings:
     nodeNameMethod: 1
-    animationMethod: 1
+    animationMethod: 2
     generateMipMaps: 1
     texturesReadable: 0
     defaultMinFilterMode: 9729
@@ -26,12 +26,9 @@ ScriptedImporter:
     sceneObjectCreation: 2
   assetDependencies:
   - type: 0
-    originalUri: Assets\Prefab\Giovanni\model.bin
-    assetPath: Assets\Prefab\Giovanni\model.bin
+    originalUri: Assets\Prefab\Giovanni\AnglerFish\angler.bin
+    assetPath: Assets\Prefab\Giovanni\AnglerFish\angler.bin
   - type: 1
-    originalUri: Assets\Prefab\Giovanni\model.png
-    assetPath: Assets\Prefab\Giovanni\model.png
-  - type: 1
-    originalUri: Assets\Prefab\Giovanni\model_0.png
-    assetPath: Assets\Prefab\Giovanni\model_0.png
+    originalUri: Assets\Prefab\Giovanni\AnglerFish\model.png
+    assetPath: Assets\Prefab\Giovanni\AnglerFish\model.png
   reportItems: []
