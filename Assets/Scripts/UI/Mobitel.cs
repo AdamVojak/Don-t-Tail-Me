@@ -22,8 +22,12 @@ public class MobitelTracker : MonoBehaviour
     [SerializeField] private Sprite strelicaDesno;
     [SerializeField] private Sprite krizic;
 
+    [Header("Angler Fish i Out of Bounds")]
+    [SerializeField] private AnglerFishController anglerFish;
+    [SerializeField] private Sprite strelicaPolukruzno;
+
     [Header("Audio")]
-    [SerializeField] private MobitelAudio mobitelAudio; // NOVO: Referenca na audio
+    [SerializeField] private MobitelAudio mobitelAudio;
 
     [Header("Ciljevi na Mapi (Redoslijedno)")]
     [SerializeField] private Transform[] ciljevi;
@@ -62,19 +66,21 @@ public class MobitelTracker : MonoBehaviour
 
         ProvjeriPokupljeniItem();
 
-        if (Input.GetKeyDown(KeyCode.Mouse0) && !isTracking && aktivan)
+        bool isOutOfBounds = (anglerFish != null && anglerFish.IsOutOfBounds);
+
+        if (isOutOfBounds && !isTracking && inventory != null && inventory.HasItem(GiovanniInventory.ID_MOBITEL))
+        {
+            StartCoroutine(BlinkArrowRoutine(false));
+        }
+
+        else if (!isOutOfBounds && Input.GetKeyDown(KeyCode.Mouse0) && !isTracking)
         {
             bool computerBusy = computer != null && computer.IsInteracting();
             bool gledaUPredmet = cursorManager != null && cursorManager.IsTargetingItem;
 
             if (!computerBusy && !gledaUPredmet && inventory != null && inventory.HasItem(GiovanniInventory.ID_MOBITEL))
             {
-                StartCoroutine(BlinkArrowRoutine());
-
-                if (giovanniStatsRef != null)
-                {
-                    giovanniStatsRef.ReduceThreat(threatCost);
-                }
+                StartCoroutine(BlinkArrowRoutine(true));
             }
         }
     }
@@ -107,6 +113,11 @@ public class MobitelTracker : MonoBehaviour
 
     private Transform GetActiveTarget()
     {
+        if (anglerFish != null && anglerFish.IsOutOfBounds)
+        {
+            return anglerFish.MapCenterTransform;
+        }
+
         if (ventGiovanni != null && ventGiovanni.ImaAktivnogItema)
         {
             return ventGiovanni.transform;
@@ -130,21 +141,19 @@ public class MobitelTracker : MonoBehaviour
         return null;
     }
 
-    private IEnumerator BlinkArrowRoutine()
+
+    private IEnumerator BlinkArrowRoutine(bool consumeThreat)
     {
         isTracking = true;
 
-        Transform trenutniCilj = GetActiveTarget();
-
-        // ZVUK GREŠKE (Ako nema cilja, svira točno jednom na početku):
-        if (trenutniCilj == null && mobitelAudio != null)
+        if (consumeThreat && giovanniStatsRef != null)
         {
-            mobitelAudio.PlayError();
+            giovanniStatsRef.ReduceThreat(threatCost);
         }
 
         for (int i = 0; i < brojBlicanja; i++)
         {
-            PostaviIspravanSprite(trenutniCilj);
+            PostaviIspravanSprite(GetActiveTarget());
 
             arrowImage.enabled = true;
             yield return new WaitForSeconds(vrijemeBlicanja);
@@ -158,8 +167,10 @@ public class MobitelTracker : MonoBehaviour
 
     private void PostaviIspravanSprite(Transform trenutniCilj)
     {
+        // 1. KRIŽIĆ (Nema više itema) -> Error zvuk i križić sprite
         if (trenutniCilj == null)
         {
+            if (mobitelAudio != null) mobitelAudio.PlayError();
             arrowImage.sprite = krizic;
             return;
         }
@@ -172,22 +183,28 @@ public class MobitelTracker : MonoBehaviour
 
         float kut = Vector3.SignedAngle(igracNaprijed, smjerPremaCilju, Vector3.up);
 
-        if (kut > -20f && kut < 20f)
+        // 2. NOVO: U-TURN (Igrač gleda u pogrešnom smjeru izvan mape) -> ERROR ZVUK i polukružna strelica!
+        if (anglerFish != null && anglerFish.IsOutOfBounds && (kut > 120f || kut < -120f) && strelicaPolukruzno != null)
         {
-            // RAVNO (Centar pan = 0):
-            if (mobitelAudio != null) mobitelAudio.PlayForwardPing();
+            if (mobitelAudio != null) mobitelAudio.PlayError();
+            arrowImage.sprite = strelicaPolukruzno;
+            return;
+        }
+
+        // 3. NORMALNE STRELICE PREMA CILJU
+        if (kut > -25f && kut < 25f)
+        {
+            if (SFX.zvucniEfekti != null && SFX.zvucniEfekti.ZvukMobitelaFwd != null) SFX.zvucniEfekti.ZvukMobitelaFwd.Play();
             arrowImage.sprite = strelicaGore;
         }
-        else if (kut <= -20f)
+        else if (kut <= -25f)
         {
-            // LIJEVO (Pan = -0.65):
-            if (mobitelAudio != null) mobitelAudio.PlayLeftPing();
+            if (SFX.zvucniEfekti != null && SFX.zvucniEfekti.ZvukMobitelaL != null) SFX.zvucniEfekti.ZvukMobitelaL.Play();
             arrowImage.sprite = strelicaLijevo;
         }
-        else if (kut >= 20f)
+        else if (kut >= 25f)
         {
-            // DESNO (Pan = +0.65):
-            if (mobitelAudio != null) mobitelAudio.PlayRightPing();
+            if (SFX.zvucniEfekti != null && SFX.zvucniEfekti.ZvukMobitelaR != null) SFX.zvucniEfekti.ZvukMobitelaR.Play();
             arrowImage.sprite = strelicaDesno;
         }
     }

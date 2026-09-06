@@ -170879,8 +170879,8 @@ MonoBehaviour:
   forwardOffset: {x: 0, y: 180, z: 0}
   zoomSpeed: 55
   attackSpeed: 45
-  viperAudio: {fileID: 31268199638264864}
   jumpscareAudioSource: {fileID: 1126019800}
+  jumpscareClip: {fileID: 0}
   giovanniAudio: {fileID: 1184683898}
 --- !u!1 &778734007
 GameObject:
@@ -206313,7 +206313,7 @@ Camera:
   far clip plane: 1000
   field of view: 30
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 4
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -273492,7 +273492,7 @@ MonoBehaviour:
   pingLeftClip: {fileID: 8300000, guid: a8963b3946a7a0a49abff0f90932c9c8, type: 3}
   pingRightClip: {fileID: 8300000, guid: 4c0e53e55f23a894e96fcfc9a9c0eab7, type: 3}
   errorClip: {fileID: 8300000, guid: bb0514f3bb005c040bac35d8daba4f89, type: 3}
-  errorVolume: 0.5
+  errorVolume: 0.4
   sidePanAmount: 0.65
   volume: 0.85
 --- !u!1001 &1185016205

@@ -14,6 +14,7 @@ public class DeathScreenGiovanni : MonoBehaviour
     [Header("UI Elementi Uzroka")]
     public Image bombUI;
     public Image viperFishUI;
+    public Image anglerFishUI;
 
     [Header("Završni Ekran (Gumbi)")]
     public GameObject buttonsContainer;
@@ -58,7 +59,10 @@ public class DeathScreenGiovanni : MonoBehaviour
 
     private IEnumerator DeathSequence(int cause)
     {
-        Image targetImage = (cause == 0) ? bombUI : viperFishUI;
+        Image targetImage = null;
+        if (cause == 0) targetImage = bombUI;
+        else if (cause == 1) targetImage = viperFishUI;
+        else if (cause == 2) targetImage = anglerFishUI;
 
         if (targetImage != null)
         {

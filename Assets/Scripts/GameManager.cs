@@ -162,7 +162,7 @@ public class GameManager : MonoBehaviour
         if (mirandaUnavailableUI != null) mirandaUnavailableUI.SetActive(!mirandaOdabrana);
         if (giovanniUnavailableUI != null) giovanniUnavailableUI.SetActive(!giovanniOdabran);
 
-        LockCursor(true);
+        //LockCursor(true);
 
         // 3. Pokretanje uvodne tranzicije
         StartCoroutine(InitialTransitionRoutine());
@@ -211,10 +211,10 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.Escape))
+        /*if (Input.GetKeyDown(KeyCode.Escape))
         {
             QuitGame();
-        }
+        }*/
     }
 
 
@@ -930,10 +930,10 @@ public class GameManager : MonoBehaviour
     }
 
 
-    private void LockCursor(bool lockState)
+    /*private void LockCursor(bool lockState)
     {
         Cursor.visible = !lockState;
-    }
+    }*/
 
     void DisableAllControls()
     {
@@ -986,7 +986,7 @@ public class GameManager : MonoBehaviour
 
     public void QuitGame()
     {
-        LockCursor(false);
+        //LockCursor(false);
         Application.Quit();
 
         #if UNITY_EDITOR

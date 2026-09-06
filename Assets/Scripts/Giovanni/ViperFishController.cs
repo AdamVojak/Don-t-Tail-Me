@@ -106,7 +106,10 @@ public class ViperFishController : MonoBehaviour
 
     void Update()
     {
-        if (giovanni.currentState != GiovanniController.GiovanniState.Active) return;
+        if (giovanni == null || giovanni.currentState != GiovanniController.GiovanniState.Active || !giovanni.isControlled)
+        {
+            return;
+        }
 
         if (currentState == FishState.Roaming)
         {
@@ -319,7 +322,10 @@ public class ViperFishController : MonoBehaviour
 
     public void TriggerThreatEvent()
     {
-        if (currentState != FishState.Roaming || giovanni.currentState == GiovanniController.GiovanniState.Dead) return;
+        if (currentState != FishState.Roaming || giovanni == null || giovanni.currentState != GiovanniController.GiovanniState.Active || !giovanni.isControlled)
+        {
+            return;
+        }
 
         isIlluminated = false;
         currentIlluminationTimer = 0f;
