@@ -56,6 +56,15 @@ public class ViperFishController : MonoBehaviour
     [SerializeField] private float wavyFrequency = 3f;
     [SerializeField] private float wavyAmplitude = 45f;
 
+    [Header("Out of Bounds i Skrivanje Modela")]
+    [SerializeField] private AnglerFishController anglerFish;
+    [Tooltip("Glavni 3D model Vipera")]
+    [SerializeField] private GameObject mainViperModel;
+    [Tooltip("Glow model Vipera (sa emissionom)")]
+    [SerializeField] private GameObject glowViperModel;
+
+    private bool isHiddenOutOfBounds = false;
+
     private bool isIlluminated = false;
     private float lastConeTouchTime = -1f; // NOVO: Heartbeat tajmer (rješava stackanje zauvijek!)
     private float currentIlluminationTimer = 0f;
@@ -75,6 +84,8 @@ public class ViperFishController : MonoBehaviour
 
     void Start()
     {
+        if (anglerFish == null) anglerFish = FindFirstObjectByType<AnglerFishController>();
+
         if (bodyCollider == null)
         {
             bodyCollider = GetComponent<Collider>();
@@ -111,10 +122,58 @@ public class ViperFishController : MonoBehaviour
             return;
         }
 
+        bool isOutOfBounds = (anglerFish != null && anglerFish.IsOutOfBounds);
+
+        if (isOutOfBounds)
+        {
+            // IGRAČ JE IZAŠAO: Sakrij Vipera i ugasi modele
+            if (!isHiddenOutOfBounds)
+            {
+                isHiddenOutOfBounds = true;
+
+                Vector3 behindPlayer = -giovanni.transform.forward;
+                behindPlayer.y = 0;
+                Vector3 hidePosition = giovanni.transform.position + (behindPlayer.normalized * 25f);
+                hidePosition.y = fixedYPosition;
+                transform.position = hidePosition;
+
+                SetViperModelsVisibility(false);
+            }
+
+            return; // Dok je van granica, miruje
+        }
+        else if (isHiddenOutOfBounds)
+        {
+            // NOVO - IGRAČ SE VRATIO U MAPU:
+            // 1. Računamo NOVU točku iza TRENUTNIH leđa Giovannija (tako da ga igrač ne vidi kad se stvori!)
+            Vector3 behindCurrent = -giovanni.transform.forward;
+            behindCurrent.y = 0;
+            Vector3 respawnPosition = giovanni.transform.position + (behindCurrent.normalized * 25f);
+            respawnPosition.y = fixedYPosition;
+            transform.position = respawnPosition;
+
+            // 2. Postavljamo mu smjer kretanja od igrača prema mraku
+            currentMoveDirection = behindCurrent;
+            transform.rotation = Quaternion.LookRotation(currentMoveDirection) * Quaternion.Euler(forwardOffset);
+
+            // 3. Palimo modele i pokrećemo normalno lutanje
+            SetViperModelsVisibility(true);
+            CalculateNewTurn();
+            isHiddenOutOfBounds = false;
+
+            Debug.Log("Giovanni se vratio u granice: Viper se stvorio iza njegovih leđa i nastavlja plivati.");
+        }
+
         if (currentState == FishState.Roaming)
         {
             HandleRoaming();
         }
+    }
+
+    private void SetViperModelsVisibility(bool visible)
+    {
+        if (mainViperModel != null) mainViperModel.SetActive(visible);
+        if (glowViperModel != null) glowViperModel.SetActive(visible);
     }
 
     private void HandleRoaming()

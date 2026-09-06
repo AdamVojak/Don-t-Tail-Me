@@ -35,6 +35,8 @@ public class AnglerFishController : MonoBehaviour
     [SerializeField] private AudioClip jumpscareClip; // Povuci ovdje zvučni clip krika
     [SerializeField] private GiovanniAudio giovanniAudio; // Zvuk preleta
 
+    [SerializeField] private float glasnocaNapada = 0.85f; // Glasnoća napada (0.0 - 1.0)
+
     private bool isBusy = false;
     private int highestZoneReached = 0;
 
@@ -144,7 +146,11 @@ public class AnglerFishController : MonoBehaviour
         // 1. SIGURAN ZVUK: Puštamo zvuk preko vlastitog AudioSource-a koji je 100% aktivan!
         if (jumpscareAudioSource != null)
         {
-            if (jumpscareClip != null) jumpscareAudioSource.PlayOneShot(jumpscareClip);
+            if (jumpscareClip != null)
+            {
+                jumpscareAudioSource.volume = glasnocaNapada;
+                jumpscareAudioSource.PlayOneShot(jumpscareClip);
+            }
             else jumpscareAudioSource.Play();
         }
 

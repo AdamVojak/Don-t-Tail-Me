@@ -38,6 +38,9 @@ public class GiovanniStats : MonoBehaviour
     [Header("Viper Fish Reference")]
     [SerializeField] private ViperFishController viperFish;
 
+    [Header("Angler Fish Referenca")]
+    [SerializeField] private AnglerFishController anglerFish;
+
     public bool isThreatLocked = false;
 
     [Header("Cooldown Nakon Napada")]
@@ -48,6 +51,9 @@ public class GiovanniStats : MonoBehaviour
 
     void Start()
     {
+        if (anglerFish == null) anglerFish = FindFirstObjectByType<AnglerFishController>();
+        if (anglerFish == null) viperFish = FindFirstObjectByType<ViperFishController>();
+
         currentStamina = maxStamina;
         currentThreat = maxThreat;
 
@@ -84,26 +90,36 @@ public class GiovanniStats : MonoBehaviour
             cooldownTimer -= Time.deltaTime;
         }
 
-        // Threat se puni ili prazni
+        // NOVO: Provjera je li igrač izvan granica mape
+        bool isOutOfBounds = (anglerFish != null && anglerFish.IsOutOfBounds);
+
         if (!isThreatLocked)
         {
-            if (isMoving)
+            // AKO JE OUT OF BOUNDS: Threat se NIKADA ne troši, samo se puni/regenerira!
+            if (isOutOfBounds)
             {
-                if (cooldownTimer <= 0)
-                {
-                    float currentDrain = isSprinting ? threatDrainSprinting : threatDrainWalking;
-                    currentThreat -= currentDrain * Time.deltaTime;
-                }
-            }
-            else
-            {
-                // OVDJE SE POLAKO PUNI OD NULE PREMA GORE DOK IGRAČ MIRUJE!
                 currentThreat += threatRegenIdle * Time.deltaTime;
             }
-
-            if (isFlashlightOn && cooldownTimer <= 0)
+            // NORMALNO STANJE (Unutar mape)
+            else
             {
-                currentThreat -= threatDrainFlashlight * Time.deltaTime;
+                if (isMoving)
+                {
+                    if (cooldownTimer <= 0)
+                    {
+                        float currentDrain = isSprinting ? threatDrainSprinting : threatDrainWalking;
+                        currentThreat -= currentDrain * Time.deltaTime;
+                    }
+                }
+                else
+                {
+                    currentThreat += threatRegenIdle * Time.deltaTime;
+                }
+
+                if (isFlashlightOn && cooldownTimer <= 0)
+                {
+                    currentThreat -= threatDrainFlashlight * Time.deltaTime;
+                }
             }
         }
 
@@ -112,8 +128,29 @@ public class GiovanniStats : MonoBehaviour
 
         UpdateUI();
 
-        // NOVO: Napad se može pokrenuti SAMO ako je threat na nuli, nije zaključan I ISTEKAO JE COOLDOWN!
-        // Ovo omogućava da threat počne od 0 i raste bez da se riba odmah zaleti!
+        // Napad se NE MOŽE pokrenuti ako je igrač izvan granica (Angler preuzima!)
+        if (currentThreat <= 0 && !isThreatLocked && cooldownTimer <= 0 && !isOutOfBounds)
+        {
+            isThreatLocked = true;
+            currentThreat = 0f;
+
+            if (viperFish != null)
+            {
+                viperFish.TriggerThreatEvent();
+            }
+        }
+    }
+
+    public void ReduceThreat(float amount)
+    {
+        bool isOutOfBounds = (anglerFish != null && anglerFish.IsOutOfBounds);
+        // Ako je out of bounds, odbij bilo kakvo skidanje threata!
+        if (isThreatLocked || cooldownTimer > 0 || isOutOfBounds) return;
+
+        currentThreat -= amount;
+        currentThreat = Mathf.Clamp(currentThreat, 0, maxThreat);
+        UpdateUI();
+
         if (currentThreat <= 0 && !isThreatLocked && cooldownTimer <= 0)
         {
             isThreatLocked = true;
@@ -159,26 +196,6 @@ public class GiovanniStats : MonoBehaviour
     public bool CanSprint()
     {
         return currentStamina > 1f;
-    }
-
-    public void ReduceThreat(float amount)
-    {
-        if (isThreatLocked || cooldownTimer > 0) return;
-
-        currentThreat -= amount;
-        currentThreat = Mathf.Clamp(currentThreat, 0, maxThreat);
-        UpdateUI();
-
-        if (currentThreat <= 0 && !isThreatLocked && cooldownTimer <= 0)
-        {
-            isThreatLocked = true;
-            currentThreat = 0f;
-
-            if (viperFish != null)
-            {
-                viperFish.TriggerThreatEvent();
-            }
-        }
     }
 
     public bool IsInCooldown()
