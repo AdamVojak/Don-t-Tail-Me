@@ -105,6 +105,10 @@ public class GameManager : MonoBehaviour
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
 
+        sashaOdabran = CharacterSelectionData.SashaSelected;
+        mirandaOdabrana = CharacterSelectionData.MirandaSelected;
+        giovanniOdabran = CharacterSelectionData.GiovanniSelected;
+
         if (sunLight != null) sunLight.SetActive(false);
 
         if (loadingAudio == null && loadingManager != null)
@@ -187,24 +191,33 @@ public class GameManager : MonoBehaviour
         // 2. LOGIKA UNUTAR IZBORNIKA
         if (isMenuOpen)
         {
-            // Biranje likova tipkama 1, 2, 3
+            // Biranje tipkama 1, 2, 3
             if (Input.GetKeyDown(KeyCode.Alpha1) && IsCharacterAvailable(ActiveCharacter.Sasha) && selectedCharInMenu != ActiveCharacter.Sasha)
             {
                 MoveSliderTo(ActiveCharacter.Sasha);
-                PrikaziKlikGumba(gumb1StisnutSprite); // NOVO: Vizualni klik za 1
+                PrikaziKlikGumba(gumb1StisnutSprite);
             }
             else if (Input.GetKeyDown(KeyCode.Alpha2) && IsCharacterAvailable(ActiveCharacter.Miranda) && selectedCharInMenu != ActiveCharacter.Miranda)
             {
                 MoveSliderTo(ActiveCharacter.Miranda);
-                PrikaziKlikGumba(gumb2StisnutSprite); // NOVO: Vizualni klik za 2
+                PrikaziKlikGumba(gumb2StisnutSprite);
             }
             else if (Input.GetKeyDown(KeyCode.Alpha3) && IsCharacterAvailable(ActiveCharacter.Giovanni) && selectedCharInMenu != ActiveCharacter.Giovanni)
             {
                 MoveSliderTo(ActiveCharacter.Giovanni);
-                PrikaziKlikGumba(gumb3StisnutSprite); // NOVO: Vizualni klik za 3
+                PrikaziKlikGumba(gumb3StisnutSprite);
             }
 
-            // Potvrda odabira tipkom Enter
+            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                NavigateMenu(-1); // Ide prema gore (prethodni lik)
+            }
+            else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                NavigateMenu(1);  // Ide prema dolje (sljedeći lik)
+            }
+
+            // Potvrda tipkom Enter
             if (Input.GetKeyDown(KeyCode.Return) && UI_EnterTipka != null && UI_EnterTipka.activeSelf)
             {
                 StartCoroutine(CloseTransitionMenuAndLoad(selectedCharInMenu));
@@ -518,6 +531,49 @@ public class GameManager : MonoBehaviour
         else
         {
             Debug.Log("Nema više živih likova! KRAJ IGRE.");
+        }
+    }
+
+    void NavigateMenu(int step)
+    {
+        ActiveCharacter[] characters = new ActiveCharacter[]
+        {
+            ActiveCharacter.Sasha,
+            ActiveCharacter.Miranda,
+            ActiveCharacter.Giovanni
+        };
+
+        int currentIndex = -1;
+        for (int i = 0; i < characters.Length; i++)
+        {
+            if (characters[i] == selectedCharInMenu)
+            {
+                currentIndex = i;
+                break;
+            }
+        }
+
+        if (currentIndex == -1) currentIndex = 0;
+
+        int checkIndex = currentIndex;
+
+        // Tražimo prvog idućeg dostupnog lika u zadanom smjeru (+1 ili -1)
+        for (int i = 0; i < characters.Length; i++)
+        {
+            checkIndex = (checkIndex + step + characters.Length) % characters.Length;
+            ActiveCharacter candidate = characters[checkIndex];
+
+            if (candidate != selectedCharInMenu && IsCharacterAvailable(candidate))
+            {
+                MoveSliderTo(candidate);
+
+                // Automatski animiramo i odgovarajući gumb na panelu lifta!
+                if (candidate == ActiveCharacter.Sasha) PrikaziKlikGumba(gumb1StisnutSprite);
+                else if (candidate == ActiveCharacter.Miranda) PrikaziKlikGumba(gumb2StisnutSprite);
+                else if (candidate == ActiveCharacter.Giovanni) PrikaziKlikGumba(gumb3StisnutSprite);
+
+                break;
+            }
         }
     }
 
@@ -863,6 +919,8 @@ public class GameManager : MonoBehaviour
         if (newCharacter == ActiveCharacter.Sasha && IsCharacterAvailable(ActiveCharacter.Sasha))
         {
             sashaScript.isControlled = true;
+            if (sashaScript.SustavOruzja != null)
+                sashaScript.SustavOruzja.enabled = true;
             if (kursorSasha != null) kursorSasha.SetActive(true);
             if (UI_Sasha != null) UI_Sasha.SetActive(true);
         }
@@ -941,6 +999,8 @@ public class GameManager : MonoBehaviour
         {
             sashaScript.PrisilnoPrekiniInterakciju();
             sashaScript.isControlled = false;
+            if (sashaScript.SustavOruzja != null)
+                sashaScript.SustavOruzja.enabled = false;
         }
 
         if (mirandaScript != null)
