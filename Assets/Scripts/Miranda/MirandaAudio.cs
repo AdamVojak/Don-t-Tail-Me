@@ -9,9 +9,17 @@ public class MirandaAudio : MonoBehaviour
     [Header("1. Ključevi i Predmeti (Pickup & Use)")]
     [SerializeField] private AudioClip yellowKeyPickupClip;
     [SerializeField] private AudioClip purpleKeyPickupClip;
+    [SerializeField] private AudioClip keyJiggleClip;
     [SerializeField] private AudioClip genericPickupClip;
     [SerializeField] private AudioClip yellowKeyUseClip;
     [SerializeField] private AudioClip purpleKeyUseClip;
+    [SerializeField] private AudioClip keyUseClip;
+
+    [Header("Error zvuk")]
+    [SerializeField] private AudioClip errorClip;
+
+    [Range(0f, 1f)] public float errorVolume = 0.8f;
+
 
     public float kljuceviVolume = 1.0f;
 
@@ -84,6 +92,9 @@ public class MirandaAudio : MonoBehaviour
     public void PlayGenericPickup() => PlaySFX(genericPickupClip, kljuceviVolume);
     public void PlayYellowKeyUse() => PlaySFX(yellowKeyUseClip, kljuceviVolume);
     public void PlayPurpleKeyUse() => PlaySFX(purpleKeyUseClip, kljuceviVolume);
+    public void PlayKeyUse() => PlaySFX(keyUseClip, kljuceviVolume);
+    public void PlayKeyJiggle() => PlaySFX(keyJiggleClip, kljuceviVolume);
+    public void PlayError() => PlaySFX(errorClip, errorVolume);
 
     // ==========================================
     // 2. KOTAČ (Whoosh)

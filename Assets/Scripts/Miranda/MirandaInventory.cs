@@ -9,6 +9,8 @@ public class MirandaInventory : MonoBehaviour
     [SerializeField] private bool imaRuku = false;             // ID 3
     [SerializeField] private bool imaLjubicastiKljuc = false;  // ID 4
     [SerializeField] private bool imaPajser = false;           // ID 5
+    [SerializeField] private bool imaObicanKljuc = false;           // ID 6
+
 
     // Javni getteri za provjeru iz drugih skripti (npr. MirandaController, Kljucanice)
     public bool ImaZutiKljuc => imaZutiKljuc;
@@ -17,6 +19,8 @@ public class MirandaInventory : MonoBehaviour
     public bool ImaRuku => imaRuku;
     public bool ImaLjubicastiKljuc => imaLjubicastiKljuc;
     public bool ImaPajser => imaPajser;
+
+    public bool ImaObicanKljuc => imaObicanKljuc;
 
     private MirandaAudio mirandaAudio;
 
@@ -36,6 +40,7 @@ public class MirandaInventory : MonoBehaviour
             case 3: return imaRuku;
             case 4: return imaLjubicastiKljuc;
             case 5: return imaPajser;
+            case 6: return imaObicanKljuc;
             default: return false;
         }
     }
@@ -54,6 +59,10 @@ public class MirandaInventory : MonoBehaviour
                 imaLjubicastiKljuc = true;
                 if (mirandaAudio != null) mirandaAudio.PlayPurpleKeyPickup();
                 Debug.Log("Miranda inventar: Pokupljen Ljubičasti ključ (ID 4)");
+                break;
+            case 6: imaObicanKljuc = true;
+                if (mirandaAudio != null) mirandaAudio.PlayGenericPickup();
+                Debug.Log("Miranda inventar: Pokupljen Običan ključ (ID 6)");
                 break;
             default:
                 if (mirandaAudio != null) mirandaAudio.PlayGenericPickup();
@@ -85,6 +94,10 @@ public class MirandaInventory : MonoBehaviour
             case 5:
                 imaPajser = true;
                 Debug.Log("Miranda inventar: Pokupljen Pajser (ID 5)");
+                break;
+            case 6:
+                imaObicanKljuc = true;
+                Debug.Log("Miranda inventar: Pokupljen Običan ključ (ID 6)");
                 break;
             default:
                 Debug.LogWarning("Miranda inventar: Primljen nepoznat ID predmeta: " + itemType);
@@ -118,6 +131,10 @@ public class MirandaInventory : MonoBehaviour
                 break;
             case 5:
                 imaPajser = false;
+                break;
+            case 6: imaObicanKljuc = false;
+                Debug.Log("Miranda inventar: Iskorišten Ljubičasti ključ (ID 4)");
+                if (mirandaAudio != null) mirandaAudio.PlayKeyUse();
                 break;
             default:
                 Debug.LogWarning("Miranda inventar: Pokušaj brisanja nepoznatog ID-a: " + itemType);
