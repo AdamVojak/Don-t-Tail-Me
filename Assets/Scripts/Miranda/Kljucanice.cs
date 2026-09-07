@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
 
 public class Kljucanice : MonoBehaviour
 {
@@ -19,55 +21,87 @@ public class Kljucanice : MonoBehaviour
     [Header("Vrata")]
     [SerializeField] private Vrata vrata;
 
-    [HideInInspector]
-    public bool otkljucana = false;
+    [Header("Audio i UI Feedback")]
+    [SerializeField] private MirandaAudio mirandaAudio;
+    [SerializeField] private Image uiImage;
+    [SerializeField] private GameObject uiFrame;
+    [SerializeField] private GameObject keyUIIcon;
+
+    [HideInInspector] public bool otkljucana = false;
+    private bool playerInside = false;
+
+    // Prati ulazak Mirande radi logike pritiska tipke F
+    private void OnTriggerEnter(Collider other) { if (other.CompareTag("Miranda")) playerInside = true; }
+    private void OnTriggerExit(Collider other) { if (other.CompareTag("Miranda")) playerInside = false; }
+
+    [Header("Collider za isključivanje")]
+    [SerializeField] private Collider triggerCollider;
 
     void Start()
     {
-        if (spriteRenderer == null)
+        if (spriteRenderer == null) spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+
+    void Update()
+    {
+        // Samo ako je igrač u triggeru, vrata nisu otključana i stisne F
+        if (playerInside && !otkljucana && Input.GetKeyDown(KeyCode.F))
         {
-            spriteRenderer = GetComponent<SpriteRenderer>();
-            if (spriteRenderer == null)
+            MirandaInventory inv = Object.FindFirstObjectByType<MirandaInventory>();
+
+            if (inv != null && inv.HasItem((int)potrebniKljuc))
             {
-                Debug.LogError("SpriteRenderer nije pronađen na ključanici: " + gameObject.name);
+                // Uspješno otključavanje
+                if (mirandaAudio != null) mirandaAudio.PlayKeyUse();
+                UnlockDoor(inv);
+            }
+            else
+            {
+                // Error logika (Nema ključa)
+                if (mirandaAudio != null) mirandaAudio.PlayError();
+                StartCoroutine(FlashUIRoutine(uiImage, uiFrame));
             }
         }
     }
 
-    private void OnTriggerStay(Collider other)
+    private IEnumerator FlashUIRoutine(Image targetImage, GameObject frame)
     {
-        if (otkljucana) return;
+        if (targetImage == null || frame == null) yield break;
 
-        // Prepoznajemo i ako Miranda priđe tijelom i ako pruži ruku ("Shaka")
-        if (other.CompareTag("Miranda") || other.CompareTag("Shaka"))
+        for (int i = 0; i < 3; i++)
         {
-            MirandaInventory inv = other.GetComponentInParent<MirandaInventory>();
-            if (inv == null) inv = Object.FindFirstObjectByType<MirandaInventory>();
+            targetImage.color = Color.black;
+            frame.GetComponent<Image>().color = Color.red;
+            yield return new WaitForSeconds(0.2f);
 
-            if (inv != null)
-            {
-                // Provjeravamo ima li odgovarajući ključ u unificiranom inventaru
-                bool imaKljuc = false;
-                if (potrebniKljuc == PotrebanTipKljuca.Zuti) imaKljuc = inv.ImaZutiKljuc;
-                else if (potrebniKljuc == PotrebanTipKljuca.Ljubicasti) imaKljuc = inv.ImaLjubicastiKljuc;
-
-                if (imaKljuc)
-                {
-                    UnlockDoor(inv);
-                }
-            }
+            targetImage.color = Color.white;
+            frame.GetComponent<Image>().color = Color.white;
+            yield return new WaitForSeconds(0.2f);
         }
     }
 
     private void UnlockDoor(MirandaInventory mirandaInventory)
     {
         otkljucana = true;
-
-        // UNIFICIRANO: Koristimo standardnu RemoveItem metodu s ID-jem (0 ili 4)
         mirandaInventory.RemoveItem((int)potrebniKljuc);
-        Debug.Log($"Ključanica {gameObject.name} je uspješno OTKLJUČANA!");
 
-        // Promjena spritea
+        // 1. ISKLJUČI COLLIDER (Sada je ključanica "mrtva" za fiziku)
+        if (triggerCollider != null) triggerCollider.enabled = false;
+
+        // 2. UNIŠTI UI IKONU KLJUČA
+        if (keyUIIcon != null) Destroy(keyUIIcon);
+
+        // 3. UGASI HINT I SAKRIJ GA S EKRANA
+        ClickHintMiranda hintScript = GetComponent<ClickHintMiranda>();
+        if (hintScript != null)
+        {
+            MirandaController miranda = Object.FindFirstObjectByType<MirandaController>();
+            if (miranda != null) miranda.SakrijHint(hintScript);
+
+            hintScript.enabled = false;
+        }
+
+        // 3. Promjena spritea
         if (potrebniKljuc == PotrebanTipKljuca.Zuti && otkljucanaZuta != null)
         {
             spriteRenderer.sprite = otkljucanaZuta;
@@ -77,14 +111,10 @@ public class Kljucanice : MonoBehaviour
             spriteRenderer.sprite = otkljucanaLjub;
         }
 
-        // Obavijesti vrata
+        // 4. Obavijesti vrata
         if (vrata != null)
         {
             vrata.ProvjeriKljucanice();
-        }
-        else
-        {
-            Debug.LogWarning("Vrata nisu dodijeljena na ključanici " + gameObject.name);
         }
     }
 }

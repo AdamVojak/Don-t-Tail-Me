@@ -9,7 +9,7 @@ public class RukaUIKomponenta : MonoBehaviour
 
     public Image ruka;
 
-    private void OnEnable()
+    private void Start()
     {
         if (miranda != null)
         {
@@ -17,7 +17,7 @@ public class RukaUIKomponenta : MonoBehaviour
         }
     }
 
-    void Update()
+    private void Update()
     {
         aktivan = miranda.rukaAktivna ? true : false;
 

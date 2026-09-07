@@ -73,7 +73,6 @@ public class SashaController : MonoBehaviour
     [Header("Audio")]
     [SerializeField] private SashaAudio sashaAudio;
 
-    private int zvukUdarca;
     private Vector3 lockedPushDir = Vector3.zero;
     private Rigidbody lockedBox = null;
     private GameObject currentObstacleInRange = null;

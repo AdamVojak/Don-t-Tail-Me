@@ -84,7 +84,7 @@ public class MirandaController : MonoBehaviour
     {
         if (inventar == null || !inventar.ImaRuku)
         {
-            if (mirandaAudio != null) mirandaAudio.PlayArmError();
+            //if (mirandaAudio != null) mirandaAudio.PlayArmError();
 
             if (mirandaRukaObjekt != null && mirandaRukaObjekt.activeSelf)
             {

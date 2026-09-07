@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class MirandaInventory : MonoBehaviour
 {
-    [Header("Posjed Predmeta (0 - 5)")]
+    [Header("Posjed Predmeta (0 - 6)")]
     [SerializeField] private bool imaZutiKljuc = false;       // ID 0
     [SerializeField] private bool imaGun = false;              // ID 1
     [SerializeField] private bool imaMinigun = false;          // ID 2
@@ -61,7 +61,7 @@ public class MirandaInventory : MonoBehaviour
                 Debug.Log("Miranda inventar: Pokupljen Ljubičasti ključ (ID 4)");
                 break;
             case 6: imaObicanKljuc = true;
-                if (mirandaAudio != null) mirandaAudio.PlayGenericPickup();
+                if (mirandaAudio != null) mirandaAudio.PlayKeyPickup();
                 Debug.Log("Miranda inventar: Pokupljen Običan ključ (ID 6)");
                 break;
             default:

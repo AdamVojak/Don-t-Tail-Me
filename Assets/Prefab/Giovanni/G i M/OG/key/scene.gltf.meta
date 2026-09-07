@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: fb33a952474f3cc41bcd9a4941aac324
+guid: 7f1daef5a70b1374fb4deec725bbda4d
 ScriptedImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -26,6 +26,15 @@ ScriptedImporter:
     sceneObjectCreation: 2
   assetDependencies:
   - type: 0
-    originalUri: Assets\Prefab\Giovanni\squid.bin
-    assetPath: Assets\Prefab\Giovanni\squid.bin
+    originalUri: Assets\Prefab\Giovanni\key\scene.bin
+    assetPath: Assets\Prefab\Giovanni\key\scene.bin
+  - type: 1
+    originalUri: Assets\Prefab\Giovanni\key\textures\default_baseColor.png
+    assetPath: Assets\Prefab\Giovanni\key\textures\default_baseColor.png
+  - type: 1
+    originalUri: Assets\Prefab\Giovanni\key\textures\default_metallicRoughness.png
+    assetPath: Assets\Prefab\Giovanni\key\textures\default_metallicRoughness.png
+  - type: 1
+    originalUri: Assets\Prefab\Giovanni\key\textures\default_normal.png
+    assetPath: Assets\Prefab\Giovanni\key\textures\default_normal.png
   reportItems: []

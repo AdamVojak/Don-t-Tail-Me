@@ -20,11 +20,13 @@ public class GiovanniInventory : MonoBehaviour
     [SerializeField] private bool imaGun = false;
     [SerializeField] private bool imaMinigun = false;
     [SerializeField] public bool imaPajser = false;
+    [SerializeField] public bool imaObicanKljuc = false;
 
     public const int ID_GUN = 1;
     public const int ID_MINIGUN = 2;
     public const int ID_ARM = 3;
     public const int ID_PAJSER = 5;
+    public const int ID_OBICAN_KLJUC = 6;
     public const int ID_MOBITEL = 10;
 
     public bool ImaRuku => imaRuku;
@@ -32,6 +34,7 @@ public class GiovanniInventory : MonoBehaviour
     public bool ImaGun => imaGun;
     public bool ImaMinigun => imaMinigun;
     public bool ImaPajser => imaPajser;
+    public bool ImaObicanKljuc => imaObicanKljuc;
 
     private void Start()
     {
@@ -82,6 +85,14 @@ public class GiovanniInventory : MonoBehaviour
                 Debug.Log("Giovanni je pokupio Pajser!");
             }
         }
+        else if (itemID == ID_OBICAN_KLJUC)
+        {
+            if (!imaObicanKljuc)
+            {
+                imaObicanKljuc = true;
+                Debug.Log("Giovanni je pokupio Običan ključ!");
+            }
+        }
         else
         {
             Debug.LogWarning("Giovanni ne može pokupiti nepoznat predmet s ID-jem: " + itemID);
@@ -97,6 +108,7 @@ public class GiovanniInventory : MonoBehaviour
         if (itemID == ID_MINIGUN) return imaMinigun;
         if (itemID == ID_MOBITEL) return imaMobitel;
         if (itemID == ID_PAJSER) return imaPajser;
+        if (itemID == ID_OBICAN_KLJUC) return imaObicanKljuc;
         return false;
     }
 
@@ -107,6 +119,7 @@ public class GiovanniInventory : MonoBehaviour
         else if (itemID == ID_MINIGUN) imaMinigun = false;
         else if (itemID == ID_MOBITEL) imaMobitel = false;
         else if (itemID == ID_PAJSER) imaPajser = false;
+        else if (itemID == ID_OBICAN_KLJUC) imaObicanKljuc = false;
 
         UpdateInventoryUI();
     }

@@ -3,7 +3,7 @@ using UnityEngine;
 public class CollectibleItem : MonoBehaviour
 {
     [Header("Postavke predmeta")]
-    [Tooltip("Ruka = 3, Gun = 1, Minigun = 2, Mobitel = 10")]
+    [Tooltip("Ruka = 3, Gun = 1, Minigun = 2, Mobitel = 10, Običan ključ = 6")]
     public int itemID;
 
     public void Collect(GiovanniInventory inventory)

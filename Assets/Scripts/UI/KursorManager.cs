@@ -27,6 +27,11 @@ public class CursorManager : MonoBehaviour
     [SerializeField] private float maxInteractionDistance = 4.5f; // NOVO: Fizički domet (u metrima)
     [SerializeField] private LayerMask interactableLayer;
 
+    [Header("Giovanni Kursor Postavke (Ključ i Gumb)")]
+    [SerializeField] private Sprite giovanniKeySprite;       // Kursor kada ima ključ
+    [SerializeField] private Sprite giovanniNoKeySprite;     // Kursor prekriženog ključa
+    [SerializeField] private Sprite giovanniPressSprite;     // Kursor za pritiskanje gumba
+
     [Header("Audio Postavke")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip errorSound;
@@ -130,10 +135,8 @@ public class CursorManager : MonoBehaviour
 
         if (Physics.Raycast(ray, out RaycastHit hit, maxRaycastDistance))
         {
-            // Računamo stvarnu udaljenost između Giovannija i predmeta u koji gledaš
             float distanceToPlayer = Vector3.Distance(giovanniInventory.transform.position, hit.point);
 
-            // Ako je Giovanni predaleko od predmeta (npr. dalje od 4.5m), kursor ostaje normalan i nema interakcije!
             if (distanceToPlayer > maxInteractionDistance)
             {
                 ResetGiovanniCursor();
@@ -144,48 +147,97 @@ public class CursorManager : MonoBehaviour
             Computer computer = hit.collider.GetComponentInParent<Computer>();
             DestructibleObject destructible = hit.collider.GetComponentInParent<DestructibleObject>();
 
-            // NOVO: Provjera jesmo li pogodili točno onaj dio koji je definiran (npr. pantove)
-            if (destructible != null)
-            {
-                // Ako je u skripti definiran specifičan collider, a mi smo pogodili nešto drugo (npr. dasku vrata)
-                if (destructible.specificTargetCollider != null && hit.collider != destructible.specificTargetCollider)
-                {
-                    // Poništavamo pronalazak - pretvaramo se da nismo prešli mišem preko uništivog objekta
-                    destructible = null;
-                }
-            }
+            // NOVO: Tražimo KeyPanelController
+            KeyPanelController keyPanel = hit.collider.GetComponentInParent<KeyPanelController>();
 
-            // Logika za uništive objekte (Pajser)
-            if (destructible != null)
+            // LOGIKA ZA PANEL S KLJUČEM
+            if (keyPanel != null)
             {
                 IsTargetingItem = true;
 
-                bool hasCrowbar = (giovanniInventory != null && giovanniInventory.imaPajser);
-
-                if (hasCrowbar)
+                // 1. Slučaj: Gledamo u mjesto za ubacivanje ključa
+                if (hit.collider == keyPanel.insertKeyCollider)
                 {
-                    SetGiovanniCursorSprite(giovanniCrowbarSprite);
-
+                    if (giovanniInventory.imaObicanKljuc) // Pretpostavljam da se bool ovako zove
+                    {
+                        SetGiovanniCursorSprite(giovanniKeySprite);
+                        if (Input.GetKeyDown(KeyCode.Mouse0))
+                        {
+                            giovanniInventory.imaObicanKljuc = false; // Oduzimamo ključ iz inventara
+                            keyPanel.InsertKey(); // Mijenjamo objekte
+                        }
+                    }
+                    else
+                    {
+                        SetGiovanniCursorSprite(giovanniNoKeySprite);
+                        if (Input.GetKeyDown(KeyCode.Mouse0))
+                        {
+                            if (audioSource != null && errorSound != null)
+                                audioSource.PlayOneShot(errorSound);
+                        }
+                    }
+                }
+                // 2. Slučaj: Gledamo u ključ koji je već ubačen (želimo ga nazad)
+                else if (hit.collider == keyPanel.takeKeyCollider)
+                {
+                    SetGiovanniCursorSprite(giovanniHandSprite); // Ruka jer ga uzimamo
                     if (Input.GetKeyDown(KeyCode.Mouse0))
                     {
-                        destructible.DestroyAndReplace();
+                        giovanniInventory.imaObicanKljuc = true; // Vraćamo ključ u inventar
+                        keyPanel.TakeKey(); // Vraćamo stari objekt
+                    }
+                }
+                // 3. Slučaj: Gledamo u gumb za pobjedu
+                else if (hit.collider == keyPanel.pushButtonCollider)
+                {
+                    SetGiovanniCursorSprite(giovanniPressSprite); // Kursor za pritisak (prst)
+                    if (Input.GetKeyDown(KeyCode.Mouse0))
+                    {
+                        keyPanel.PressWinButton(); // Pozivamo funkciju za pobjedu
                     }
                 }
                 else
                 {
-                    SetGiovanniCursorSprite(giovanniNoCrowbarSprite);
+                    // Ako smo pogodili panel, ali nismo pogodili nijedan od ova 3 specifična collidera
+                    ResetGiovanniCursor();
+                }
+            }
+            // OSTATAK TVOJE LOGIKE (Pajser, Ruka, Kompjuter)
+            else if (destructible != null)
+            {
+                if (destructible.specificTargetCollider != null && hit.collider != destructible.specificTargetCollider)
+                {
+                    destructible = null;
+                }
 
-                    // Ovdje sam stavio Mouse0 kako bi zvuk greške svirao na lijevi klik
-                    if (Input.GetKeyDown(KeyCode.Mouse0))
+                if (destructible != null)
+                {
+                    IsTargetingItem = true;
+                    bool hasCrowbar = (giovanniInventory != null && giovanniInventory.imaPajser);
+
+                    if (hasCrowbar)
                     {
-                        if (audioSource != null && errorSound != null)
+                        SetGiovanniCursorSprite(giovanniCrowbarSprite);
+                        if (Input.GetKeyDown(KeyCode.Mouse0))
                         {
-                            audioSource.PlayOneShot(errorSound);
+                            destructible.DestroyAndReplace();
+                        }
+                    }
+                    else
+                    {
+                        SetGiovanniCursorSprite(giovanniNoCrowbarSprite);
+                        if (Input.GetKeyDown(KeyCode.Mouse0))
+                        {
+                            if (audioSource != null && errorSound != null)
+                                audioSource.PlayOneShot(errorSound);
                         }
                     }
                 }
+                else
+                {
+                    ResetGiovanniCursor();
+                }
             }
-            // Logika za sakupljanje predmeta (Ruka)
             else if (item != null)
             {
                 IsTargetingItem = true;
@@ -193,13 +245,9 @@ public class CursorManager : MonoBehaviour
 
                 if (Input.GetKeyDown(KeyCode.Mouse0))
                 {
-                    if (giovanniInventory != null)
-                    {
-                        item.Collect(giovanniInventory);
-                    }
+                    if (giovanniInventory != null) item.Collect(giovanniInventory);
                 }
             }
-            // Logika za računalo
             else if (computer != null && hit.collider.isTrigger && !computer.isReadyToSend)
             {
                 IsTargetingItem = true;

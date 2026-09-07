@@ -93,7 +93,7 @@ public class MirandaAudio : MonoBehaviour
     public void PlayYellowKeyUse() => PlaySFX(yellowKeyUseClip, kljuceviVolume);
     public void PlayPurpleKeyUse() => PlaySFX(purpleKeyUseClip, kljuceviVolume);
     public void PlayKeyUse() => PlaySFX(keyUseClip, kljuceviVolume);
-    public void PlayKeyJiggle() => PlaySFX(keyJiggleClip, kljuceviVolume);
+    public void PlayKeyPickup() => PlaySFX(keyJiggleClip, kljuceviVolume);
     public void PlayError() => PlaySFX(errorClip, errorVolume);
 
     // ==========================================

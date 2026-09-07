@@ -16,8 +16,11 @@ public class Vrata : MonoBehaviour
     private Vector3 pocetnaPozicija;
     private Vector3 ciljnaPozicija;
 
-    public GameObject kljuceviUI;
-    public GameObject rukaUI;
+    public GameObject prviDioUI;
+    public GameObject drugiDioUI;
+
+    public ObicanKljucUI obicanKljucUI;
+    public RukaUIKomponenta rukaUI;
 
     [Header("Audio")]
     [SerializeField] private DoorAudio doorAudio;
@@ -29,6 +32,8 @@ public class Vrata : MonoBehaviour
         pocetnaPozicija = this.transform.position;
 
         float visinaVrata = IzracunajVisinu();
+
+        drugiDioUI.gameObject.SetActive(false);
 
         ciljnaPozicija = pocetnaPozicija + Vector3.up * visinaVrata;
     }
@@ -58,7 +63,7 @@ public class Vrata : MonoBehaviour
             if (kljucanica1.otkljucana && kljucanica2.otkljucana)
             {
                 suOtkljucana = true;
-                Destroy(kljuceviUI.gameObject);
+                Destroy(prviDioUI.gameObject);
                 Debug.Log("Obje ključanice su otključane. Vrata se mogu otvoriti.");
             }
         }
@@ -71,7 +76,7 @@ public class Vrata : MonoBehaviour
             vrataSeOtvaraju = true;
 
             if (doorAudio != null) doorAudio.StartMoving();
-            rukaUI.SetActive(true);
+            drugiDioUI.gameObject.SetActive(true);
             Debug.Log("Miranda je zakoračila u trigger. Pokreće se podizanje cijelog objekta.");
         }
     }
