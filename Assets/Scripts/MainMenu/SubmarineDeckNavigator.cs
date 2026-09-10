@@ -8,22 +8,18 @@ public class SubmarineDeckNavigator : MonoBehaviour
     [SerializeField] private RectTransform canvasRect;
 
     [Header("Postavke Paluba")]
-    [Tooltip("Ukupan broj paluba (npr. 3: 0 = Most, 1 = Posada, 2 = Opcije)")]
     [SerializeField] private int totalDecks = 3;
     [SerializeField] private int startingDeck = 0;
 
     [Header("Animacija Kretanja")]
     [SerializeField] private float slideDuration = 0.65f;
+    [SerializeField] private float emergencyEscapeDuration = 1.0f; // Vrijeme leta na palubu 0 na Escape
     [SerializeField] private AnimationCurve slideCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
 
     [Header("Zasebni Zvukovi Podmornice")]
     [SerializeField] private AudioSource audioSource;
-    [Tooltip("Zvuk koji se čuje kada se igrač penje na gornju palubu (W / Strelica Gore)")]
     [SerializeField] private AudioClip climbUpSFX;
-    [Tooltip("Zvuk koji se čuje kada se igrač spušta na donju palubu (S / Strelica Dolje)")]
     [SerializeField] private AudioClip climbDownSFX;
-
-    [SerializeField] private float climbVolume = 0.75f;
 
     [Header("Exit Hatch Referenca")]
     [SerializeField] private ExitHatchController exitHatchController;
@@ -49,33 +45,90 @@ public class SubmarineDeckNavigator : MonoBehaviour
 
     private void Update()
     {
-        // STROGA BLOKADA: Ako je otvoren Exit dijalog, NE DOPUSTI nikakvo kretanje paluba!
+        // --- GLOBALNA ESCAPE LOGIKA ---
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            HandleGlobalEscape();
+            return;
+        }
+
+        // Ako je otvoren Exit dijalog, blokiraj ostale tipke
         if (exitHatchController != null && exitHatchController.IsDialogOpen)
             return;
 
         if (isSliding) return;
 
+        // W / Gore
         if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
         {
             ClimbUp();
         }
+        // S / Dolje
         else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
         {
             ClimbDown();
         }
     }
 
-    #region Navigacija
+    #region Escape Flow (Brzi Izlaz)
+
+    private void HandleGlobalEscape()
+    {
+        if (exitHatchController == null) return;
+
+        // DRUGI ESCAPE: Ako je prozor već otvoren -> Odmah gasi igru!
+        if (exitHatchController.IsDialogOpen)
+        {
+            exitHatchController.ConfirmQuit();
+            return;
+        }
+
+        // PRVI ESCAPE: Leti na Palubu 0 i otvori prozor
+        if (slideCoroutine != null) StopCoroutine(slideCoroutine);
+        StartCoroutine(EscapeToBridgeRoutine());
+    }
+
+    private IEnumerator EscapeToBridgeRoutine()
+    {
+        isSliding = true;
+
+        // Ako nismo bili na palubi 0, sviraj zvuk penjanja i odvezi kontejner gore
+        if (currentDeckIndex != 0)
+        {
+            PlaySound(climbUpSFX);
+
+            Vector2 startPos = decksContainer.anchoredPosition;
+            Vector2 targetPos = Vector2.zero; // Paluba 0 je uvijek na Y = 0
+            float time = 0f;
+
+            while (time < emergencyEscapeDuration)
+            {
+                time += Time.deltaTime;
+                float t = slideCurve.Evaluate(time / emergencyEscapeDuration);
+                decksContainer.anchoredPosition = Vector2.LerpUnclamped(startPos, targetPos, t);
+                yield return null;
+            }
+
+            decksContainer.anchoredPosition = targetPos;
+            currentDeckIndex = 0;
+        }
+
+        isSliding = false;
+
+        // Čim stigne na palubu 0 -> odmah otvara šaht i popup
+        exitHatchController.TriggerExitSequence();
+    }
+
+    #endregion
+
+    #region Standardna Navigacija
 
     public void ClimbUp()
     {
-        // Ako smo već na palubi 0 (Most) i stisnemo GORE -> Pokrećemo sekvencu izlaza kroz šaht!
         if (currentDeckIndex == 0)
         {
             if (exitHatchController != null)
-            {
                 exitHatchController.TriggerExitSequence();
-            }
         }
         else if (currentDeckIndex > 0)
         {
@@ -98,33 +151,29 @@ public class SubmarineDeckNavigator : MonoBehaviour
 
         if (targetDeckIndex != currentDeckIndex)
         {
-            // Provjera smjera: idemo li GORE ili DOLJE?
             bool isGoingUp = targetDeckIndex < currentDeckIndex;
-
-            // Reproduciraj odgovarajući zvuk za taj smjer
-            PlaySound(isGoingUp ? climbUpSFX : climbDownSFX, climbVolume);
+            PlaySound(isGoingUp ? climbUpSFX : climbDownSFX);
 
             currentDeckIndex = targetDeckIndex;
-
             float screenHeight = canvasRect.rect.height;
             float targetY = currentDeckIndex * screenHeight;
 
             if (slideCoroutine != null) StopCoroutine(slideCoroutine);
-            slideCoroutine = StartCoroutine(SlideRoutine(targetY));
+            slideCoroutine = StartCoroutine(SlideRoutine(targetY, slideDuration));
         }
     }
 
-    private IEnumerator SlideRoutine(float targetY)
+    private IEnumerator SlideRoutine(float targetY, float duration)
     {
         isSliding = true;
         Vector2 startPos = decksContainer.anchoredPosition;
         Vector2 targetPos = new Vector2(0, targetY);
         float time = 0f;
 
-        while (time < slideDuration)
+        while (time < duration)
         {
             time += Time.deltaTime;
-            float t = slideCurve.Evaluate(time / slideDuration);
+            float t = slideCurve.Evaluate(time / duration);
             decksContainer.anchoredPosition = Vector2.LerpUnclamped(startPos, targetPos, t);
             yield return null;
         }
@@ -133,13 +182,10 @@ public class SubmarineDeckNavigator : MonoBehaviour
         isSliding = false;
     }
 
-    private void PlaySound(AudioClip clip, float volume)
+    private void PlaySound(AudioClip clip)
     {
         if (audioSource != null && clip != null)
-        {
-            audioSource.volume = volume;
             audioSource.PlayOneShot(clip);
-        }
     }
 
     #endregion

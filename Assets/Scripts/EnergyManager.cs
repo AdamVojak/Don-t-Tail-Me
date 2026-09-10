@@ -30,18 +30,16 @@ public class EnergyManager : MonoBehaviour
 
     private void Update()
     {
-        // Ako su likovi uništeni ili ugašeni radi loadinga, pokušavamo ih ponovno pronaći u sceni
         if (mirandaController == null) mirandaController = Object.FindAnyObjectByType<MirandaController>();
         if (sashaController == null) sashaController = Object.FindAnyObjectByType<SashaController>();
         if (gameManager == null) gameManager = Object.FindAnyObjectByType<GameManager>();
 
-        // Provjeravamo jesu li trenutno učitani i kontrolirani
         bool mirandaKontrolirana = mirandaController != null && mirandaController.isControlled;
         bool sashaKontroliran = sashaController != null && sashaController.isControlled;
-        bool loading = gameManager.isLoading;
+        bool loading = gameManager != null && gameManager.isLoading;
 
-        // Struja se prazni samo ako je u tijeku gameplay s Mirandom ili Sashom
-        if (mirandaKontrolirana || sashaKontroliran || !loading)
+        // Struja se prazni samo ako je aktivan Sasha ili Miranda I NISMO u loadingu
+        if ((mirandaKontrolirana || sashaKontroliran) && !loading)
         {
             if (struja > 0)
             {
@@ -49,7 +47,6 @@ public class EnergyManager : MonoBehaviour
             }
         }
 
-        // Drži struju u granicama [0, maxStruja]
         struja = Mathf.Clamp(struja, 0, maxStruja);
     }
 

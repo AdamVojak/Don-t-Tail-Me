@@ -5573,7 +5573,7 @@ MonoBehaviour:
   bubbleCenterOffset: {x: 0, y: 1.8, z: -0.8}
   innerAvoidRadius: 15
   outerBoundaryRadius: 70
-  threatDamageAmount: 50
+  threatDamageAmount: 65
   illuminationTimeRequired: 0.1
   damageCooldown: 1
   wavyFrequency: 5

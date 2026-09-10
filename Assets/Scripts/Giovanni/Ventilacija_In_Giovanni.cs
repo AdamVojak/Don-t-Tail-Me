@@ -13,8 +13,11 @@ public class Ventilacija_In_Giovanni : MonoBehaviour
     [SerializeField] private float fastFanSpeed = 5f;
     [SerializeField] private float fanTransitionTime = 1f; // Koliko brzo ventilator ubrza
 
+    [Header("Postavke Ciklusa Slanja")]
+    [SerializeField] private float vrijemeCekanjaNaDnu = 1f; // Koliko dugo stoji na dnu prije polijetanja
+
     [Header("Prefabi predmeta (Samo za vizualni efekt)")]
-    public GameObject prefabGun;     // ID 1
+    public GameObject prefabObicanKljuc;     // ID 6
     public GameObject prefabMinigun; // ID 2
     public GameObject prefabArm;     // ID 3
     public GameObject prefabPajser;  // ID 5
@@ -36,7 +39,7 @@ public class Ventilacija_In_Giovanni : MonoBehaviour
 
         // 2. Odaberi prefab na temelju ID-ja
         GameObject odabraniPrefab = null;
-        if (itemID == 1) odabraniPrefab = prefabGun;
+        if (itemID == 6) odabraniPrefab = prefabObicanKljuc;
         else if (itemID == 2) odabraniPrefab = prefabMinigun;
         else if (itemID == 3) odabraniPrefab = prefabArm;
 
@@ -60,6 +63,11 @@ public class Ventilacija_In_Giovanni : MonoBehaviour
             }
 
             item.transform.rotation = odabraniPrefab.transform.rotation;
+
+            if (vrijemeCekanjaNaDnu > 0f)
+            {
+                yield return new WaitForSeconds(vrijemeCekanjaNaDnu);
+            }
 
             float currentSpeed = initialItemSpeed;
             while (item.transform.position.y < endPoint.position.y)

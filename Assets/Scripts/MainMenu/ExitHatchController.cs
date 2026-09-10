@@ -80,10 +80,9 @@ public class ExitHatchController : MonoBehaviour
         if (!isDialogOpen) return;
 
         Vector2 currentMousePos = Input.mousePosition;
-        // Provjeravamo je li se miš STVARNO pomaknuo za barem 1-2 piksela
         bool hasMouseMoved = (currentMousePos - lastMousePos).sqrMagnitude > 2.0f;
 
-        // --- 1. TIPKOVNICA IMA GLAVNU RIJEČ ---
+        // 1. TIPKOVNICA
         if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
         {
             SetSelection(0);
@@ -93,7 +92,7 @@ public class ExitHatchController : MonoBehaviour
             SetSelection(1);
         }
 
-        // --- 2. MIŠ PREUZIMA SAMO AKO SE AKTIVNO MIČE ---
+        // 2. MIŠ (AKO SE MIČE)
         if (hasMouseMoved)
         {
             if (leftOptionRect != null && RectTransformUtility.RectangleContainsScreenPoint(leftOptionRect, currentMousePos, uiCamera))
@@ -105,23 +104,17 @@ public class ExitHatchController : MonoBehaviour
                 SetSelection(1);
             }
 
-            // Pamtimo novu poziciju tek kad se pomakne
             lastMousePos = currentMousePos;
         }
 
-        // --- 3. POTVRDA (ENTER, SPACE ILI LIJEVI KLIK MIŠA) ---
+        // 3. POTVRDA (ENTER / SPACE / LIJEVI KLIK)
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0))
         {
             ExecuteCurrentSelection();
             return;
         }
 
-        // --- 4. ESCAPE ---
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            // Escape uvijek radi odustajanje / povratak
-            CancelAndReturn();
-        }
+        // (OVDJE VIŠE NEMA ESCAPE PROVJERE - SVE VODI SUBMARINE NAVIGATOR)
     }
 
 
@@ -182,7 +175,7 @@ private void ExecuteCurrentSelection()
 
     #region Ishodi (Izlaz ili Povratak)
 
-    private void ConfirmQuit()
+    public void ConfirmQuit()
     {
         isDialogOpen = false;
         PlaySound(exitSuccessSFX);

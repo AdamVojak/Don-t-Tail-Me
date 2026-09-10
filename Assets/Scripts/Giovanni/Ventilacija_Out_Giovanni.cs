@@ -13,7 +13,7 @@ public class Ventilacija_Out_Giovanni : MonoBehaviour
     private float ogTubeY;
 
     [Header("Prefabi predmeta (Interactable)")]
-    public GameObject prefabGun;
+    public GameObject prefabObicanKljuc;
     public GameObject prefabMinigun;
     public GameObject prefabPajser;
 
@@ -55,33 +55,30 @@ public class Ventilacija_Out_Giovanni : MonoBehaviour
     {
         if (imaItemNaCekanju && !isBusy && other.CompareTag("Giovanni"))
         {
-            // OSIGURAČ: Ako slučajno nisi uvukao reference u Inspectoru, skripta ih sama pronađe!
             if (winSequence == null) winSequence = FindFirstObjectByType<GiovanniWinSequence>();
-            if (mobitelTracker == null) mobitelTracker = FindFirstObjectByType<MobitelTracker>();
 
             // =========================================================================
-            // DETEKCIJA GUN-a (ID 1)
+            // LIGNJA SE PALI ISKLJUČIVO AKO MU POŠALJU GUN (ID 1) - KRIVI PREDMET!
             // =========================================================================
             if (cekajuciItemTip == 1)
             {
                 imaItemNaCekanju = false;
                 isBusy = true;
 
-                bool rijesioMobitel = (mobitelTracker != null && mobitelTracker.AreAllItemsFinished());
-
                 if (winSequence != null)
                 {
-                    winSequence.PokreniScenuLignje(rijesioMobitel);
+                    winSequence.PokreniScenuLignje(false); // Lignja ga ubija (Fail)
                 }
                 else
                 {
                     Debug.LogError("GiovanniWinSequence skripta NIJE pronađena na sceni!");
                 }
-
                 return;
             }
 
-            // Normalna dostava za sve ostale predmete:
+            // =========================================================================
+            // ZA SVE OSTALE PREDMETE (Uključujući Običan Ključ ID 6): NORMALNA DOSTAVA NA POD!
+            // =========================================================================
             imaItemNaCekanju = false;
             StartCoroutine(ReceiveRoutine(cekajuciItemTip));
         }
@@ -93,7 +90,7 @@ public class Ventilacija_Out_Giovanni : MonoBehaviour
         StartCoroutine(LerpFanSpeed(normalFanSpeed, fastFanSpeed));
 
         GameObject odabraniPrefab = null;
-        if (tip == 1) odabraniPrefab = prefabGun;
+        if (tip == 6) odabraniPrefab = prefabObicanKljuc; // KLJUČ PADA NA POD!
         else if (tip == 2) odabraniPrefab = prefabMinigun;
         else if (tip == 5) odabraniPrefab = prefabPajser;
 
@@ -101,36 +98,30 @@ public class Ventilacija_Out_Giovanni : MonoBehaviour
         {
             GameObject item = Instantiate(odabraniPrefab);
 
-            // Gasimo fiziku dok putuje kroz cijev
             PadObjekta fallScript = item.GetComponent<PadObjekta>();
             if (fallScript != null) fallScript.enabled = false;
 
             Rigidbody rb = item.GetComponent<Rigidbody>();
-            if (rb != null) rb.isKinematic = true; // Sprječava propadanje kroz pod tokom Lerp-a
+            if (rb != null) rb.isKinematic = true;
 
-            // Postavljamo početnu poziciju
             Vector3 pocetnaPozicija = startPoint.position;
-
-            // Računamo završnu poziciju (endPoint) s korekcijom za visinu collidera
             Vector3 ciljnaPozicija = endPoint.position;
             Collider col = item.GetComponent<Collider>();
             if (col != null)
             {
                 float pivotToBottom = item.transform.position.y - col.bounds.min.y;
-                ciljnaPozicija.y += pivotToBottom; // Dižemo cilj taman toliko da item ne uđe u pod
+                ciljnaPozicija.y += pivotToBottom;
             }
 
             item.transform.position = pocetnaPozicija;
 
-            // --- NOVO: SIGURNO I PRECIZNO KRETANJE (LERP) ---
-            float trajanjePuta = 1.0f; // Koliko sekundi traje putovanje kroz cijev (prilagodi po želji)
+            float trajanjePuta = 1.0f;
             float protekloVrijeme = 0f;
 
             while (protekloVrijeme < trajanjePuta)
             {
                 if (item == null) break;
 
-                // SmoothStep daje onaj lijepi efekt: krene polako, ubrza, pa uspori pred kraj
                 float postotak = protekloVrijeme / trajanjePuta;
                 float smoothPostotak = Mathf.SmoothStep(0f, 1f, postotak);
 
@@ -140,12 +131,9 @@ public class Ventilacija_Out_Giovanni : MonoBehaviour
                 yield return null;
             }
 
-            // Osiguravamo da završi točno na milimetar na cilju
             if (item != null)
             {
                 item.transform.position = ciljnaPozicija;
-
-                // Vraćamo fiziku
                 if (rb != null) rb.isKinematic = false;
                 if (fallScript != null) fallScript.enabled = true;
             }

@@ -7,16 +7,15 @@ public class GameModeConfigurator : MonoBehaviour
 
     public enum GameMode
     {
-        AllThree,           // Sva 3 lika (Default)
-        SashaAndMiranda,    // Nema Giovannija
-        SashaAndGiovanni,   // Nema Mirande
-        MirandaAndGiovanni  // Nema Sashe
+        AllThree,
+        SashaAndMiranda,
+        SashaAndGiovanni,
+        MirandaAndGiovanni
     }
 
     [Header("Trenutni Prepoznati Mod (Info)")]
     public GameMode activeMode = GameMode.AllThree;
 
-    // Struktura koja ti omogućuje da u Inspectoru samo povučeš objekte za svaki mod
     [Serializable]
     public class ModeObjectSetup
     {
@@ -28,7 +27,13 @@ public class GameModeConfigurator : MonoBehaviour
 
         [Tooltip("Objekti koji se gase za ovaj mod (SetActive false)")]
         public GameObject[] objectsToDeactivate;
+
+        [Tooltip("Novi redoslijed ciljeva za Giovannijev mobitel u ovom modu")]
+        public Transform[] giovanniMobitelCiljevi; // NOVO: Lista ciljeva za mobitel!
     }
+
+    [Header("=== 0. MOD: SVA 3 LIKA (Default) ===")]
+    public ModeObjectSetup allThreeSetup;
 
     [Header("=== 1. MOD: SASHA + MIRANDA (Nema Giovannija) ===")]
     public ModeObjectSetup sashaMirandaSetup;
@@ -46,45 +51,38 @@ public class GameModeConfigurator : MonoBehaviour
         else Destroy(gameObject);
     }
 
-    // Ovu metodu poziva GameManager na početku
     public void ApplyConfiguration(bool sasha, bool miranda, bool giovanni)
     {
-        // 1. AUTOMATSKA DETEKCIJA MODA
         if (sasha && miranda && giovanni)
         {
             activeMode = GameMode.AllThree;
-            Debug.Log("<color=cyan>[CONFIG] Pokrenut DEFAULTNI mod sa sva 3 lika. Nema izmjena na mapi.</color>");
-            return; // U defaultnom modu ne diramo ništa!
+            Debug.Log("<color=cyan>[CONFIG] Pokrenut DEFAULTNI mod sa sva 3 lika.</color>");
+            ApplyModeSetup(allThreeSetup);
         }
         else if (sasha && miranda && !giovanni)
         {
             activeMode = GameMode.SashaAndMiranda;
             Debug.Log("<color=yellow>[CONFIG] Pokrenut mod: SASHA + MIRANDA (Bez Giovannija).</color>");
             ApplyModeSetup(sashaMirandaSetup);
-            ConfigureSashaMirandaVentilations();
         }
         else if (sasha && !miranda && giovanni)
         {
             activeMode = GameMode.SashaAndGiovanni;
             Debug.Log("<color=yellow>[CONFIG] Pokrenut mod: SASHA + GIOVANNI (Bez Mirande).</color>");
             ApplyModeSetup(sashaGiovanniSetup);
-            ConfigureSashaGiovanniVentilations();
         }
         else if (!sasha && miranda && giovanni)
         {
             activeMode = GameMode.MirandaAndGiovanni;
             Debug.Log("<color=yellow>[CONFIG] Pokrenut mod: MIRANDA + GIOVANNI (Bez Sashe).</color>");
             ApplyModeSetup(mirandaGiovanniSetup);
-            ConfigureMirandaGiovanniVentilations();
         }
     }
 
-    // Pomoćna metoda koja pali, gasi i uništava objekte za odabrani mod
     private void ApplyModeSetup(ModeObjectSetup setup)
     {
         if (setup == null) return;
 
-        // 1. Uništavamo nepotrebne objekte (prepreke, nemoguće zagonetke...)
         if (setup.objectsToDestroy != null)
         {
             foreach (GameObject go in setup.objectsToDestroy)
@@ -93,7 +91,6 @@ public class GameModeConfigurator : MonoBehaviour
             }
         }
 
-        // 2. Palimo alternativne rute, ključeve i prečace
         if (setup.objectsToActivate != null)
         {
             foreach (GameObject go in setup.objectsToActivate)
@@ -102,7 +99,6 @@ public class GameModeConfigurator : MonoBehaviour
             }
         }
 
-        // 3. Gasimo objekte koji ne trebaju postojati
         if (setup.objectsToDeactivate != null)
         {
             foreach (GameObject go in setup.objectsToDeactivate)
@@ -110,29 +106,17 @@ public class GameModeConfigurator : MonoBehaviour
                 if (go != null) go.SetActive(false);
             }
         }
-    }
 
-
-    // =========================================================================
-    // OVDJE PODEŠAVAMO VENTILACIJE I REPERTOAR ITEMA ZA SVAKI MOD ZASEBNO:
-    // =========================================================================
-
-    private void ConfigureSashaMirandaVentilations()
-    {
-        // PRIMJER: Budući da nema Giovannija, Sasha ne mora slati Gun Giovanniju.
-        // Ovdje možeš promijeniti kamo vode ventilacije ili koje iteme prihvaćaju!
-        Debug.Log("[CONFIG] Ventilacije preusmjerene isključivo između Sashe i Mirande.");
-    }
-
-    private void ConfigureSashaGiovanniVentilations()
-    {
-        // PRIMJER: Nema Mirande, pa ventilacija izravno spaja Sashu i Giovannija.
-        Debug.Log("[CONFIG] Ventilacije preusmjerene isključivo između Sashe i Giovannija.");
-    }
-
-    private void ConfigureMirandaGiovanniVentilations()
-    {
-        // PRIMJER: Nema Sashe, itemi koji su inače kod Sashe sada se nalaze negdje kod Mirande.
-        Debug.Log("[CONFIG] Ventilacije preusmjerene isključivo između Mirande i Giovannija.");
+        // =========================================================================
+        // NOVO: ŠALJEMO NOVE CILJEVE U MOBITEL (Ako postoje za ovaj mod)
+        // =========================================================================
+        if (setup.giovanniMobitelCiljevi != null && setup.giovanniMobitelCiljevi.Length > 0)
+        {
+            MobitelTracker mobitel = FindFirstObjectByType<MobitelTracker>();
+            if (mobitel != null)
+            {
+                mobitel.PostaviNoveCiljeve(setup.giovanniMobitelCiljevi);
+            }
+        }
     }
 }

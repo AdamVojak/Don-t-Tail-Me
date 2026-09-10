@@ -24,8 +24,12 @@ public class Ventilacija_In_Sasha : MonoBehaviour
     // Izmijenjena funkcija: Vraća true ako je uspješno poslano, false ako je cijev puna/nema nikoga
     public bool PrimiItemUVentilaciju(int itemType)
     {
-        // 1. PRIORITET: Šalji Mirandi ako je u igri
-        if (GameManager.Instance != null && GameManager.Instance.mirandaOdabrana && mirandinaVentilacija != null)
+        // 1. PRIORITET: Šalji Mirandi SAMO ako je aktivna, živa i JOŠ UVIJEK U IGRI (nije pobjedila)
+        bool mirandaDostupna = GameManager.Instance != null &&
+                              GameManager.Instance.IsCharacterAvailable(GameManager.ActiveCharacter.Miranda) &&
+                              mirandinaVentilacija != null;
+
+        if (mirandaDostupna)
         {
             if (mirandinaVentilacija.MozePrimiti())
             {
@@ -35,31 +39,33 @@ public class Ventilacija_In_Sasha : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning("Mirandina ventilacija je PUNA! Sasha ne može poslati dok ona ne pokupi.");
+                Debug.LogWarning("Mirandina ventilacija je PUNA!");
                 return false;
             }
         }
-        // 2. FALLBACK: Ako nema Mirande u igri, šalji Giovanniju
-        else if (GameManager.Instance != null && GameManager.Instance.giovanniOdabran && giovanniVentilacija != null)
+
+        // 2. FALLBACK: Ako Miranda više nije u igri, šaljemo Giovanniju
+        bool giovanniDostupan = GameManager.Instance != null &&
+                                GameManager.Instance.IsCharacterAvailable(GameManager.ActiveCharacter.Giovanni) &&
+                                giovanniVentilacija != null;
+
+        if (giovanniDostupan)
         {
-            // (Pazi: kod tebe je MozePrimiti na Giovanniju možda property bez zagrada ili funkcija)
             if (giovanniVentilacija.MozePrimiti)
             {
                 giovanniVentilacija.SpremiItemZaGiovannia(itemType);
-                Debug.Log($"Mirande nema u igri. Sasha šalje item ID: {itemType} direktno Giovanniju.");
+                Debug.Log($"Miranda je završila level. Sasha šalje item ID: {itemType} direktno Giovanniju.");
                 return true;
             }
             else
             {
-                Debug.LogWarning("Giovannijeva ventilacija je PUNA! Sasha ne može poslati.");
+                Debug.LogWarning("Giovannijeva ventilacija je PUNA!");
                 return false;
             }
         }
-        else
-        {
-            Debug.LogError("Nema dostupnog primatelja za Sashin item!");
-            return false;
-        }
+
+        Debug.LogError("Nema dostupnog primatelja za Sashin item!");
+        return false;
     }
 
     void Start()

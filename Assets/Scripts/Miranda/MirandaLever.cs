@@ -4,22 +4,18 @@ using UnityEngine.Events;
 public class Lever : MonoBehaviour
 {
     [Header("Reference")]
-    public Transform knob;           // Objekt Knob koji klizi
-    public Transform tockaIskljucen; // Gornja točka (OFF)
-    public Transform tockaUkljucen;  // Donja točka (ON)
+    public Transform knob;
+    public Transform tockaIskljucen;
+    public Transform tockaUkljucen;
 
     [Header("Povezana Vrata (Logika Bijega)")]
-    [Tooltip("Uvuci UlaznaVrata koja ova poluga otvara")]
-    public UlaznaVrata ulaznaVrata; // NOVO: Direktna veza s ulaznim vratima!
+    public UlaznaVrata ulaznaVrata;
 
     [Header("Postavke 3D Dubine")]
-    [Tooltip("Koliko se knob pomakne po X osi dok ga držiš")]
     public float xOffsetDrzanja = 5.5f;
 
     [Header("Postavke Hvatanja i Otpora")]
-    [Tooltip("Domet hvatanja (postavi na 0.8 do 1.2 za ugodno igranje)")]
     public float radiusHvatanja = 1.0f;
-    [Tooltip("Radijus oko krajnjih točaka za prebacivanje stanja")]
     public float radiusPraga = 0.4f;
     public float brzinaOpruge = 18f;
 
@@ -33,18 +29,59 @@ public class Lever : MonoBehaviour
     private bool isDragging = false;
     private float fiksniX;
     [SerializeField] private MirandaRuka ruka;
-
     public MirandaClimaxManager climaxManager;
 
     [Header("Audio")]
-    [SerializeField] private LeverAudio leverAudio; // Referenca na LeverAudio skriptu
+    [SerializeField] private LeverAudio leverAudio;
+
+    [Header("Blokada (Samo za S/M i G/M modove)")]
+    public Sprite hintKljucGore;   // Strelica GORE + Ključ (kad igra sa Sashom)
+    public Sprite hintKljucDolje;  // Strelica DOLJE + Ključ (kad igra sa Giovannijem)
+    public float dometHinta = 3.5f; // Na kojoj udaljenosti se prikazuje hint
+
+    private MirandaController mirandaController;
+    private MirandaInventory mirandaInventar;
+    private bool bioZakljucan = false;
+
+    [Header("Stari Hint i Trigger (Za gašenje u igri sa 3 lika)")]
+    [Tooltip("Uvuci Trigger collider s levera koji pali hint")]
+    public Collider triggerColliderHinta;
+    [Tooltip("Uvuci komponentu ClickHintMiranda s levera")]
+    public MonoBehaviour clickHintMirandaSkripta;
 
     void Start()
     {
-        if (leverAudio == null) leverAudio = GetComponent<LeverAudio>();
+        if (clickHintMirandaSkripta != null)
+        {
+            clickHintMirandaSkripta.enabled = false;
+        }
 
+        if (leverAudio == null) leverAudio = GetComponent<LeverAudio>();
         if (radiusHvatanja <= 0.1f) radiusHvatanja = 1.0f;
         if (radiusPraga <= 0.1f) radiusPraga = 0.4f;
+
+        // Automatski pronalazimo trigger i ClickHint skriptu ako nisu uvučeni u Inspectoru
+        if (triggerColliderHinta == null)
+        {
+            foreach (Collider c in GetComponents<Collider>())
+            {
+                if (c.isTrigger) { triggerColliderHinta = c; break; }
+            }
+        }
+        if (clickHintMirandaSkripta == null)
+        {
+            clickHintMirandaSkripta = GetComponent("ClickHintMiranda") as MonoBehaviour;
+        }
+
+        // =========================================================================
+        // NOVO: AKO IGRAJU SVA 3 LIKA -> PRISILNO GASIMO TRIGGER I HINT ODMAH NA STARTU!
+        // =========================================================================
+        if (IsThreePlayerGame())
+        {
+            if (triggerColliderHinta != null) triggerColliderHinta.enabled = false;
+            if (clickHintMirandaSkripta != null) clickHintMirandaSkripta.enabled = false;
+            Debug.Log("[Lever] Sva 3 lika u igri -> Trigger i ClickHint trajno ugašeni na startu.");
+        }
 
         PronadjiRuku();
 
@@ -58,11 +95,9 @@ public class Lever : MonoBehaviour
 
     void PronadjiRuku()
     {
-        if (ruka == null)
-        {
-            ruka = Object.FindFirstObjectByType<MirandaRuka>();
-            if (ruka == null) Debug.LogError("Lever: Ne mogu pronaći skriptu MirandaRuka u sceni!");
-        }
+        if (ruka == null) ruka = Object.FindFirstObjectByType<MirandaRuka>();
+        if (mirandaController == null) mirandaController = Object.FindFirstObjectByType<MirandaController>();
+        if (mirandaInventar == null && mirandaController != null) mirandaInventar = mirandaController.GetComponent<MirandaInventory>();
     }
 
     void Update()
@@ -70,23 +105,67 @@ public class Lever : MonoBehaviour
         if (ruka == null) PronadjiRuku();
         if (knob == null || tockaIskljucen == null || tockaUkljucen == null || ruka == null) return;
 
+        // =========================================================================
+        // 1. PROVJERA BLOKADE (100% NEPROBOJNO ZAKLJUČAVANJE)
+        // =========================================================================
+        bool trebaBitiZakljucan = ProvjeriTrebaLiZakljucati(out bool isWithSasha);
+
+        if (trebaBitiZakljucan)
+        {
+            bioZakljucan = true;
+            isDragging = false; // Prisilno prekidamo bilo kakvo držanje!
+
+            // KNOB JE ZAVAREN ZA GORNJU TOČKU (Ne mrda ni mikron):
+            knob.position = new Vector3(fiksniX, tockaIskljucen.position.y, tockaIskljucen.position.z);
+
+            // Provjera prikazivanja hinta ovisno o blizini Mirande
+            if (mirandaController != null)
+            {
+                float distancaDoMirande = Vector3.Distance(transform.position, mirandaController.transform.position);
+                if (distancaDoMirande <= dometHinta)
+                {
+                    Sprite hintZaPrikaz = isWithSasha ? hintKljucGore : hintKljucDolje;
+                    mirandaController.PrikaziHint(this, hintZaPrikaz);
+                }
+                else
+                {
+                    mirandaController.SakrijHint(this);
+                }
+            }
+
+            return; // PREKIDAMO CIJELI UPDATE! Ništa ne može pomaknuti knob dok je zaključan!
+        }
+        else
+        {
+            // Čim se riješi ključa, gasimo hint jednom zauvijek
+            if (bioZakljucan)
+            {
+                bioZakljucan = false;
+                if (mirandaController != null)
+                {
+                    mirandaController.SakrijHint(this);
+                    mirandaController.PrisilnoUgasiSveHintove();
+                }
+                Debug.Log("<color=green>LEVER: Poluga je trajno odblokirana!</color>");
+            }
+        }
+
+        // =========================================================================
+        // 2. NORMALNA LOGIKA POVLAČENJA POLUGE (Kada nije zaključana)
+        // =========================================================================
         Transform tockaPrstiju = ruka.GetTockaHvatanja();
         float udaljenostDoKnoba = UdaljenostYZ(tockaPrstiju.position, knob.position);
 
-        // 1. POČETAK HVATANJA
         if (!isDragging && udaljenostDoKnoba <= radiusHvatanja && ruka.isStisnuta)
         {
             isDragging = true;
-            Debug.Log("Lever: Pinceta je zgrabila Knob!");
         }
 
-        // 2. PUŠTANJE KLIKA
         if (isDragging && !ruka.isStisnuta)
         {
             ZavrsiPovlacenje();
         }
 
-        // 3. POVLAČENJE
         if (isDragging)
         {
             Vector2 a = new Vector2(tockaIskljucen.position.z, tockaIskljucen.position.y);
@@ -101,18 +180,66 @@ public class Lever : MonoBehaviour
             t = Mathf.Clamp01(t);
 
             Vector3 novaPozicija = Vector3.Lerp(tockaIskljucen.position, tockaUkljucen.position, t);
-
             float privremeniX = fiksniX + xOffsetDrzanja;
             knob.position = new Vector3(privremeniX, novaPozicija.y, novaPozicija.z);
         }
         else
         {
-            // 4. EFEKT OPRUGE
             Vector3 ciljnaTocka = isUkljucen ? tockaUkljucen.position : tockaIskljucen.position;
             Vector3 ciljSaOriginalnimX = new Vector3(fiksniX, ciljnaTocka.y, ciljnaTocka.z);
-
             knob.position = Vector3.Lerp(knob.position, ciljSaOriginalnimX, Time.deltaTime * brzinaOpruge);
         }
+    }
+
+    // =========================================================================
+    // PRAVILO BLOKADE: ZAKLJUČANO SAMO U S/M ILI G/M KAD IMA KLJUČ (ID 6)
+    // =========================================================================
+    bool ProvjeriTrebaLiZakljucati(out bool isWithSasha)
+    {
+        isWithSasha = false;
+
+        // 1. PRAVILO ZA SVA 3 LIKA: NIKADA NEMA BLOKADE!
+        if (GameModeConfigurator.Instance != null && GameModeConfigurator.Instance.activeMode == GameModeConfigurator.GameMode.AllThree)
+        {
+            return false;
+        }
+
+        // Ako fali Configurator, provjeri GameManager za sva 3 lika:
+        if (GameManager.Instance != null && GameManager.Instance.sashaOdabran && GameManager.Instance.mirandaOdabrana && GameManager.Instance.giovanniOdabran)
+        {
+            return false;
+        }
+
+        // 2. PROVJERA 2-PLAYER MODOVA
+        bool isSashaMiranda = false;
+        bool isMirandaGiovanni = false;
+
+        if (GameModeConfigurator.Instance != null)
+        {
+            isSashaMiranda = (GameModeConfigurator.Instance.activeMode == GameModeConfigurator.GameMode.SashaAndMiranda);
+            isMirandaGiovanni = (GameModeConfigurator.Instance.activeMode == GameModeConfigurator.GameMode.MirandaAndGiovanni);
+        }
+        else if (GameManager.Instance != null)
+        {
+            isSashaMiranda = (GameManager.Instance.sashaOdabran && GameManager.Instance.mirandaOdabrana && !GameManager.Instance.giovanniOdabran);
+            isMirandaGiovanni = (!GameManager.Instance.sashaOdabran && GameManager.Instance.mirandaOdabrana && GameManager.Instance.giovanniOdabran);
+        }
+
+        // Ako nismo u ta dva moda, nema blokade
+        if (!isSashaMiranda && !isMirandaGiovanni) return false;
+
+        isWithSasha = isSashaMiranda;
+
+        // 3. PROVJERA IMA LI OBICAN KLJUČ (ID 6)
+        if (mirandaInventar == null && mirandaController != null)
+            mirandaInventar = mirandaController.GetComponent<MirandaInventory>();
+
+        if (mirandaInventar != null && mirandaInventar.HasItem(6))
+        {
+            return true; // ZAKLJUČAJ!
+        }
+
+        return false; // Nema ključ, slobodno!
     }
 
     void ZavrsiPovlacenje()
@@ -122,16 +249,12 @@ public class Lever : MonoBehaviour
         float udaljenostDoUkljuceno = UdaljenostYZ(knob.position, tockaUkljucen.position);
         float udaljenostDoIskljuceno = UdaljenostYZ(knob.position, tockaIskljucen.position);
 
-        // A) POVUČENO PREMA DOLJE (UKLJUČENO - ON)
         if (udaljenostDoUkljuceno <= radiusPraga)
         {
             if (!isUkljucen)
             {
                 isUkljucen = true;
 
-                // =========================================================
-                // NOVO: PUSTI ZVUK UKLJUČIVANJA (ON)
-                // =========================================================
                 if (leverAudio != null) leverAudio.PlaySwitch(true);
 
                 if (climaxManager != null)
@@ -140,19 +263,15 @@ public class Lever : MonoBehaviour
                 }
 
                 onUkljuci.Invoke();
-                Debug.Log("Lever: UKLJUČEN! Zvuk + Pokreće se klimaks sekvenca.");
+                Debug.Log("Lever: UKLJUČEN! Pokreće se klimaks.");
             }
         }
-        // B) VRAĆENO PREMA GORE (ISKLJUČENO - OFF)
         else if (udaljenostDoIskljuceno <= radiusPraga)
         {
             if (isUkljucen)
             {
                 isUkljucen = false;
 
-                // =========================================================
-                // NOVO: PUSTI ZVUK ISKLJUČIVANJA (OFF)
-                // =========================================================
                 if (leverAudio != null) leverAudio.PlaySwitch(false);
 
                 if (ulaznaVrata != null)
@@ -162,12 +281,7 @@ public class Lever : MonoBehaviour
                 }
 
                 onIskljuci.Invoke();
-                Debug.Log("Lever: UGAŠEN! Zvuk + Vrata se ponovo zatvaraju.");
             }
-        }
-        else
-        {
-            Debug.Log("Lever: Opruga vraća polugu nazad.");
         }
     }
 
@@ -182,10 +296,8 @@ public class Lever : MonoBehaviour
         {
             Gizmos.color = Color.cyan;
             Gizmos.DrawLine(tockaIskljucen.position, tockaUkljucen.position);
-
             Gizmos.color = Color.green;
             Gizmos.DrawWireSphere(tockaUkljucen.position, radiusPraga);
-
             Gizmos.color = Color.red;
             Gizmos.DrawWireSphere(tockaIskljucen.position, radiusPraga);
         }
@@ -195,5 +307,16 @@ public class Lever : MonoBehaviour
             Gizmos.color = Color.yellow;
             Gizmos.DrawWireSphere(knob.position, radiusHvatanja);
         }
+    }
+
+    bool IsThreePlayerGame()
+    {
+        if (GameModeConfigurator.Instance != null)
+            return GameModeConfigurator.Instance.activeMode == GameModeConfigurator.GameMode.AllThree;
+
+        if (GameManager.Instance != null)
+            return GameManager.Instance.sashaOdabran && GameManager.Instance.mirandaOdabrana && GameManager.Instance.giovanniOdabran;
+
+        return false;
     }
 }

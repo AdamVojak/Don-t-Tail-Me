@@ -32,6 +32,9 @@ public class CursorManager : MonoBehaviour
     [SerializeField] private Sprite giovanniNoKeySprite;     // Kursor prekriženog ključa
     [SerializeField] private Sprite giovanniPressSprite;     // Kursor za pritiskanje gumba
 
+    [Header("Kursor za Struju")]
+    public Sprite noPowerCursorSprite; // Uvuci sprite prekrižene munje ovdje
+
     [Header("Audio Postavke")]
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip errorSound;
@@ -114,6 +117,21 @@ public class CursorManager : MonoBehaviour
         else if (sashaCursor != null && sashaCursor.activeSelf) sashaCursor.transform.position = mousePos;
         else if (mirandaCursor != null && mirandaCursor.activeSelf) mirandaCursor.transform.position = mousePos;
         else if (giovanniCursor != null && giovanniCursor.activeSelf) giovanniCursor.transform.position = mousePos;
+    }
+
+    public void SetNoPowerCursor(bool showNoPower)
+    {
+        if (giovanniCursorImage != null)
+        {
+            if (showNoPower && noPowerCursorSprite != null)
+            {
+                giovanniCursorImage.sprite = noPowerCursorSprite;
+            }
+            else if (!showNoPower && giovanniNormalSprite != null)
+            {
+                giovanniCursorImage.sprite = giovanniNormalSprite;
+            }
+        }
     }
 
     private void HandleGiovanniInteraction()

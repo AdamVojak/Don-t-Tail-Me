@@ -2,9 +2,6 @@ using UnityEngine;
 
 public class WormsSobaZamka : MonoBehaviour
 {
-    [Header("Predmet koji pokreće zamku")]
-    public GameObject predmetZaPokupiti;
-
     [Header("Elementi Zamke u Sobi")]
     public GameObject svijetlo;
     public LeverSasha[] lever;
@@ -21,6 +18,13 @@ public class WormsSobaZamka : MonoBehaviour
     [SerializeField] private AudioClip powerOutageClip;
     [Range(0f, 1f)][SerializeField] private float outageVolume = 1f;
 
+    [Header("Predmeti koji pokreću zamku")]
+    public GameObject predmetZaPokupiti;     // Glavni predmet (Default & S/G)
+    public GameObject predmetZaPokupitiSM;   // Alternativni predmet (S/M)
+
+    private GameObject stvarniPredmetUSobi;
+    private bool sobaImaPredmet = false;
+
     private void Awake()
     {
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
@@ -33,7 +37,17 @@ public class WormsSobaZamka : MonoBehaviour
 
     void Start()
     {
-        // Inicijaliziramo praćenje stanja gumbiju
+        if (predmetZaPokupiti != null)
+        {
+            stvarniPredmetUSobi = predmetZaPokupiti;
+            sobaImaPredmet = true;
+        }
+        else if (predmetZaPokupitiSM != null)
+        {
+            stvarniPredmetUSobi = predmetZaPokupitiSM;
+            sobaImaPredmet = true;
+        }
+
         if (gumbi != null)
         {
             proslaStanjaGumba = new bool[gumbi.Length];
@@ -56,16 +70,15 @@ public class WormsSobaZamka : MonoBehaviour
 
     void Update()
     {
-        // 1. PROVJERA ZAMKE (Kad Sasha pokupi predmet)
-        if (!trapActivated && predmetZaPokupiti == null)
+        if (!trapActivated && sobaImaPredmet && stvarniPredmetUSobi == null)
         {
             AktivirajZamku();
         }
 
-        // 2. NADZOR GUMBIJU (Ako netko stisne gumb, pokreni vrata!)
+        // 2. NADZOR GUMBIJU (ostaje isto)
         ProvjeriGumbe();
 
-        // 3. NADZOR LEVERA (Ako netko povuče lever, pokreni vrata!)
+        // 3. NADZOR LEVERA (ostaje isto)
         ProvjeriLevere();
     }
 

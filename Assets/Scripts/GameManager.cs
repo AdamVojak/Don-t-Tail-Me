@@ -94,6 +94,9 @@ public class GameManager : MonoBehaviour
 
     private Coroutine buttonVisualCoroutine; // Da možemo prekinuti animaciju ako igrač brzo stišće
 
+    [Header("Završetak Igre (Main Menu)")]
+    [SerializeField] private string mainMenuSceneName = "MainMenu"; // Upiši točno ime scene svog glavnog menija!
+
     private bool isMenuOpen = false;
     private ActiveCharacter selectedCharInMenu;
     private Coroutine sliderCoroutine;
@@ -104,10 +107,6 @@ public class GameManager : MonoBehaviour
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
-
-        sashaOdabran = CharacterSelectionData.SashaSelected;
-        mirandaOdabrana = CharacterSelectionData.MirandaSelected;
-        giovanniOdabran = CharacterSelectionData.GiovanniSelected;
 
         if (sunLight != null) sunLight.SetActive(false);
 
@@ -120,10 +119,10 @@ public class GameManager : MonoBehaviour
         RenderSettings.ambientLight = Color.black;
         RenderSettings.reflectionIntensity = 0;
 
-        // 1. AUTOMATSKA DETEKCIJA: Tko je ugašen u Hierarchyju prije pokretanja, NE IGRA!
-        if (sashaScript != null && !sashaScript.gameObject.activeSelf) sashaOdabran = false;
-        if (mirandaScript != null && !mirandaScript.gameObject.activeSelf) mirandaOdabrana = false;
-        if (giovanniScript != null && !giovanniScript.gameObject.activeSelf) giovanniOdabran = false;
+
+        sashaOdabran = CharacterSelectionData.SashaSelected;
+        mirandaOdabrana = CharacterSelectionData.MirandaSelected;
+        giovanniOdabran = CharacterSelectionData.GiovanniSelected;
 
         // 2. BRISANJE: Oni koji nisu odabrani se potpuno brišu iz memorije
         if (!sashaOdabran)
@@ -142,6 +141,12 @@ public class GameManager : MonoBehaviour
         {
             if (giovanniLevel != null) Destroy(giovanniLevel);
             if (giovanniScript != null) Destroy(giovanniScript.gameObject);
+        }
+
+        GameModeConfigurator configurator = FindFirstObjectByType<GameModeConfigurator>();
+        if (configurator != null)
+        {
+            configurator.ApplyConfiguration(sashaOdabran, mirandaOdabrana, giovanniOdabran);
         }
     }
 
@@ -166,7 +171,7 @@ public class GameManager : MonoBehaviour
         if (mirandaUnavailableUI != null) mirandaUnavailableUI.SetActive(!mirandaOdabrana);
         if (giovanniUnavailableUI != null) giovanniUnavailableUI.SetActive(!giovanniOdabran);
 
-        //LockCursor(true);
+        LockCursor(true);
 
         // 3. Pokretanje uvodne tranzicije
         StartCoroutine(InitialTransitionRoutine());
@@ -224,14 +229,14 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        /*if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
             QuitGame();
-        }*/
+        }
     }
 
 
-    bool IsCharacterAvailable(ActiveCharacter character)
+    public bool IsCharacterAvailable(ActiveCharacter character)
     {
         switch (character)
         {
@@ -270,34 +275,24 @@ public class GameManager : MonoBehaviour
         isTransitioning = true;
         isMenuOpen = true; // Odmah blokiramo druge unose
 
-        // 1. Zabilježi pobjedu i upali odgovarajuću ikonu na slideru
+        // 1. ZABILJEŽI POBJEDU I UPALI KVAČICU/PEČAT NA SLIDERU
         if (winningCharacter == ActiveCharacter.Sasha) { sashaWon = true; if (sashaCompletedIcon != null) sashaCompletedIcon.SetActive(true); }
         else if (winningCharacter == ActiveCharacter.Miranda) { mirandaWon = true; if (mirandaCompletedIcon != null) mirandaCompletedIcon.SetActive(true); }
         else if (winningCharacter == ActiveCharacter.Giovanni) { giovanniWon = true; if (giovanniCompletedIcon != null) giovanniCompletedIcon.SetActive(true); }
 
         DisableAllControls();
 
-        // --- 2. MUNJEVITO (SKORO INSTANT) SPUŠTANJE ZIDA KOD POBJEDE ---
+        // --- 2. MUNJEVITO SPUŠTANJE ZIDA (0.35s) ---
         if (loadingManager != null)
             yield return StartCoroutine(loadingManager.DropWallRoutine(pobjednickiZidBrzina));
 
         HideAllCharacterUIs();
 
+        // Pauza u mraku (2 sekunde tišine prije nego što sve eksplodira!)
         yield return new WaitForSeconds(pobjednickaPauza);
 
 
-        // --- 3. IZNENADNI KAZOO I KONFETI EKSPLOZIJA! ---
-        if (canvasConfetti != null) canvasConfetti.SetActive(true);
-        if (confettiEmitter != null)
-        {
-            confettiEmitter.gameObject.SetActive(true);
-            confettiEmitter.Play();
-        }
-
-        // ... (ostatak koda ostaje isti) ...
-
-
-        // --- 3. IZNENADNI KAZOO ZVUK I KONFETI! ---
+        // --- 3. IZNENADNI KAZOO I KONFETI! ---
         if (loadingAudio != null) loadingAudio.PlayConfetti();
 
         if (canvasConfetti != null) canvasConfetti.SetActive(true);
@@ -307,25 +302,20 @@ public class GameManager : MonoBehaviour
             confettiEmitter.Play();
         }
 
-        // ... (nastavak na 4. korak s Congrats ekranom) ...
+        // Provjeravamo je li netko stradao u igri (npr. Giovanni)
+        bool netkoJeMrtav = (giovanniOdabran && !giovanniWon && giovanniScript != null && giovanniScript.currentState == GiovanniController.GiovanniState.Dead);
 
 
-        // --- 4. PRIKAZ "CONGRATS" EKRANA ---
-        if (UI_CongratsScreen != null)
+        // --- 4. PRIKAZ "CONGRATS" EKRANA (SAMO AKO NITKO NIJE UMRO!) ---
+        if (UI_CongratsScreen != null && !netkoJeMrtav)
         {
-            // A) Palimo glavni Canvas da bi se natpis mogao vidjeti
             Canvas parentCanvas = UI_CongratsScreen.GetComponentInParent<Canvas>(true);
             if (parentCanvas != null) parentCanvas.gameObject.SetActive(true);
 
-            // =========================================================================
-            // KLJUČNA LINIJA: PRISILNO GASIMO SLIDER DOK TRAJE CONGRATS SLAVLJE!
-            // =========================================================================
+            // Prisilno gasimo slider dok traje slavlje
             if (UI_Tranzicija != null) UI_Tranzicija.SetActive(false);
 
-            // B) Palimo praznog roditelja od Congratsa
             UI_CongratsScreen.SetActive(true);
-
-            // C) Palimo sliku unutar roditelja
             foreach (Transform child in UI_CongratsScreen.transform)
             {
                 child.gameObject.SetActive(true);
@@ -349,20 +339,45 @@ public class GameManager : MonoBehaviour
             cg.alpha = 1f;
         }
 
+
         // --- 5. SLAVLJE I PRIRODNI IZLAZAK KONFETA ---
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(1.0f);
         if (confettiEmitter != null) confettiEmitter.Stop(); // Konfeti staju na pola
         yield return new WaitForSeconds(1.5f);
 
-        // --- 6. NAGLI PREKID NATPISA ---
-        if (loadingAudio != null) loadingAudio.PlayFlicker();
-        if (UI_CongratsScreen != null) UI_CongratsScreen.SetActive(false); // Gasimo Congrats!
 
-        yield return new WaitForSeconds(0.5f); // 0.5s čiste tišine u mraku
+        // =========================================================================
+        // 6. KRAJ CIJELE IGRE: IMA LI JOŠ LI KOVA ZA IGRATI?
+        // =========================================================================
+        bool imaJosDostupnih = IsCharacterAvailable(ActiveCharacter.Sasha) ||
+                               IsCharacterAvailable(ActiveCharacter.Miranda) ||
+                               IsCharacterAvailable(ActiveCharacter.Giovanni);
 
-        // --- 7. TRAŽENJE SLJEDEĆEG LIKA I PALJENJE IZBORNIKA ---
+        // --- A) SVI PREOSTALI SU GOTOVI (KRAJ KAMPANJE!) ---
+        if (!imaJosDostupnih)
+        {
+            // 1. Postavljamo most na Kat 2
+            CharacterSelectionData.TargetDeckIndex = 2;
+            CharacterSelectionData.HasTargetDeck = true;
 
-        // A) Algoritam koji traži prvog idućeg slobodnog lika u krug (Sasha -> Miranda -> Giovanni)
+            // Ako su svi preživjeli i pobijedili -> CONGRATS ponosno svijetli na ekranu!
+            // Ako je netko mrtav -> Čekamo 2.5s u mrklom mraku bez Congratsa!
+            yield return new WaitForSeconds(2.5f);
+
+            // 2. Učitavamo Glavni Meni!
+            UnityEngine.SceneManagement.SceneManager.LoadScene(mainMenuSceneName);
+            yield break; // Prekidamo korutinu!
+        }
+
+
+        // --- B) NIJE KRAJ IGRE (Ima još živih likova za igrati) ---
+        if (loadingAudio != null && !netkoJeMrtav) loadingAudio.PlayFlicker();
+        if (UI_CongratsScreen != null) UI_CongratsScreen.SetActive(false);
+
+        yield return new WaitForSeconds(0.5f); // Kratka tišina u mraku
+
+
+        // --- 7. TRAŽENJE SLJEDEĆEG LIKA I PALJENJE SLIDERA ---
         ActiveCharacter nextChar = ActiveCharacter.Odabir;
         ActiveCharacter check = winningCharacter;
 
@@ -372,7 +387,6 @@ public class GameManager : MonoBehaviour
             else if (check == ActiveCharacter.Miranda) check = ActiveCharacter.Giovanni;
             else if (check == ActiveCharacter.Giovanni) check = ActiveCharacter.Sasha;
 
-            // Provjeravamo je li taj lik u igri, živ i DA NIJE VEĆ POBIJEDIO:
             if (IsCharacterAvailable(check))
             {
                 nextChar = check;
@@ -380,22 +394,17 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // B) Provjera: Što ako su SVI likovi već pobijedili? (KRAJ CIJELE IGRE!)
         if (nextChar == ActiveCharacter.Odabir)
         {
-            Debug.Log("ČESTITAMO! Svi likovi su završili svoje levele! KRAJ IGRE!");
-            // Ovdje kasnije možemo dodati završnu špicu ili pobjednički meni!
             yield break;
         }
 
-
-        // C) Postavljamo slider na pobjednika u mraku da se vidi njegov pečat čim se TV upali
+        // Postavljamo slider na pobjednika u mraku da se vidi njegov pečat
         if (tranzicijskiSlider != null)
             tranzicijskiSlider.value = GetCharacterSliderValue(winningCharacter);
         if (UI_EnterTipka != null) UI_EnterTipka.SetActive(false);
 
-
-        // D) Drhtavo paljenje TV-a (Slider izbornika)
+        // Palimo TV
         if (UI_Tranzicija != null)
         {
             if (loadingAudio != null) loadingAudio.PlayComputerStartup();
@@ -419,18 +428,12 @@ public class GameManager : MonoBehaviour
             cg.alpha = 1f;
         }
 
-        // E) Kratka pauza (0.4s) da igrač vidi pobjednički pečat na liku koji je završio
         yield return new WaitForSeconds(0.4f);
 
-
-        // F) AUTOMATSKI POMICAMO SLIDER NA SLJEDEĆEG SLOBODNOG LIKA!
-        // Ova metoda će sama pokrenuti zvukove klikanja i upaliti tipku ENTER čim stigne!
+        // Automatski šaljemo slider na idućeg slobodnog lika!
         MoveSliderTo(nextChar);
     }
 
-    // =========================================================================
-    // GIOVANNI FAIL / PRERANA SMRT (Lignja ga je pojela!)
-    // =========================================================================
     public void TriggerGiovanniFail()
     {
         StartCoroutine(GiovanniFailRoutine());
@@ -442,58 +445,32 @@ public class GameManager : MonoBehaviour
         isTransitioning = true;
         isMenuOpen = true;
 
-        // 1. GIOVANNI JE SLUŽBENO MRTAV!
+        // 1. Giovanni je MRTAV
         if (giovanniScript != null)
         {
             giovanniScript.currentState = GiovanniController.GiovanniState.Dead;
         }
-        giovanniWon = false; // NIJE pobijedio!
+        giovanniWon = false;
 
         DisableAllControls();
 
-        // 2. Munjeviti zid (0.35s)
+        // 2. Zid naglo pada (0.35s)
         if (loadingManager != null)
             yield return StartCoroutine(loadingManager.DropWallRoutine(pobjednickiZidBrzina));
 
         HideAllCharacterUIs();
 
-        // 3. Tišina 2 sekunde
+        // =========================================================================
+        // HLADNA TIŠINA: NEMA KAZOO-A, NEMA KONFETA, NEMA CONGRATSA!
+        // Ekran je u mrklom mraku 2 sekunde.
+        // =========================================================================
         yield return new WaitForSeconds(pobjednickaPauza);
 
-        // 4. I dalje svira Kazoo i padaju konfeti (Crni humor i lažno slavlje!)
-        if (canvasConfetti != null) canvasConfetti.SetActive(true);
-        if (confettiEmitter != null)
-        {
-            confettiEmitter.gameObject.SetActive(true);
-            confettiEmitter.Play();
-        }
+        // 3. PALIMO IKSIĆ PREKO GIOVANNIJA
+        if (giovanniUnavailableUI != null) giovanniUnavailableUI.SetActive(true);
+        if (giovanniCompletedIcon != null) giovanniCompletedIcon.SetActive(false);
 
-        // Prikaz "Congrats" (Igra mu se ruga što je požurio s pištoljem)
-        if (UI_CongratsScreen != null)
-        {
-            Canvas parentCanvas = UI_CongratsScreen.GetComponentInParent<Canvas>(true);
-            if (parentCanvas != null) parentCanvas.gameObject.SetActive(true);
-            if (UI_Tranzicija != null) UI_Tranzicija.SetActive(false);
-
-            UI_CongratsScreen.SetActive(true);
-            foreach (Transform child in UI_CongratsScreen.transform) child.gameObject.SetActive(true);
-
-            if (loadingAudio != null) loadingAudio.PlayFlicker();
-            yield return new WaitForSeconds(1.5f);
-            if (confettiEmitter != null) confettiEmitter.Stop();
-            yield return new WaitForSeconds(1.5f);
-
-            if (loadingAudio != null) loadingAudio.PlayFlicker();
-            UI_CongratsScreen.SetActive(false);
-        }
-
-        yield return new WaitForSeconds(0.5f);
-
-        // 5. NA SLIDERU SE PALI IKSIĆ UMESTO KVAČICE!
-        if (giovanniUnavailableUI != null) giovanniUnavailableUI.SetActive(true); // Crveni iksić!
-        if (giovanniCompletedIcon != null) giovanniCompletedIcon.SetActive(false); // Nema kvačice!
-
-        // 6. Tražimo idućeg živog lika koji nije Dead
+        // 4. Tražimo idućeg živog lika
         ActiveCharacter nextChar = ActiveCharacter.Odabir;
         ActiveCharacter check = ActiveCharacter.Giovanni;
 
@@ -510,10 +487,20 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // Postavljamo slider na Giovannija da igrač vidi IKSIĆ
+        // Ako je Giovanni bio zadnji živi lik (svi ostali su gotovi ili mrtvi) -> Kraj igre!
+        if (nextChar == ActiveCharacter.Odabir)
+        {
+            Debug.Log("<color=red>KRAJ IGRE: Giovanni je stradao i nema više likova!</color>");
+            CharacterSelectionData.TargetDeckIndex = 2;
+            CharacterSelectionData.HasTargetDeck = true;
+            yield return new WaitForSeconds(1.5f);
+            UnityEngine.SceneManagement.SceneManager.LoadScene(mainMenuSceneName);
+            yield break;
+        }
+
+        // Inače otvaramo slider i bježimo na idućeg lika:
         if (tranzicijskiSlider != null) tranzicijskiSlider.value = GetCharacterSliderValue(ActiveCharacter.Giovanni);
 
-        // Palimo TV
         if (UI_Tranzicija != null)
         {
             if (loadingAudio != null) loadingAudio.PlayComputerStartup();
@@ -522,16 +509,7 @@ public class GameManager : MonoBehaviour
         }
 
         yield return new WaitForSeconds(0.4f);
-
-        // Slider automatski bježi s Giovannija na sljedećeg slobodnog lika!
-        if (nextChar != ActiveCharacter.Odabir)
-        {
-            MoveSliderTo(nextChar);
-        }
-        else
-        {
-            Debug.Log("Nema više živih likova! KRAJ IGRE.");
-        }
+        MoveSliderTo(nextChar);
     }
 
     void NavigateMenu(int step)
@@ -988,10 +966,10 @@ public class GameManager : MonoBehaviour
     }
 
 
-    /*private void LockCursor(bool lockState)
+    private void LockCursor(bool lockState)
     {
         Cursor.visible = !lockState;
-    }*/
+    }
 
     void DisableAllControls()
     {
@@ -1046,7 +1024,7 @@ public class GameManager : MonoBehaviour
 
     public void QuitGame()
     {
-        //LockCursor(false);
+        LockCursor(false);
         Application.Quit();
 
         #if UNITY_EDITOR

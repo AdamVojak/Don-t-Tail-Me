@@ -13,6 +13,7 @@ public class Ventilacija_Out_Miranda : MonoBehaviour
     public GameObject prefabMinigun;
     public GameObject prefabArm;
     public GameObject prefabPajser;
+    public GameObject prefabObicanKljuc;
 
     [Header("Animacija padanja")]
     public float trajanjePadanja = 0.3f;
@@ -104,6 +105,7 @@ public class Ventilacija_Out_Miranda : MonoBehaviour
         else if (cekajuciItemTip == 2) odabraniPrefab = prefabMinigun;
         else if (cekajuciItemTip == 3) odabraniPrefab = prefabArm;
         else if (cekajuciItemTip == 5) odabraniPrefab = prefabPajser;
+        else if (cekajuciItemTip == 6) odabraniPrefab = prefabObicanKljuc;
 
         if (odabraniPrefab != null)
         {

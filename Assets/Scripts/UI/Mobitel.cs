@@ -209,6 +209,18 @@ public class MobitelTracker : MonoBehaviour
         }
     }
 
+    public void PostaviNoveCiljeve(Transform[] noviCiljevi)
+    {
+        if (noviCiljevi != null && noviCiljevi.Length > 0)
+        {
+            ciljevi = noviCiljevi;
+            trenutniItemIndex = 0;
+            needsToVisitComputer = false;
+            allItemsFinished = false;
+            Debug.Log($"[MobitelTracker] Učitani novi ciljevi za trenutni Game Mode! Ukupno: {ciljevi.Length}");
+        }
+    }
+
     public bool AreAllItemsFinished()
     {
         return allItemsFinished;

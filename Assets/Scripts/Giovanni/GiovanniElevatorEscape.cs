@@ -4,19 +4,25 @@ using UnityEngine;
 public class GiovanniElevatorEscape : MonoBehaviour
 {
     [Header("Postavke Lifta")]
-    public float visinaDizanja = 15f;    // Koliko visoko lift ide po Y osi
-    public float trajanjeVoznje = 5f;    // Koliko dugo traje vožnja (u sekundama)
-    public float pauzaPrijeKretanja = 0.5f; // Pauza nakon pritiska gumba
+    public float visinaDizanja = 15f;
+    public float trajanjeVoznje = 5f;
+    public float pauzaPrijePaljenja = 0.5f;
 
-    [Header("Audio (Opcionalno)")]
-    public AudioSource elevatorAudio;
+    [Header("Pozicioniranje Igrača")]
+    [Tooltip("Prazan objekt u centru lifta gdje će se Giovanni teleportirati")]
+    public Transform centarLifta; // NOVO: Uvuci točku iz centra lifta!
+
+    [Header("Audio Izvori (2D ili 3D)")]
+    public AudioSource sfxSource;
+    public AudioSource loopSource;
+
+    [Header("Audio Klipovi")]
     public AudioClip elevatorStartSound;
     public AudioClip elevatorMovingSound;
 
     private bool isEscaping = false;
     private GiovanniController giovanni;
 
-    // Ovu metodu poziva KeyPanelController kada se stisne gumb!
     public void PokreniBijegLiftom()
     {
         if (isEscaping) return;
@@ -28,47 +34,68 @@ public class GiovanniElevatorEscape : MonoBehaviour
         isEscaping = true;
         Debug.Log("<color=cyan>LIFT: Giovanni bježi liftom!</color>");
 
-        // 1. PRONALAZIMO GIOVANNIJA I ZAMRZAVAMO MU KRETANJE (Ali ostavljamo rotaciju i svjetlo!)
+        // 1. PRONALAZIMO GIOVANNIJA I ZAMRZAVAMO GA
         giovanni = FindFirstObjectByType<GiovanniController>();
         if (giovanni != null)
         {
-            // Oduzimamo mu brzinu kretanja, ali ostavljamo isControlled = true
-            // tako da i dalje može pomicati miša i paliti bateriju!
+            // Oduzimamo mu brzinu kretanja
             giovanni.moveSpeed = 0f;
             giovanni.sprintMultiplier = 0f;
-        }
 
-        // 2. KRATKA PAUZA PRIJE KRETANJA
-        yield return new WaitForSeconds(pauzaPrijeKretanja);
-
-        if (elevatorAudio != null && elevatorStartSound != null)
-        {
-            elevatorAudio.PlayOneShot(elevatorStartSound);
-            if (elevatorMovingSound != null)
+            // =========================================================
+            // NOVO: SNAPAMO GIOVANNIJA TOČNO U CENTAR LIFTA!
+            // =========================================================
+            if (centarLifta != null)
             {
-                elevatorAudio.clip = elevatorMovingSound;
-                elevatorAudio.loop = true;
-                elevatorAudio.PlayDelayed(elevatorStartSound.length);
+                // Isključujemo CharacterController na milisekundu da dopusti teleportaciju
+                CharacterController cc = giovanni.GetComponent<CharacterController>();
+                if (cc != null) cc.enabled = false;
+
+                // Postavljamo ga na X i Z od centra lifta, a Y ostavljamo njegov (da ne propadne u pod)
+                Vector3 novaPozicija = new Vector3(centarLifta.position.x, giovanni.transform.position.y, centarLifta.position.z);
+                giovanni.transform.position = novaPozicija;
+
+                if (cc != null) cc.enabled = true;
             }
+
+            // Stavljamo Giovannija kao dijete lifta da se diže s njim
+            giovanni.transform.SetParent(this.transform);
         }
 
-        // 3. LIFT SE DIŽE (I GIOVANNI S NJIM)
+        // 2. KRATKA PAUZA NAKON KLIKA GUMBA
+        yield return new WaitForSeconds(pauzaPrijePaljenja);
+
+        // 3. PUŠTAMO ZVUK PALJENJA MOTORA I ČEKAMO DA ZAVRŠI
+        float startSoundDuration = 0f;
+        if (sfxSource != null && elevatorStartSound != null)
+        {
+            sfxSource.PlayOneShot(elevatorStartSound);
+            startSoundDuration = elevatorStartSound.length;
+        }
+
+        // OSIGURAČ: Ako zvuka nema, čekamo minimalno 0.5s da lift ne krene prebrzo
+        if (startSoundDuration <= 0f) startSoundDuration = 0.5f;
+
+        yield return new WaitForSeconds(startSoundDuration);
+
+
+        // 4. PALIMO LOOP ZVUK VOŽNJE I KREĆEMO GORE
+        if (loopSource != null && elevatorMovingSound != null)
+        {
+            loopSource.clip = elevatorMovingSound;
+            loopSource.loop = true;
+            loopSource.Play();
+        }
+
         float elapsed = 0f;
         Vector3 startPos = transform.position;
         Vector3 endPos = startPos + new Vector3(0, visinaDizanja, 0);
-
-        // Ako je Giovanni u liftu, moramo ga učiniti djetetom lifta kako bi se dizao s njim
-        if (giovanni != null)
-        {
-            giovanni.transform.SetParent(this.transform);
-        }
 
         while (elapsed < trajanjeVoznje)
         {
             elapsed += Time.deltaTime;
             float t = elapsed / trajanjeVoznje;
 
-            // Glatko dizanje lifta
             transform.position = Vector3.Lerp(startPos, endPos, t);
 
             yield return null;
@@ -76,12 +103,33 @@ public class GiovanniElevatorEscape : MonoBehaviour
 
         transform.position = endPos;
 
-        if (elevatorAudio != null) elevatorAudio.Stop();
-
-        // 4. POBJEDA! (Zovemo GameManager)
+        // 6. POKREĆEMO POBJEDU U GAME MANAGERU
         if (GameManager.Instance != null)
         {
             GameManager.Instance.WinCurrentCharacter();
         }
+
+        // 7. GLATKI FADE-OUT ZVUKA VOŽNJE
+        if (loopSource != null)
+        {
+            yield return StartCoroutine(FadeOutAudioRoutine(loopSource, 1.5f));
+        }
+    }
+
+    private IEnumerator FadeOutAudioRoutine(AudioSource audioSrc, float fadeDuration)
+    {
+        float startVolume = audioSrc.volume;
+        float elapsed = 0f;
+
+        while (elapsed < fadeDuration)
+        {
+            elapsed += Time.deltaTime;
+            audioSrc.volume = Mathf.Lerp(startVolume, 0f, elapsed / fadeDuration);
+            yield return null;
+        }
+
+        audioSrc.volume = 0f;
+        audioSrc.Stop();
+        audioSrc.volume = startVolume;
     }
 }

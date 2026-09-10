@@ -67,28 +67,5 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7da07579ff4c16846b3ef96ffaf1a69c, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 899327800081542589}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 7da07579ff4c16846b3ef96ffaf1a69c, type: 3}
---- !u!1 &8844008044496709575 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 7da07579ff4c16846b3ef96ffaf1a69c, type: 3}
-  m_PrefabInstance: {fileID: 8538072435069639318}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &899327800081542589
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8844008044496709575}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 921fd37c71ec63e40985fb3679fc5636, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Strelica
-  brzinaRotacije: 240
-  brzinaTrzanja: 7
-  visinaTrzanja: 0.75

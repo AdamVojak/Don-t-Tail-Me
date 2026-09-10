@@ -48,27 +48,16 @@ public class MirandaInventory : MonoBehaviour
     // Univerzalno dodavanje predmeta u inventar preko ID-a
     public void CollectItem(int itemType)
     {
-        switch (itemType)
+        // 1. Pustimo odgovarajući zvuk preuzimanja
+        if (mirandaAudio != null)
         {
-            case 0:
-                imaZutiKljuc = true;
-                if (mirandaAudio != null) mirandaAudio.PlayYellowKeyPickup();
-                Debug.Log("Miranda inventar: Pokupljen Žuti ključ (ID 0)");
-                break;
-            case 4:
-                imaLjubicastiKljuc = true;
-                if (mirandaAudio != null) mirandaAudio.PlayPurpleKeyPickup();
-                Debug.Log("Miranda inventar: Pokupljen Ljubičasti ključ (ID 4)");
-                break;
-            case 6: imaObicanKljuc = true;
-                if (mirandaAudio != null) mirandaAudio.PlayKeyPickup();
-                Debug.Log("Miranda inventar: Pokupljen Običan ključ (ID 6)");
-                break;
-            default:
-                if (mirandaAudio != null) mirandaAudio.PlayGenericPickup();
-                break;
+            if (itemType == 0) mirandaAudio.PlayYellowKeyPickup();
+            else if (itemType == 4) mirandaAudio.PlayPurpleKeyPickup();
+            else if (itemType == 6) mirandaAudio.PlayKeyPickup();
+            else mirandaAudio.PlayGenericPickup();
         }
 
+        // 2. Spremamo predmet u inventar
         switch (itemType)
         {
             case 0:
@@ -104,6 +93,7 @@ public class MirandaInventory : MonoBehaviour
                 break;
         }
     }
+
 
     // Univerzalno uklanjanje / trošenje predmeta iz inventara preko ID-a
     public void RemoveItem(int itemType)

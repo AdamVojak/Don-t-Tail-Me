@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class Kutija_Sasha : MonoBehaviour
 {
+    [Header("Ovisnost o Glavnoj Kutiji (Opcionalno za sporedne kutije)")]
+    public Kutija_Sasha glavnaKutija; // Ovdje na sporednim kutijama povučeš Glavnu Kutiju
+
     [Header("Trigger Objekt")]
     public GameObject triggerObjekt;
 
@@ -21,28 +24,9 @@ public class Kutija_Sasha : MonoBehaviour
 
     private void Awake()
     {
-        if (objectsToControl != null)
-        {
-            for (int i = 0; i < objectsToControl.Length; i++)
-            {
-                if (objectsToControl[i] != null)
-                {
-                    objectsToControl[i].SetActive(false);
-                }
-            }
-        }
-
-        if (scriptsToControl != null)
-        {
-            for (int i = 0; i < scriptsToControl.Length; i++)
-            {
-                if (scriptsToControl[i] != null)
-                {
-                    scriptsToControl[i].enabled = false;
-                }
-            }
-        }
+        ApplyPowerState(false);
     }
+
     void Start()
     {
         if (triggerObjekt != null)
@@ -52,19 +36,17 @@ public class Kutija_Sasha : MonoBehaviour
 
             if (gumbRef == null && leverRef == null)
             {
-                Debug.LogWarning("Na objektu '" + triggerObjekt.name + "' nije pronađena nijedna od 2 trigger skripte!", this);
+                Debug.LogWarning("Na objektu '" + triggerObjekt.name + "' nije pronađena nijedna trigger skripta!", this);
             }
         }
 
-        lastState = GetTriggerState();
+        lastState = IsPowerActive();
         ApplyPowerState(lastState);
     }
 
     void Update()
     {
-        if (triggerObjekt == null) return;
-
-        bool currentState = GetTriggerState();
+        bool currentState = IsPowerActive();
 
         if (currentState != lastState)
         {
@@ -73,9 +55,40 @@ public class Kutija_Sasha : MonoBehaviour
         }
     }
 
+    // =========================================================================
+    // GLAVNA LOGIKA: 2 FAZE (Prije i Poslije Zamke)
+    // =========================================================================
+    public bool IsPowerActive()
+    {
+        // 1. Provjeravamo je li se dogodio nestanak struje u Worms Sobi
+        bool nestanakStrujeSeDogodio = SashaSvjetlaKontroler.Instance != null && SashaSvjetlaKontroler.Instance.upravljanjeAktivno;
+
+        // AKO SE NESTANAK STRUJE DOGODIO -> Struja u EnergyManageru MORA biti veća od 0!
+        if (nestanakStrujeSeDogodio)
+        {
+            bool imaGlobalneStruje = EnergyManager.Instance != null && EnergyManager.Instance.struja > 0;
+            if (!imaGlobalneStruje)
+            {
+                return false; // Nema struje -> gasi sve kutije!
+            }
+        }
+        // (Ako se nestanak struje još NIJE dogodio, gornji uvjet se preskače i struja se ignorira!)
+
+
+        // 2. Je li Glavna kutija upaljena? (Ovo pravilo vrijedi UVIJEK - i prije i poslije zamke!)
+        if (glavnaKutija != null && !glavnaKutija.IsPowerActive())
+        {
+            return false;
+        }
+
+        // 3. Je li prekidač/lever na samoj ovoj kutiji uključen?
+        return GetTriggerState();
+    }
 
     private bool GetTriggerState()
     {
+        if (triggerObjekt == null) return false;
+
         bool isTriggerActive = false;
 
         if (gumbRef != null)

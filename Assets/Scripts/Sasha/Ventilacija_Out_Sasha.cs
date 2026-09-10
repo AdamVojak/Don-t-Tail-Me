@@ -12,6 +12,7 @@ public class Ventilacija_Out_Sasha : MonoBehaviour
     public GameObject prefabGun;      // ID 1
     public GameObject prefabMinigun;  // ID 2
     public GameObject prefabPajser;   // ID 5
+    public GameObject prefabObicanKljuc; // ID 6
 
     //private bool imaItemNaCekanju = false;
     private int cekajuciItemTip;
@@ -54,6 +55,7 @@ public class Ventilacija_Out_Sasha : MonoBehaviour
         if (cekajuciItemTip == 1) odabraniPrefab = prefabGun;
         else if (cekajuciItemTip == 2) odabraniPrefab = prefabMinigun;
         else if (cekajuciItemTip == 5) odabraniPrefab = prefabPajser;
+        else if (cekajuciItemTip == 6) odabraniPrefab = prefabObicanKljuc;
 
         if (odabraniPrefab != null)
         {

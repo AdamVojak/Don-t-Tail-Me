@@ -4,10 +4,13 @@ using UnityEngine.UI;
 public class SashaInventory : MonoBehaviour
 {
     [Header("Posjed itema")]
-    public bool imaZutiKljuc = false;
-    public bool imaGun = false;
-    public bool imaMinigun = false;
-    public bool imaPajser = false;
+    public bool imaZutiKljuc = false;   // ID 0
+    public bool imaGun = false;         // ID 1
+    public bool imaMinigun = false;     // ID 2
+    public bool imaRuku = false;        // ID 3
+    public bool imaPajser = false;      // ID 5
+    public bool imaObicanKljuc = false; // ID 6
+
     private SustavOruzja sustavOruzja;
     private bool isFlashing = false;
 
@@ -19,8 +22,22 @@ public class SashaInventory : MonoBehaviour
     public Image[] itemImages;
     public GameObject[] selectionFrames;
 
-    [Header("Sličice (Sprites)")]
-    public Sprite[] itemSprites;
+    // =========================================================
+    // NOVO: CENTRALNA BAZA SVIH PREDMETA
+    // =========================================================
+    [System.Serializable]
+    public struct ItemBaza
+    {
+        public string naziv; // Samo da tebi bude lakše čitati u Inspectoru
+        public int itemID;
+        public Sprite itemSprite;
+    }
+
+    [Header("Baza Svih Predmeta")]
+    public ItemBaza[] sviPredmeti;
+
+    // Dinamične varijable koje skripta sama postavlja ovisno o modu
+    private int[] currentSlotIDs = new int[3];
 
     private int selectedIndex = 0;
     private bool isUIOpen = false;
@@ -35,11 +52,45 @@ public class SashaInventory : MonoBehaviour
     {
         if (sashaAudio == null) sashaAudio = GetComponent<SashaAudio>();
         if (inventoryUIPanel != null) inventoryUIPanel.SetActive(false);
-        imaZutiKljuc = false;
-        imaGun = false;
-        imaMinigun = false;
-}
 
+        imaZutiKljuc = false; imaGun = false; imaMinigun = false;
+        imaPajser = false; imaObicanKljuc = false; imaRuku = false;
+
+        // =========================================================
+        // SKRIPTA SADA BIRA SAMO ID-ove! (Sličice će naći sama)
+        // =========================================================
+        if (GameModeConfigurator.Instance != null)
+        {
+            var mode = GameModeConfigurator.Instance.activeMode;
+
+            if (mode == GameModeConfigurator.GameMode.SashaAndGiovanni)
+            {
+                currentSlotIDs = new int[] { 5, 6, 1 }; // Pajser, ObicanKljuc, Gun
+            }
+            else if (mode == GameModeConfigurator.GameMode.SashaAndMiranda)
+            {
+                currentSlotIDs = new int[] { 0, 6, 3 }; // ZutiKljuc, ObicanKljuc, Ruka
+            }
+            else
+            {
+                currentSlotIDs = new int[] { 0, 1, 5 }; // ZutiKljuc, Gun, Pajser (Default)
+            }
+        }
+        else
+        {
+            currentSlotIDs = new int[] { 0, 1, 5 };
+        }
+    }
+
+    // Pomoćna metoda koja traži sličicu u bazi prema ID-u
+    private Sprite GetSpriteForID(int id)
+    {
+        foreach (var item in sviPredmeti)
+        {
+            if (item.itemID == id) return item.itemSprite;
+        }
+        return null; // Ako ne nađe, vraća prazno
+    }
 
     public void OpenUI()
     {
@@ -65,13 +116,11 @@ public class SashaInventory : MonoBehaviour
         UpdateUI();
     }
 
-
     public void CloseUI()
     {
         isUIOpen = false;
         inventoryUIPanel.SetActive(false);
     }
-
 
     public void HandleNavigation()
     {
@@ -92,25 +141,23 @@ public class SashaInventory : MonoBehaviour
         if (previousIndex != selectedIndex)
         {
             if (sashaAudio != null) sashaAudio.PlayNavClick();
-
             UpdateUI();
         }
     }
-
 
     private void UpdateUI()
     {
         for (int i = 0; i < 3; i++)
         {
-            // NOVO MAPIRANJE: 0 = Žuti ključ (ID 0), 1 = Gun (ID 1), 2 = Pajser (ID 5)
-            int checkID = (i == 0) ? 0 : (i == 1 ? 1 : 5);
+            int checkID = currentSlotIDs[i];
 
-            if (itemSprites.Length > i && itemSprites[i] != null)
+            // Skripta sama pronalazi pravu sličicu za ovaj ID!
+            Sprite pronadjeniSprite = GetSpriteForID(checkID);
+            if (pronadjeniSprite != null && itemImages.Length > i && itemImages[i] != null)
             {
-                itemImages[i].sprite = itemSprites[i];
+                itemImages[i].sprite = pronadjeniSprite;
             }
 
-            // Provjeravamo točan ID umjesto indeksa 'i'
             if (HasItem(checkID))
             {
                 itemImages[i].color = Color.white;
@@ -129,7 +176,7 @@ public class SashaInventory : MonoBehaviour
 
     public bool TrySendSelectedItem()
     {
-        int itemIDToSend = (selectedIndex == 0) ? 0 : (selectedIndex == 1 ? 1 : 5);
+        int itemIDToSend = currentSlotIDs[selectedIndex];
 
         if (!HasItem(itemIDToSend))
         {
@@ -156,7 +203,8 @@ public class SashaInventory : MonoBehaviour
 
             if (itemURuciSpriteRenderer != null)
             {
-                itemURuciSpriteRenderer.sprite = itemSprites[selectedIndex];
+                // Skripta sama pronalazi sličicu i za ruku!
+                itemURuciSpriteRenderer.sprite = GetSpriteForID(itemIDToSend);
                 itemURuciSpriteRenderer.gameObject.SetActive(true);
             }
 
@@ -203,13 +251,14 @@ public class SashaInventory : MonoBehaviour
         UpdateUI();
     }
 
-
     public void CollectItem(int itemType)
     {
         if (itemType == 0) { imaZutiKljuc = true; Debug.Log("Sasha je pokupio Žuti ključ."); }
         else if (itemType == 1) { imaGun = true; Debug.Log("Sasha je pokupio Gun."); }
         else if (itemType == 2) { imaMinigun = true; Debug.Log("Sasha je pokupio Minigun."); }
+        else if (itemType == 3) { imaRuku = true; Debug.Log("Sasha je pokupio Ruku."); }
         else if (itemType == 5) { imaPajser = true; Debug.Log("Sasha je pokupio Pajser."); }
+        else if (itemType == 6) { imaObicanKljuc = true; Debug.Log("Sasha je pokupio Običan ključ."); }
         if (isUIOpen) UpdateUI();
     }
 
@@ -218,16 +267,20 @@ public class SashaInventory : MonoBehaviour
         if (itemType == 0) return imaZutiKljuc;
         if (itemType == 1) return imaGun;
         if (itemType == 2) return imaMinigun;
+        if (itemType == 3) return imaRuku;
         if (itemType == 5) return imaPajser;
+        if (itemType == 6) return imaObicanKljuc;
         return false;
     }
 
     public void RemoveItem(int itemType)
     {
         if (itemType == 0) imaZutiKljuc = false;
-        else if (itemType == 1) imaGun = false; 
+        else if (itemType == 1) imaGun = false;
         else if (itemType == 2) imaMinigun = false;
+        else if (itemType == 3) imaRuku = false;
         else if (itemType == 5) imaPajser = false;
+        else if (itemType == 6) imaObicanKljuc = false;
         if (isUIOpen) UpdateUI();
     }
 }
